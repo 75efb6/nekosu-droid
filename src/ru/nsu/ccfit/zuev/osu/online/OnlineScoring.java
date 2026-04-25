@@ -49,7 +49,9 @@ public class OnlineScoring {
         secondPanel = new OnlinePanel();
         secondPanel.setInfo();
         String avatarURL = OnlineManager.getInstance().getAvatarURL();
+        String bannerUrl = OnlineManager.getInstance().getProfileBannerURL();
         secondPanel.setAvatar(avatarLoaded && !avatarURL.isEmpty() ? avatarURL : null);
+        secondPanel.setBanner(bannerLoaded && !bannerUrl.isEmpty() ? bannerUrl : null);
         return secondPanel;
     }
 
