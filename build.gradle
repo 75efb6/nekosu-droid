@@ -30,7 +30,7 @@ def getReleaseVersionCode() {
 }
 
 def getReleaseVersionName() {
-    def baseline = '1.0.1'
+    def baseline = '1.0.2'
     def versionName = baseline + new Date().format('(yyMMdd)')
     println('versionName: ' + versionName)
     return versionName
@@ -152,7 +152,7 @@ android {
     android.applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
             def releaseTime = new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
-            def fileName = "osu!droid-${defaultConfig.versionName}-${variant.buildType.name}-${releaseTime}.apk"
+            def fileName = "nekosu!droid-${defaultConfig.versionName}.apk"
             outputFileName = fileName
         }
     }
