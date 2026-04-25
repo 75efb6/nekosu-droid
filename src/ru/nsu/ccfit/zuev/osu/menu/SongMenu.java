@@ -672,6 +672,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
             panel.detachSelf();
             panel.setPosition(randomMap.getX() + randomMap.getWidthScaled() - 18, Config.getRES_HEIGHT() - Utils.toRes(110));
             OnlineScoring.getInstance().loadAvatar(false);
+            OnlineScoring.getInstance().loadBanner(false);
             frontLayer.attachChild(panel);
 
             scoringSwitcher = new AnimSprite(Utils.toRes(5), Utils.toRes(10), 0,
