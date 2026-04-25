@@ -436,6 +436,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
         onlinePanel.setInfo()
         onlinePanel.setAvatar()
+        onlinePanel.setBanner()
     }
 
     private fun updateBackground(path: String?)

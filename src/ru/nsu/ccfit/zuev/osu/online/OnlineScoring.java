@@ -24,6 +24,7 @@ public class OnlineScoring {
     private OnlinePanel panel = null;
     private OnlinePanel secondPanel = null;
     private boolean avatarLoaded = false;
+    private boolean bannerLoaded = false;
     private final Snackbar snackbar = Snackbar.make(
             GlobalManager.getInstance().getMainActivity().getWindow().getDecorView(),
             "", 10000);
@@ -82,6 +83,17 @@ public class OnlineScoring {
         RoomScene.updateOnlinePanel();
     }
 
+    public void updatePanelBanner() {
+        final String bannerUrl = OnlineManager.getInstance().getProfileBannerURL();
+        String texname = bannerLoaded && !bannerUrl.isEmpty() ? bannerUrl : null;
+        panel.setBanner(texname);
+        if (secondPanel != null)
+            secondPanel.setBanner(texname);
+
+        LobbyScene.updateOnlinePanel();
+        RoomScene.updateOnlinePanel();
+    }
+
     public void login() {
         if (!OnlineManager.getInstance().isStayOnline())
             return;
@@ -113,6 +125,7 @@ public class OnlineScoring {
                     updatePanels();
                     OnlineManager.getInstance().setStayOnline(true);
                     loadAvatar(true);
+                    loadBanner(true);
                 } else {
                     setPanelMessage("Cannot log in", OnlineManager.getInstance().getFailMessage());
                     OnlineManager.getInstance().setStayOnline(false);
@@ -233,7 +246,28 @@ public class OnlineScoring {
         });
     }
 
+    public void loadBanner(final boolean both) {
+        if (!OnlineManager.getInstance().isStayOnline()) return;
+        final String bannerUrl = OnlineManager.getInstance().getProfileBannerURL();
+        if (bannerUrl == null || bannerUrl.length() == 0)
+            return;
+
+        Execution.async(() -> {
+            synchronized (onlineMutex) {
+                bannerLoaded = OnlineManager.getInstance().loadAvatarToTextureManager(bannerUrl);
+                if (both)
+                    updatePanelBanner();
+                else if (secondPanel != null)
+                    secondPanel.setBanner(bannerLoaded ? bannerUrl : null);
+            }
+        });
+    }
+
     public boolean isAvatarLoaded() {
+        return avatarLoaded;
+    }
+
+    public boolean isBannerLoaded() {
         return avatarLoaded;
     }
 }

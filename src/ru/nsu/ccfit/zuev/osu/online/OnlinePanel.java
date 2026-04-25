@@ -125,19 +125,18 @@ public class OnlinePanel extends Entity {
 
     // ✅ NEW: banner setter
     public void setBanner() {
-        var url = OnlineManager.getInstance().getProfileBannerURL();
+        var bannerUrl = OnlineManager.getInstance().getProfileBannerURL();
+        var textureName = OnlineScoring.getInstance().isBannerLoaded() && !bannerUrl.isEmpty() ? bannerUrl : null;
+        setBanner(textureName);
+    }
 
+    void setBanner(final String texname) {
         if (banner != null)
             banner.detachSelf();
         banner = null;
 
-        if (url == null || url.isEmpty()) return;
-
-        // ✅ LOAD it here (same as avatar system)
-        OnlineManager.getInstance().loadAvatarToTextureManager(url);
-
-        // ✅ GET it same way avatar does
-        TextureRegion tex = ResourceManager.getInstance().getAvatarTextureIfLoaded(url);
+        if (texname == null || texname.isEmpty()) return;
+        TextureRegion tex = ResourceManager.getInstance().getAvatarTextureIfLoaded(texname);
         if (tex == null) {
             Debug.i("Banner not loaded yet");
             return;
@@ -187,7 +186,6 @@ public class OnlinePanel extends Entity {
         messageLayer.detachSelf();
         onlineLayer.detachSelf();
         attachChild(onlineLayer);
-        setBanner();
     }
 
     public void setAvatar() {

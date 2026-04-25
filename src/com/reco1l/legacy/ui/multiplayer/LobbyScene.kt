@@ -248,6 +248,7 @@ object LobbyScene : Scene()
 
         onlinePanel.setInfo()
         onlinePanel.setAvatar()
+        onlinePanel.setBanner()
     }
 
     fun updateList()
