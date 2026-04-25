@@ -1,0 +1,194 @@
+buildscript {
+    ext{
+        kotlin_version = '1.9.22'
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.2'
+        classpath 'com.google.gms:google-services:4.4.1'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        maven { url 'https://jitpack.io' }
+        google()
+        mavenCentral()
+    }
+}
+
+def getReleaseVersionCode() {
+    def versionCode = (int) (new Date().getTime() / 1000)
+    println('versionCode: ' + versionCode)
+    return versionCode
+}
+
+def getReleaseVersionName() {
+    def baseline = '1.0.1'
+    def versionName = baseline + new Date().format('(yyMMdd)')
+    println('versionName: ' + versionName)
+    return versionName
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = new File(rootDir.getAbsolutePath(), 'local.properties')
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.newDataInputStream())
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'kotlin-android'
+
+android {
+    namespace 'ru.nsu.ccfit.zuev.osuplus'
+    compileSdk 34
+    ndkVersion '22.1.7171670'
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 29
+        versionCode getReleaseVersionCode()
+        versionName getReleaseVersionName()
+        ndk {
+            abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+        }
+    }
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/proguard/coroutines.pro']
+        }
+    }
+
+
+    signingConfigs {
+        debug {
+            storeFile file('debug.jks')
+            storePassword "debug.dgsrz.com"
+            keyAlias 'debug.github.dgsrz.com'
+            keyPassword 'debug.github.dgsrz.com'
+        }
+
+        release {
+            try {
+                storeFile file(localProperties.get("RELEASE_KEYSTORE", "debug.jks"))
+                storePassword localProperties.get('RELEASE_KEYSTORE_PASSWORD', "debug.dgsrz.com")
+                keyAlias localProperties.get('RELEASE_KEY_ALIAS', "debug.github.dgsrz.com")
+                keyPassword localProperties.get('RELEASE_KEY_PASSWORD', "debug.github.dgsrz.com")
+            } catch (ignored) {
+                throw new InvalidUserDataException('You should define RELEASE_KEYSTORE_PASSWORD and RELEASE_KEY_PASSWORD in local.properties.', ignored)
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            resValue "string", "app_name", "nekosu!droid-debug"
+            applicationIdSuffix '.nekodebug'
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
+        }
+
+        release {
+            resValue "string", "app_name", "nekosu!droid"
+            applicationIdSuffix '.nekorelease'
+//            minifyEnabled true
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg', 'proguard-kotlin.pro'
+            signingConfig signingConfigs.release
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
+        }
+
+        pre_release {
+            matchingFallbacks = ['release']
+            applicationIdSuffix '.nekorelease'
+            resValue "string", "app_name", "nekosu!droid"
+//            minifyEnabled true
+//            debuggable true
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg', 'proguard-kotlin.pro'
+            signingConfig signingConfigs.release
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
+        }
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
+        }
+        androidTest.setRoot('tests')
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    useLibrary 'org.apache.http.legacy'
+    lint {
+        abortOnError true
+        disable 'MissingTranslation', 'ExpiredTargetSdkVersion', 'ProtectedPermissions', 'AppLinkUrlError'
+        ignoreWarnings true
+    }
+    buildFeatures {
+        buildConfig true
+    }
+
+
+    android.applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach { output ->
+            def releaseTime = new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
+            def fileName = "osu!droid-${defaultConfig.versionName}-${variant.buildType.name}-${releaseTime}.apk"
+            outputFileName = fileName
+        }
+    }
+}
+
+dependencies {
+    implementation project(':AndEngine')
+    implementation project(':andnext_markdown')
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.preference:preference:1.2.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'com.google.firebase:firebase-crashlytics:18.6.2'
+    implementation 'com.google.firebase:firebase-analytics:21.5.1'
+    implementation 'com.google.firebase:firebase-messaging:23.4.1'
+
+    // implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    // implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    // implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    //implementation 'com.github.tbruyelle:rxpermissions:0.12'
+    implementation 'pub.devrel:easypermissions:3.0.0'
+    implementation 'net.lingala.zip4j:zip4j:2.11.5'
+
+    implementation 'com.github.EdrowsLuo:osudroidstrings:bd9507b289'
+    implementation 'com.github.EdrowsLuo.EdlGameFramework:EdlJavaExt:d91c53fcff'
+    implementation 'com.github.EdrowsLuo.EdlGameFramework:EdlOsbSupport:d91c53fcff'
+    implementation project(path: ':LibBASS')
+
+    implementation 'commons-io:commons-io:2.15.1'
+    implementation 'com.github.delight-im:Android-AdvancedWebView:v3.2.1'
+
+    // Multiplayer
+    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3')
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.9.22'
+    implementation ('io.socket:socket.io-client:2.1.0') {
+        exclude group: 'org.json', module: 'json'
+    }
+}
