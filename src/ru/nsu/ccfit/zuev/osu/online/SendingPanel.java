@@ -102,7 +102,7 @@ public class SendingPanel extends Rectangle {
         placeText(accRect, accText);
         attachChild(accText);
 
-        scoreText = new ChangeableText(0, 0, font, "99 123 456 789\n(+99 999 999)", HorizontalAlign.CENTER, 100);
+        scoreText = new ChangeableText(0, 0, font, "99 123 456 789pp\n(+99 999 999pp)", HorizontalAlign.CENTER, 100);
         placeText(scoreRect, scoreText);
         attachChild(scoreText);
     }
@@ -161,11 +161,11 @@ public class SendingPanel extends Rectangle {
         setRectColor(accRect, newAcc - accuracy);
 
         if (newScore == score)
-            scoreText.setText(String.format("%s", formatScore(score)));
+            scoreText.setText(String.format("%spp", formatScore(score)));
         else if (newScore < score)
-            scoreText.setText(String.format("%s\n(%s)", formatScore(newScore), formatScore(newScore - score)));
+            scoreText.setText(String.format("%spp\n(%spp)", formatScore(newScore), formatScore(newScore - score)));
         else
-            scoreText.setText(String.format("%s\n(+%s)", formatScore(newScore), formatScore(newScore - score)));
+            scoreText.setText(String.format("%spp\n(+%spp)", formatScore(newScore), formatScore(newScore - score)));
         placeText(scoreRect, scoreText);
         setRectColor(scoreRect, newScore - score);
 
