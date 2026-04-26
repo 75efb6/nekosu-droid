@@ -136,7 +136,7 @@ public class OnlinePanel extends Entity {
         banner = null;
 
         if (texname == null || texname.isEmpty()) return;
-        TextureRegion tex = ResourceManager.getInstance().getAvatarTextureIfLoaded(texname);
+        TextureRegion tex = ResourceManager.getInstance().getBannerTextureIfLoaded(texname);
         if (tex == null) {
             Debug.i("Banner not loaded yet");
             return;

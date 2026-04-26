@@ -613,9 +613,11 @@ public class ResourceManager {
     public TextureRegion getAvatarTextureIfLoaded(final String avatarURL) {
         var region = getTextureIfLoaded(MD5Calculator.getStringMD5(avatarURL));
 
-        if (region == null) {
-            region = getTextureIfLoaded(MD5Calculator.getStringMD5(OnlineManager.defaultAvatarURL));
-        }
+        return region;
+    }
+
+    public TextureRegion getBannerTextureIfLoaded(final String bannerUrl) {
+        var region = getTextureIfLoaded(MD5Calculator.getStringMD5(bannerUrl));
 
         return region;
     }

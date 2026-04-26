@@ -256,7 +256,7 @@ public class OnlineScoring {
 
         Execution.async(() -> {
             synchronized (onlineMutex) {
-                bannerLoaded = OnlineManager.getInstance().loadAvatarToTextureManager(bannerUrl);
+                bannerLoaded = OnlineManager.getInstance().loadBannerToTextureManager(bannerUrl);
                 if (both)
                     updatePanelBanner();
                 else if (secondPanel != null)

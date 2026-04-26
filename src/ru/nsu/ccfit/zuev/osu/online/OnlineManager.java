@@ -338,25 +338,6 @@ public class OnlineManager {
             if (ResourceManager.getInstance().getAvatarTextureIfLoaded(avatarURL) != null) {
                 return true;
             }
-        } else {
-            // Avatar not found, download the default avatar
-            String defaultAvatarFilename = MD5Calculator.getStringMD5(defaultAvatarURL);
-            File avatarFile = new File(Config.getCachePath(), defaultAvatarFilename);
-            OnlineFileOperator.downloadFile(defaultAvatarURL, avatarFile.getAbsolutePath());
-
-            bitmap = loadAvatarToBitmap(avatarFile);
-            if (bitmap != null) {
-                imageWidth = bitmap.getWidth();
-                imageHeight = bitmap.getHeight();
-            }
-
-            if (imageWidth * imageHeight > 0) {
-                //Avatar has been cached locally
-                ResourceManager.getInstance().loadHighQualityFile(defaultAvatarFilename, avatarFile);
-                if (ResourceManager.getInstance().getAvatarTextureIfLoaded(defaultAvatarURL) != null) {
-                    return true;
-                }
-            }
         }
 
         Debug.i("Success!");
@@ -372,6 +353,49 @@ public class OnlineManager {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             return BitmapFactory.decodeFile(avatarFile.getPath());
+        } catch (NullPointerException e) {
+            return null;
+        }
+    }
+
+    public boolean loadBannerToTextureManager(String bannerUrl) {
+        if (bannerUrl == null || bannerUrl.length() == 0) return false;
+
+        String filename = MD5Calculator.getStringMD5(bannerUrl);
+        Debug.i("Loading banner from " + bannerUrl);
+        Debug.i("filename = " + filename);
+        File picfile = new File(Config.getCachePath(), filename);
+        OnlineFileOperator.downloadFile(bannerUrl, picfile.getAbsolutePath(), true);
+
+        var bitmap = loadBannerToBitmap(picfile);
+        int imageWidth = 0, imageHeight = 0;
+
+        if (bitmap != null) {
+            imageWidth = bitmap.getWidth();
+            imageHeight = bitmap.getHeight();
+        }
+
+        if (imageWidth * imageHeight > 0) {
+            // Avatar has been cached locally
+            ResourceManager.getInstance().loadHighQualityFile(filename, picfile);
+            if (ResourceManager.getInstance().getBannerTextureIfLoaded(bannerUrl) != null) {
+                return true;
+            }
+        }
+
+        Debug.i("Success!");
+        return false;
+    }
+
+    private Bitmap loadBannerToBitmap(File bannerFile) {
+        if (!bannerFile.exists()) {
+            return null;
+        }
+
+        try {
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            return BitmapFactory.decodeFile(bannerFile.getPath());
         } catch (NullPointerException e) {
             return null;
         }
