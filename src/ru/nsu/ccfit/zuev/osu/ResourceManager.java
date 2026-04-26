@@ -156,7 +156,15 @@ public class ResourceManager {
             }
             if (skinjson == null) skinjson = new JSONObject();
             SkinJsonReader.getReader().supplyJson(skinjson);
-        }
+        }// else {
+//            JSONObject skinjson = null;
+//            try {
+//                skinjson = new JSONObject(OsuSkin.readFull(new File(context.getAssets().toString(), "default-skin.json")));
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//            SkinJsonReader.getReader().supplyJson(skinjson);
+//        }
         final Map<String, File> availableFiles = new HashMap<>();
         if (skinFiles != null) {
             for (final File f : skinFiles) {
