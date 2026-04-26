@@ -26,7 +26,7 @@ public class OnlineManager {
     public static final String hostname = "droid.neko.org.es";
     public static final String endpoint = "https://" + hostname + "/api/";
     public static final String updateEndpoint = endpoint + "update.php?lang=";
-    private static final String onlineVersion = "3";
+    private static final String onlineVersion = "2";
 
     public static final OkHttpClient client = new OkHttpClient();
 
@@ -131,6 +131,7 @@ public class OnlineManager {
         ArrayList<String> response = sendRequest(post, endpoint + "login.php");
 
         if (response == null) {
+            if (failMessage != null) { return false; }
             failMessage = "Cannot connect to server";
             return false;
         }
