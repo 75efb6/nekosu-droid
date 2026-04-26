@@ -26,8 +26,7 @@ public class OnlineManager {
     public static final String hostname = "droid.neko.org.es";
     public static final String endpoint = "https://" + hostname + "/api/";
     public static final String updateEndpoint = endpoint + "update.php?lang=";
-    public static final String defaultAvatarURL = "https://" + hostname + "/avatars/default";
-    private static final String onlineVersion = "1";
+    private static final String onlineVersion = "2";
 
     public static final OkHttpClient client = new OkHttpClient();
 
