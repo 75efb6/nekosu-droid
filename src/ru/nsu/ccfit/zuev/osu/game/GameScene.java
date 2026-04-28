@@ -350,6 +350,11 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             return false;
         }
 
+        if (!beatmapData.getMD5().equals(track.getMD5())) {
+            ToastLogger.showText("Invalid beatmap file.", true);
+            return false;
+        }
+
         if (beatmapData == null) {
             return false;
         }
