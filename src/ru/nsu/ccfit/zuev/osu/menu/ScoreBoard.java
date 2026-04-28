@@ -204,8 +204,8 @@ public class ScoreBoard extends Entity implements ScrollDetector.IScrollDetector
                     scores = OnlineManager.getInstance().getTop(trackFile, track.getMD5());
                 } catch (OnlineManager.OnlineManagerException e) {
                     Debug.e("Cannot load scores " + e.getMessage());
-                    
-                    if (isActive()) 
+
+                    if (isActive())
                         loadingText.setText("Cannot load scores");
                     return;
                 }
@@ -225,7 +225,7 @@ public class ScoreBoard extends Entity implements ScrollDetector.IScrollDetector
 
                     String[] data = scores.get(i).split("\\s+");
 
-                    if (data.length < 8 || data.length > 9) {
+                    if (data.length < 8 || data.length > 10) {
                         continue;
                     }
 
@@ -240,8 +240,10 @@ public class ScoreBoard extends Entity implements ScrollDetector.IScrollDetector
                     var mark = data[4];
                     var modString = data[5];
                     var accuracy = GameHelper.Round(Integer.parseInt(data[6]) / 1000f, 2);
-                    var avatarURL = data[7];
+                    var avatarURL = "https://" + OnlineManager.hostname + "/avatars/1";
+                    var bannerURL = "https://" + OnlineManager.hostname + "/banners/user/1";
                     var beatmapRank = isPersonalBest && !isInLeaderboard ? Integer.parseInt(data[8]) : (i + 1);
+
 
                     final String titleStr = "#"
                             + beatmapRank
@@ -267,10 +269,10 @@ public class ScoreBoard extends Entity implements ScrollDetector.IScrollDetector
                         return;
 
                     if (isPersonalBest)
-                        attachChild(new ScoreItem(avatarExecutor, titleStr, accStr, mark, true, scoreID, avatarURL, playerName, true), 0);
+                        attachChild(new ScoreItem(avatarExecutor, titleStr, accStr, mark, true, scoreID, avatarURL, bannerURL, playerName, true), 0);
 
                     if (isInLeaderboard) {
-                        attachChild(new ScoreItem(avatarExecutor, titleStr, accStr, mark, true, scoreID, avatarURL, playerName, false));
+                        attachChild(new ScoreItem(avatarExecutor, titleStr, accStr, mark, true, scoreID, avatarURL, bannerURL, playerName, false));
 
                         ScoreBoardItem item = new ScoreBoardItem();
                         item.set(beatmapRank, playerName, combo, currentTotalScore, scoreID);
@@ -337,7 +339,7 @@ public class ScoreBoard extends Entity implements ScrollDetector.IScrollDetector
                         if (!isActive())
                             return;
 
-                        attachChild(new ScoreItem(avatarExecutor, titleStr, accStr, scoreSet.getString(scoreSet.getColumnIndexOrThrow("mark")), false, scoreID, null, null, false));
+                        attachChild(new ScoreItem(avatarExecutor, titleStr, accStr, scoreSet.getString(scoreSet.getColumnIndexOrThrow("mark")), false, scoreID, null, null, null, false));
 
                         var item = new ScoreBoardItem();
                         item.set(i + 1, scoreSet.getString(scoreSet.getColumnIndexOrThrow("playername")), scoreSet.getInt(scoreSet.getColumnIndexOrThrow("combo")), scoreSet.getInt(scoreSet.getColumnIndexOrThrow("score")), scoreID);
@@ -546,23 +548,20 @@ public class ScoreBoard extends Entity implements ScrollDetector.IScrollDetector
 
     private class ScoreItem extends Sprite {
 
-
         private float dx = 0;
-
         private float dy = 0;
 
         private TextureRegion avatarTexture;
+        private TextureRegion bannerTexture;
+        private final Entity bannerLayer = new Entity();
 
         private Runnable avatarTask;
 
         private final ExecutorService avatarExecutor;
 
         private final String username;
-
         private final int scoreID;
-
         private final boolean showOnline;
-        
 
         private ScoreItem(
                 ExecutorService avatarExecutor,
@@ -572,22 +571,30 @@ public class ScoreBoard extends Entity implements ScrollDetector.IScrollDetector
                 boolean showOnline,
                 int scoreID,
                 String avaURL,
+                String banURL,
                 String username,
                 boolean isPersonalBest) {
-            super(-150, 40,  ResourceManager.getInstance().getTexture("menu-button-background").deepCopy());
+
+            super(
+                    -150,
+                    40,
+                    ResourceManager.getInstance()
+                            .getTexture("menu-button-background")
+                            .deepCopy()
+            );
 
             this.avatarExecutor = avatarExecutor;
             this.showOnline = showOnline;
             this.username = username;
             this.scoreID = scoreID;
 
-            var shouldLoadAvatar = showOnlineScores
-                    && Config.getLoadAvatar()
-                    && avaURL != null
-                    && avatarExecutor != null;
+            var shouldLoadAvatar =
+                    showOnlineScores
+                            && avaURL != null
+                            && avatarExecutor != null;
 
             int baseX = shouldLoadAvatar ? 90 : 0;
-            var baseY = 0f;
+            float baseY = 0f;
 
             if (isPersonalBest) {
 
@@ -595,12 +602,18 @@ public class ScoreBoard extends Entity implements ScrollDetector.IScrollDetector
                         getWidth() / 2f,
                         0f,
                         ResourceManager.getInstance().getFont("strokeFont"),
-                        "Personal Best");
+                        "Personal Best"
+                );
 
                 attachChild(topText);
+
                 baseY = topText.getHeight() + 5;
 
-                topText.setPosition((getWidth() + baseX - topText.getWidth()) / 2f, 20f);
+                topText.setPosition(
+                        (getWidth() + baseX - topText.getWidth()) / 2f,
+                        20f
+                );
+
                 topText.setScale(0.8f);
 
                 setHeight(baseY + 120);
@@ -611,113 +624,256 @@ public class ScoreBoard extends Entity implements ScrollDetector.IScrollDetector
 
             setScale(0.65f);
             setWidth(724 * 1.1f);
+
             camY = -146;
 
             setColor(0, 0, 0);
             setAlpha(0.5f);
 
+            attachChild(bannerLayer);
+
             float finalBaseY = baseY;
+
             avatarTask = shouldLoadAvatar ? new Runnable() {
 
                 @Override
                 public void run() {
-                    var texture = ResourceManager.getInstance().getTexture("emptyavatar");
 
-                    if (!avatarExecutor.isShutdown() && OnlineManager.getInstance().loadAvatarToTextureManager(avaURL)) {
-                        avatarTexture = ResourceManager.getInstance().getAvatarTextureIfLoaded(avaURL);
+                    var atexture =
+                            ResourceManager.getInstance()
+                                    .getTexture("emptyavatar");
 
-                        if (avatarTexture != null)
-                            texture = avatarTexture;
+                    TextureRegion btexture = null;
+
+                    boolean avatarLoaded = false;
+                    boolean bannerLoaded = false;
+
+                    if (!avatarExecutor.isShutdown()) {
+
+                        avatarLoaded =
+                                OnlineManager.getInstance()
+                                        .loadAvatarToTextureManager(avaURL);
+
+                        bannerLoaded =
+                                OnlineManager.getInstance()
+                                        .loadBannerToTextureManager(banURL);
+                    }
+
+                    if (avatarLoaded || bannerLoaded) {
+
+                        avatarTexture =
+                                ResourceManager.getInstance()
+                                        .getAvatarTextureIfLoaded(avaURL);
+
+                        bannerTexture =
+                                ResourceManager.getInstance()
+                                        .getBannerTextureIfLoaded(banURL);
+
+                        if (avatarTexture != null) {
+                            atexture = avatarTexture;
+                        }
+
+                        if (bannerTexture != null) {
+                            btexture = bannerTexture;
+                        }
                     }
 
                     if (getParent() == null) {
                         onDetached();
                         return;
                     }
-                    attachChild(new Sprite(55, finalBaseY + 12, 90, 90, texture));
 
-                    if (currentAvatarTask == this)
+                    TextureRegion finalBtexture = btexture;
+
+                    TextureRegion finalAtexture = atexture;
+                    Execution.updateThread(() -> {
+
+                        if (getParent() == null) {
+                            return;
+                        }
+
+                        // Banner background
+                        if (finalBtexture != null) {
+                                int width = (int) getWidth() - 68;
+                                int height = 90;
+
+                                bannerTexture.setWidth(width);
+                                bannerTexture.setHeight(height);
+
+                                if (bannerTexture != null) {
+                                    var bannerSprite = new Sprite(55, finalBaseY + 12, width, height, finalBtexture.deepCopy());
+                                    bannerSprite.setColor(0.5f, 0.5f, 0.5f);
+                                    bannerLayer.attachChild(bannerSprite);
+                                }
+                        }
+
+                        // Avatar
+                        attachChild(new Sprite(
+                                55,
+                                finalBaseY + 12,
+                                90,
+                                90,
+                                finalAtexture
+                        ));
+                    });
+
+                    if (currentAvatarTask == this) {
                         currentAvatarTask = null;
+                    }
                 }
+
             } : null;
 
+            var text = new Text(
+                    baseX + 160,
+                    baseY + 20,
+                    ResourceManager.getInstance().getFont("font"),
+                    title
+            );
 
-            var text = new Text(baseX + 160, baseY + 20, ResourceManager.getInstance().getFont("font"), title);
-            var accText = new Text(670, baseY + 12, ResourceManager.getInstance().getFont("smallFont"), acc);
-            var mark = new Sprite(baseX + 80, baseY + 35, ResourceManager.getInstance().getTexture("ranking-" + markStr + "-small"));
+            var accText = new Text(
+                    670,
+                    baseY + 12,
+                    ResourceManager.getInstance().getFont("smallFont"),
+                    acc
+            );
+
+            var mark = new Sprite(
+                    baseX + 80,
+                    baseY + 35,
+                    ResourceManager.getInstance()
+                            .getTexture("ranking-" + markStr + "-small")
+            );
 
             text.setScale(1.2f);
+
             mark.setScale(1.5f);
-            mark.setPosition(baseX + mark.getWidth() / 2 + 60, mark.getY());
+
+            mark.setPosition(
+                    baseX + mark.getWidth() / 2 + 60,
+                    mark.getY()
+            );
+
             attachChild(text);
             attachChild(accText);
             attachChild(mark);
 
             mainScene.registerTouchArea(this);
+
             height = getHeight();
         }
 
         @Override
-        public void onDetached()
-        {
-            if (avatarTexture != null)
-                // Ensure texture unloading happens in the next tick of the
-                // update thread to prevent concurrency problems.
-                Execution.updateThread(() -> ResourceManager.getInstance().unloadTexture(avatarTexture));
+        public void onDetached() {
+
+            if (avatarTexture != null) {
+
+                Execution.updateThread(() ->
+                        ResourceManager.getInstance()
+                                .unloadTexture(avatarTexture)
+                );
+            }
+
+            if (bannerTexture != null) {
+
+                Execution.updateThread(() ->
+                        ResourceManager.getInstance()
+                                .unloadTexture(bannerTexture)
+                );
+            }
 
             mainScene.unregisterTouchArea(this);
         }
 
         @Override
-        protected void onManagedUpdate(float pSecondsElapsed)
-        {
+        protected void onManagedUpdate(float pSecondsElapsed) {
+
             super.onManagedUpdate(pSecondsElapsed);
 
-            // This is to avoid loading avatars when the scene was changed (game started or user gone back to main menu).
+            // Avoid loading after scene changes
             if (avatarTask != null && currentAvatarTask == null) {
 
                 var task = avatarTask;
+
                 avatarTask = null;
+
                 currentAvatarTask = task;
 
                 try {
+
                     avatarExecutor.submit(task);
+
                 } catch (RejectedExecutionException e) {
-                    if (currentAvatarTask == task)
+
+                    if (currentAvatarTask == task) {
                         currentAvatarTask = null;
+                    }
                 }
             }
         }
 
         @Override
-        public boolean onAreaTouched(TouchEvent event, float localX, float localY) {
+        public boolean onAreaTouched(
+                TouchEvent event,
+                float localX,
+                float localY) {
+
             mScrollDetector.onTouchEvent(event);
             mScrollDetector.setEnabled(true);
 
             if (event.isActionDown()) {
+
                 moved = false;
+
                 setAlpha(0.8f);
+
                 listener.stopScroll(getY() + localY);
+
                 dx = localX;
                 dy = localY;
+
                 downTime = 0;
+
                 _scoreID = scoreID;
+
                 return true;
+
             } else if (event.isActionUp() && !moved && !isScroll) {
+
                 downTime = -1;
+
                 setAlpha(0.5f);
 
-                if (Multiplayer.isMultiplayer)
+                if (Multiplayer.isMultiplayer) {
                     return true;
+                }
 
                 listener.openScore(scoreID, showOnline, username);
-                GlobalManager.getInstance().getScoring().setReplayID(scoreID);
+
+                GlobalManager.getInstance()
+                        .getScoring()
+                        .setReplayID(scoreID);
+
                 return true;
-            } else if (event.isActionOutside() || event.isActionMove() && MathUtils.distance(dx, dy, localX, localY) > 10) {
+
+            } else if (
+                    event.isActionOutside()
+                            || event.isActionMove()
+                            && MathUtils.distance(
+                            dx,
+                            dy,
+                            localX,
+                            localY
+                    ) > 10
+            ) {
+
                 downTime = -1;
+
                 setAlpha(0.5f);
+
                 moved = true;
             }
+
             return false;
         }
     }
