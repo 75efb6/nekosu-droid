@@ -50,7 +50,7 @@ import static android.content.Intent.ACTION_VIEW;
 
 public class SettingsMenu extends SettingsFragment {
 
-    public static final String REGISTER_URL = "https://" + OnlineManager.hostname + "/user/?action=register";
+    public static final String REGISTER_URL = "https://" + OnlineManager.hostname + "/user/register";
 
     private PreferenceScreen mParentScreen, parentScreen;
     private boolean isOnNestedScreen = false;

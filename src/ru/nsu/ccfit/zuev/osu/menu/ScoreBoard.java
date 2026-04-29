@@ -240,8 +240,8 @@ public class ScoreBoard extends Entity implements ScrollDetector.IScrollDetector
                     var mark = data[4];
                     var modString = data[5];
                     var accuracy = GameHelper.Round(Integer.parseInt(data[6]) / 1000f, 2);
-                    var avatarURL = "https://" + OnlineManager.hostname + "/avatars/1";
-                    var bannerURL = "https://" + OnlineManager.hostname + "/banners/user/1";
+                    var avatarURL = "https://" + OnlineManager.hostname + "/avatars/" + data[7];
+                    var bannerURL = "https://" + OnlineManager.hostname + "/banners/user/" + data[7];
                     var beatmapRank = isPersonalBest && !isInLeaderboard ? Integer.parseInt(data[8]) : (i + 1);
 
 
@@ -696,9 +696,6 @@ public class ScoreBoard extends Entity implements ScrollDetector.IScrollDetector
                         if (finalBtexture != null) {
                                 int width = (int) getWidth() - 68;
                                 int height = 90;
-
-                                bannerTexture.setWidth(width);
-                                bannerTexture.setHeight(height);
 
                                 if (bannerTexture != null) {
                                     var bannerSprite = new Sprite(55, finalBaseY + 12, width, height, finalBtexture.deepCopy());
