@@ -891,23 +891,4 @@ public class ResourceManager {
         }
     }
 
-    public void checkEvoSpinnerTextures() {
-        final String[] names = {
-                "spinner-bottom",
-                "spinner-top",
-                "spinner-glow",
-                "spinner-middle",
-                "spinner-middle2",
-                "spinner-spin",
-                "spinner-clear"
-        };
-        for (final String s : names) {
-            TextureRegion tex = textures.get(s);
-            if (tex != null && tex.getTexture() != null && !tex.getTexture().isLoadedToHardware()) {
-                engine.getTextureManager().reloadTextures();
-                break;
-            }
-        }
-    }
-
 }

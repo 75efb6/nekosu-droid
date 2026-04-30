@@ -287,9 +287,7 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
     companion object
     {
         val DEV_UIDS = arrayOf<Long>(
-                51076, // Rian8337
-                55374, // Acivev
-                307054 // Reco1l
+                1,
         )
     }
 }

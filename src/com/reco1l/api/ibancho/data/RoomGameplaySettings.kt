@@ -10,11 +10,6 @@ data class RoomGameplaySettings(
     var isFreeMod: Boolean,
 
     /**
-     * Whether this room has the remove slider lock setting enabled.
-     */
-    var isRemoveSliderLock: Boolean,
-
-    /**
      * Whether this room allows the use of forced difficulty statistics
      * under free mod.
      */

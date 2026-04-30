@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+    <style name="AppTheme" parent="Theme.AppCompat">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -11,13 +9,15 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
-        <item name="android:windowBackground">#000</item>
+        <item name="android:windowBackground">@color/bgBase</item>
+        <item name="android:colorBackground">@color/surface</item>
+        <item name="android:textColorPrimary">@color/textPrimary</item>
+        <item name="android:textColorSecondary">@color/textSecondary</item>
     </style>
 
     <style name="AppTheme.PreferenceThemeOverlay" parent="@style/PreferenceThemeOverlay">
         <item name="android:layout">@layout/fragment_settings</item>
     </style>
-
 
     <!--Beatmap Downloader-->
     <style name="beatmap_difficulty_icon">
@@ -30,7 +30,6 @@
         <item name="android:paddingTop">4dp</item>
         <item name="android:paddingBottom">4dp</item>
         <item name="android:layout_marginRight">6dp</item>
-
     </style>
 
-</resources>  
+</resources>

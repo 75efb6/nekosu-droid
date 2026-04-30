@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-import ru.nsu.ccfit.zuev.osu.Config;
-
 public class GameObjectPool {
     public static GameObjectPool instance = new GameObjectPool();
     public LinkedList<HitCircle> circles = new LinkedList<HitCircle>();
@@ -41,11 +39,7 @@ public class GameObjectPool {
         }
 
         objectsCreated++;
-        if (Config.getSpinnerStyle() == 1) {
-            return new ModernSpinner();
-        } else {
-            return new Spinner();
-        }
+        return new Spinner();
     }
 
     public void putSpinner(final Spinner spinner) {

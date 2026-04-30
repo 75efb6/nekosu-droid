@@ -1,142 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:id="@+id/frg_background"
-                android:elevation="2dp">
-
+    android:id="@+id/frg_background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:elevation="2dp">
 
     <RelativeLayout
-            android:id="@+id/brightnessPreviewLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone">
+        android:id="@+id/brightnessPreviewLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
 
         <View
-                android:id="@+id/brightnessPreview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+            android:id="@+id/brightnessPreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
         <TextView
-                android:id="@+id/brightPreviewText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_margin="20dp"
-                android:background="#000000"
-                android:padding="5dp"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"/>
+            android:id="@+id/brightPreviewText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="20dp"
+            android:background="#BB000000"
+            android:padding="8dp"
+            android:textColor="@color/textPrimary"
+            android:textStyle="bold"/>
     </RelativeLayout>
 
-
     <LinearLayout
-            android:id="@+id/fullLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:translationY="300dp">
-
+        android:id="@+id/fullLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:translationY="300dp">
 
         <RelativeLayout
-                android:id="@+id/frg_header"
-                android:layout_width="match_parent"
-                android:layout_height="40dp">
-
-            <View
-                    android:layout_width="match_parent"
-                    android:layout_height="20dp"
-                    android:layout_alignParentBottom="true"
-                    android:background="@drawable/shadow"
-                    android:rotation="180"/>
-
-            <View
-                    android:layout_width="match_parent"
-                    android:layout_height="10dp"
-                    android:layout_alignParentBottom="true"
-                    android:background="@drawable/shadow"
-                    android:rotation="180"/>
+            android:id="@+id/frg_header"
+            android:layout_width="match_parent"
+            android:layout_height="36dp">
 
             <RelativeLayout
-                    android:id="@+id/showMoreButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentBottom="true"
-                    android:layout_centerHorizontal="true">
+                android:id="@+id/showMoreButton"
+                android:layout_width="100dp"
+                android:layout_height="36dp"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true">
 
                 <View
-                        android:layout_width="100dp"
-                        android:layout_height="25dp"
-                        android:background="#99E63E8C"/>
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/tab_pill"/>
 
                 <com.edlplan.ui.TriangleEffectView
-                        android:layout_width="100dp"
-                        android:layout_height="25dp"
-                        android:alpha="0.5"/>
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:alpha="0.3"/>
 
                 <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:text="Chat"
-                        android:textColor="#FFFFFFFF"
-                        android:textSize="15sp"
-                        android:textStyle="bold"/>
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="Chat"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
 
             </RelativeLayout>
         </RelativeLayout>
 
         <RelativeLayout
-                android:id="@+id/optionBody"
+            android:id="@+id/optionBody"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="@color/frgBodyBackgroundLight"
+            android:clickable="true">
+
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
-                android:background="@color/frgBodyBackgroundLight"
-                android:clickable="true"
-                android:orientation="vertical">
-
-            <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="5dp"
-                        android:background="@color/triangleBackground"/>
-
-                <com.edlplan.ui.TriangleEffectView
-                        android:layout_width="match_parent"
-                        android:layout_height="5dp"/>
-            </RelativeLayout>
+                android:layout_height="3dp"
+                android:background="@color/accentPrimary"/>
 
             <TextView
-                    android:id="@+id/chat_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:layout_marginTop="5dp"
-                    android:lineSpacingMultiplier="1.1"
-                    android:gravity="bottom"
-                    android:scrollbars="vertical"
-                    android:layout_alignParentTop="true"
-                    android:layout_above="@+id/chat_field"/>
+                android:id="@+id/chat_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/chat_field"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="3dp"
+                android:lineSpacingMultiplier="1.2"
+                android:padding="14dp"
+                android:scrollbars="vertical"
+                android:textColor="@color/textPrimary"/>
 
             <EditText
-                    android:id="@+id/chat_field"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#29000000"
-                    android:maxLines="1"
-                    android:padding="14dp"
-                    android:textSize="14dp"
-                    android:maxLength="150"
-                    android:layout_alignParentBottom="true"
-                    android:hint="Tap to write"
-                    android:singleLine="true"
-                    android:imeOptions="actionSend"
-            />
+                android:id="@+id/chat_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="8dp"
+                android:background="@drawable/input_bg"
+                android:hint="Tap to write..."
+                android:imeOptions="actionSend"
+                android:maxLength="150"
+                android:maxLines="1"
+                android:padding="12dp"
+                android:singleLine="true"
+                android:textColor="@color/textPrimary"
+                android:textColorHint="@color/textSecondary"
+                android:textSize="14sp"/>
 
         </RelativeLayout>
     </LinearLayout>

@@ -75,14 +75,6 @@
 
     <!--End multiplayer-->
 
-    <string-array name="spinner_style_names">
-        <item>Modern</item>
-        <item>Classical</item>
-    </string-array>
-    <string-array name="spinner_style_values">
-        <item>1</item>
-        <item>0</item>
-    </string-array>
     <string-array name="metronome_switch_names">
         <item>Off</item>
         <item>NightCore Mode Only</item>
@@ -230,8 +222,7 @@
     <string name="opt_error_meter_display_title">Hit error meter</string>
     <string name="opt_error_meter_display_summary">Display hit error meter</string>
 
-    <string name="opt_spinner_style_title">Spinner style</string>
-    <string name="opt_spinner_style_summary">Change the spinner style</string>
+
 
     <string name="opt_combo_burst_title">Combo Burst</string>
     <string name="opt_combo_burst_summary">Toggle combo burst on/off</string>

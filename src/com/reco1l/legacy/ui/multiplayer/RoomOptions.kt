@@ -173,7 +173,6 @@ class RoomOptions : SettingsFragment()
                     true
                 }
             }
-            RoomAPI.setRoomRemoveSliderLock(true)
         }
 
         loadGameSettings()

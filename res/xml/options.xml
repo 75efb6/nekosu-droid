@@ -49,9 +49,6 @@
         <ListPreference android:entries="@array/error_meter_display_names" android:title="@string/opt_error_meter_display_title"
             android:key="errormeter" android:summary="@string/opt_error_meter_display_summary"
             android:defaultValue="0" android:entryValues="@array/error_meter_display_values"/>
-        <ListPreference android:entries="@array/spinner_style_names" android:title="@string/opt_spinner_style_title"
-            android:key="spinnerstyle" android:summary="@string/opt_spinner_style_summary"
-            android:defaultValue="1" android:entryValues="@array/spinner_style_values"/>
         <CheckBoxPreference android:summary="@string/opt_show_first_approach_circle_summary" android:title="@string/opt_show_first_approach_circle_title"
             android:key="showfirstapproachcircle" android:defaultValue="false"/>
         <CheckBoxPreference android:key="hideReplayMarquee" android:title="@string/opt_hide_replay_marquee_title"

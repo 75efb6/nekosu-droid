@@ -1649,29 +1649,23 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         }
 
         updatePassiveObjects(dt);
-        if (Config.isRemoveSliderLock()) {
-            updateLastActiveObjectHitTime();
-        }
+        updateLastActiveObjectHitTime();
         updateActiveObjects(dt);
 
         if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) {
             autoCursor.moveToObject(activeObjects.peek(), secPassed, this);
         }
 
-        if (Config.isRemoveSliderLock()) {
-            var downPressCursorCount = 0;
+        var downPressCursorCount = 0;
 
-            for (int i = 0; i < CursorCount; i++) {
-                if (cursorIIsDown[i])
-                    downPressCursorCount++;
-                cursorIIsDown[i] = false;
-            }
+        for (int i = 0; i < CursorCount; i++) {
+            if (cursorIIsDown[i])
+                downPressCursorCount++;
+            cursorIIsDown[i] = false;
+        }
 
-            for (int i = 0; i < downPressCursorCount - 1; i++) {
-                updateLastActiveObjectHitTime();
-                tryHitActiveObjects(dt);
-            }
-        } else {
+        for (int i = 0; i < downPressCursorCount - 1; i++) {
+            updateLastActiveObjectHitTime();
             tryHitActiveObjects(dt);
         }
 
@@ -2523,21 +2517,25 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
 
     public boolean isMousePressed(final GameObject object, final int index) {
-        // EnumSet.contains() internally uses an iterator, and it can be expensive to use everytime we want to use this method.
         if (GameHelper.isAuto()) {
             return false;
         }
-        if (Config.isRemoveSliderLock()){
-            if(activeObjects.isEmpty()
-                || Math.abs(object.getHitTime() - lastActiveObjectHitTime) > 0.001f) {
+        if (activeObjects.isEmpty()) {
+            return false;
+        }
+
+        final float frontmostHitTime = lastActiveObjectHitTime;
+
+        if (Math.abs(object.getHitTime() - frontmostHitTime) > 0.001f) {
+            // Lazer-style notelock: the frontmost object only locks subsequent ones once
+            // the current time has entered its 50ms hit window. Before that, clicks pass through.
+            final float windowStart = frontmostHitTime
+                - GameHelper.getDifficultyHelper().hitWindowFor50(GameHelper.getDifficulty());
+            if (secPassed >= windowStart) {
                 return false;
             }
         }
-        else if (activeObjects.isEmpty()
-            || Math.abs(object.getHitTime()
-            - activeObjects.peek().getHitTime()) > 0.001f) {
-            return false;
-        }
+
         return cursors[index].mousePressed;
     }
 

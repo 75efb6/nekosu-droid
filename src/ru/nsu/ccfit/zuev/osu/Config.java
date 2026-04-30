@@ -66,7 +66,6 @@ public class Config {
         useCustomComboColors,
         forceRomanized,
         fixFrameOffset,
-        removeSliderLock,
         calculateSliderPathInGameStart,
         displayScoreStatistics,
         hideReplayMarquee,
@@ -86,7 +85,6 @@ public class Config {
     private static int RES_WIDTH,
         RES_HEIGHT,
         errorMeter,
-        spinnerStyle,
         backgroundQuality,
         metronomeSwitch;
     
@@ -117,7 +115,6 @@ public class Config {
         corovans = prefs.getBoolean("images", false);
         showFPS = prefs.getBoolean("fps", false);
         errorMeter = Integer.parseInt(prefs.getString("errormeter", "0"));
-        spinnerStyle = Integer.parseInt(prefs.getString("spinnerstyle", "0"));
         showFirstApproachCircle = prefs.getBoolean("showfirstapproachcircle", false);
         metronomeSwitch = Integer.parseInt(prefs.getString("metronomeswitch", "1"));
         showScoreboard = prefs.getBoolean("showscoreboard", true);
@@ -213,7 +210,6 @@ public class Config {
         hideNaviBar = prefs.getBoolean("hidenavibar", false);
         enablePP = false;//prefs.getBoolean("enablePP",true);
         fixFrameOffset = prefs.getBoolean("fixFrameOffset", true);
-        removeSliderLock = true;
         calculateSliderPathInGameStart = prefs.getBoolean("calculateSliderPathInGameStart", false);
         displayScoreStatistics = prefs.getBoolean("displayScoreStatistics", false);
         hideReplayMarquee = prefs.getBoolean("hideReplayMarquee", false);
@@ -284,11 +280,6 @@ public class Config {
 
     public static boolean isFixFrameOffset() {
         return fixFrameOffset;
-    }
-
-    public static boolean isRemoveSliderLock() {
-        //noinspection DataFlowIssue
-        return Multiplayer.isConnected() ? Multiplayer.room.getGameplaySettings().isRemoveSliderLock() : removeSliderLock;
     }
 
     public static boolean isCalculateSliderPathInGameStart() {
@@ -638,14 +629,6 @@ public class Config {
 
     public static void setErrorMeter(int errorMeter) {
         Config.errorMeter = errorMeter;
-    }
-
-    public static int getSpinnerStyle() {
-        return spinnerStyle;
-    }
-
-    public static void setSpinnerStyle(int spinnerStyle) {
-        Config.spinnerStyle = spinnerStyle;
     }
 
     public static boolean isShowFirstApproachCircle() {
