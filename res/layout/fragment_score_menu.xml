@@ -1,158 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/frg_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/frgDialogStyleBackground"
-    android:id="@+id/frg_background">
-
+    android:background="@color/frgDialogStyleBackground">
 
     <LinearLayout
         android:id="@+id/fullLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="50dp"
-        android:layout_marginLeft="50dp"
-        android:layout_marginRight="50dp"
-        android:layout_alignParentBottom="true"
-        android:gravity="center"
+        android:layout_width="280dp"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:background="@drawable/card_dark"
+        android:clickable="true"
         android:orientation="vertical">
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="@color/accentPrimary"/>
 
         <RelativeLayout
+            android:id="@+id/showMoreButton"
             android:layout_width="match_parent"
-            android:layout_height="40dp">
+            android:layout_height="48dp">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:layout_alignParentBottom="true"
-                android:background="@drawable/shadow"
-                android:rotation="180" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="10dp"
-                android:layout_alignParentBottom="true"
-                android:background="@drawable/shadow"
-                android:rotation="180" />
-
-            <RelativeLayout
-                android:id="@+id/showMoreButton"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true">
-
-                <View
-                    android:layout_width="150dp"
-                    android:layout_height="25dp"
-                    android:background="#99E63E8C" />
-
-                <com.edlplan.ui.TriangleEffectView
-                    android:layout_width="150dp"
-                    android:layout_height="25dp"
-                    android:alpha="0.5" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:text="@string/frg_score_menu_title"
-                    android:textColor="#FFFFFFFF"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-            </RelativeLayout>
+                android:layout_centerInParent="true"
+                android:text="@string/frg_score_menu_title"
+                android:textColor="@color/textPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
         </RelativeLayout>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/dividerColor"/>
 
         <LinearLayout
             android:id="@+id/optionBody"
-            android:gravity="center"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/frgBodyBackgroundLight"
-            android:clickable="true"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <RelativeLayout
+            <TextView
+                android:id="@+id/exportReplay"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:background="@drawable/btn_accent"
+                android:gravity="center"
+                android:paddingVertical="14dp"
+                android:text="@string/frg_score_menu_export_score"
+                android:textColor="@color/textPrimary"
+                android:textStyle="bold"/>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="5dp"
-                    android:background="@color/triangleBackground" />
-
-                <com.edlplan.ui.TriangleEffectView
-                    android:layout_width="match_parent"
-                    android:layout_height="5dp" />
-            </RelativeLayout>
-
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_margin="20dp"
-                android:orientation="vertical">
-
-
-
-                <RelativeLayout
-                    android:id="@+id/exportReplay"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <View
-                        android:layout_width="150dp"
-                        android:layout_height="25dp"
-                        android:background="#99E63E8C" />
-
-                    <com.edlplan.ui.TriangleEffectView
-                        android:layout_width="150dp"
-                        android:layout_height="25dp"
-                        android:alpha="0.5" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:text="@string/frg_score_menu_export_score"
-                        android:textColor="#FFFFFFFF"
-                        android:textStyle="bold" />
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/deleteReplay"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="30dp">
-
-                    <View
-                        android:layout_width="150dp"
-                        android:layout_height="25dp"
-                        android:background="#99E63E8C" />
-
-                    <com.edlplan.ui.TriangleEffectView
-                        android:layout_width="150dp"
-                        android:layout_height="25dp"
-                        android:alpha="0.5" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:text="@string/menu_deletescore_delete"
-                        android:textColor="#FFFFFFFF"
-                        android:textStyle="bold" />
-                </RelativeLayout>
-
-            </LinearLayout>
-
-
+            <TextView
+                android:id="@+id/deleteReplay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/btn_danger"
+                android:gravity="center"
+                android:paddingVertical="14dp"
+                android:text="@string/menu_deletescore_delete"
+                android:textColor="@color/textPrimary"
+                android:textStyle="bold"/>
         </LinearLayout>
-
     </LinearLayout>
-
-
 </RelativeLayout>

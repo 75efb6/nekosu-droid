@@ -771,7 +771,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             final Font font = ResourceManager.getInstance().getFont(
                     "smallFont");
             final ChangeableText fpsText = new ChangeableText(Utils.toRes(790),
-                    Utils.toRes(520), font, "00.00 FPS");
+                    Utils.toRes(520), font, "000/000 FPS");
             final ChangeableText urText = new ChangeableText(Utils.toRes(720),
                     Utils.toRes(480), font, "00.00 UR    ");
             final ChangeableText accText = new ChangeableText(Utils.toRes(720),
@@ -799,11 +799,16 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             final ChangeableText fmemText = memText;
             fgScene.registerUpdateHandler(new FPSCounter() {
                 int elapsedInt = 0;
+                final int frameLimit = Math.round(GlobalManager.getInstance().getMainActivity().getRefreshRate());
                 @Override
                 public void onUpdate(final float pSecondsElapsed) {
                     super.onUpdate(pSecondsElapsed);
                     elapsedInt++;
-                    fpsText.setText(Math.round(this.getFPS()) + " FPS");
+                    fpsText.setText(Math.round(this.getFPS()) + "/" + frameLimit + " FPS");
+                    // Reset every second so the display reflects recent performance
+                    if (this.mSecondsElapsed >= 1.0f) {
+                        this.reset();
+                    }
                     if (offsetRegs != 0 && elapsedInt > 200) {
                         float mean = avgOffset / offsetRegs;
                         accText.setText("Avg offset: "

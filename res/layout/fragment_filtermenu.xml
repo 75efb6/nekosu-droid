@@ -1,109 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/frg_background"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/frg_background">
-
+    android:layout_height="match_parent">
 
     <LinearLayout
-        android:gravity="center"
-        android:orientation="vertical"
         android:id="@+id/frg_body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:background="@color/frgBodyBackgroundDark"
         android:clickable="true"
-        android:background="@color/frgBodyBackgroundLight">
+        android:orientation="vertical">
 
-        <RelativeLayout
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="2dp"
+            android:background="@color/accentPrimary"/>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="5dp"
-                android:background="@color/triangleBackground" />
-
-            <com.edlplan.ui.TriangleEffectView
-                android:layout_width="match_parent"
-                android:layout_height="5dp" />
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
             <LinearLayout
-                android:id="@+id/body2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/searchEditText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/input_bg"
+                    android:hint="@string/menu_search_filter"
+                    android:imeOptions="actionDone"
+                    android:maxLines="1"
+                    android:padding="10dp"
+                    android:singleLine="true"
+                    android:textColor="@color/textPrimary"
+                    android:textColorHint="@color/textSecondary"
+                    android:textSize="14sp"/>
+
+                <Button
+                    android:id="@+id/sortButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/btn_accent"
+                    android:minWidth="100dp"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="10dp"
+                    android:textAllCaps="false"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="13sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/showFav"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="17dp">
+                android:layout_marginTop="10dp"
+                android:checked="false"
+                android:text="@string/menu_search_favsdisabled"
+                android:textColor="@color/textPrimary"
+                android:textSize="13sp"/>
 
-                <LinearLayout
+            <LinearLayout
+                android:id="@+id/favFolderLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="4dp">
+
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:text="@string/favorite_folder"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="13sp"/>
 
-                    <EditText
-                        android:id="@+id/searchEditText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ems="10"
-                        android:imeOptions="actionDone"
-                        android:hint="@string/menu_search_filter" />
-
-                    <Button
-                        android:id="@+id/sortButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:background="#FFFFFF"
-                        android:minWidth="100dp"
-                        android:textColor="#000000"
-                        android:textSize="16sp" />
-
-                </LinearLayout>
-
-                <CheckBox
-                    android:id="@+id/showFav"
+                <TextView
+                    android:id="@+id/favFolder"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="-5dp"
-                    android:checked="false"
-                    android:text="@string/menu_search_favsdisabled" />
-
-                <LinearLayout
-                    android:id="@+id/favFolderLayout"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="2dp"
-                        android:text="@string/favorite_folder" />
-
-                    <TextView
-                        android:id="@+id/favFolder"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="3dp"
-                        android:minWidth="70dp"
-                        android:textStyle="bold" />
-
-					<!-- <TextView -->
-                        <!-- android:id="@+id/openMapInfo" -->
-                        <!-- android:layout_width="wrap_content" -->
-                        <!-- android:layout_height="wrap_content" -->
-                        <!-- android:layout_marginLeft="3dp" -->
-                        <!-- android:minWidth="70dp" -->
-                        <!-- android:textStyle="bold" /> -->
-
-                </LinearLayout>
+                    android:layout_marginStart="4dp"
+                    android:minWidth="70dp"
+                    android:textColor="@color/accentPrimary"
+                    android:textSize="13sp"
+                    android:textStyle="bold"/>
             </LinearLayout>
-        </RelativeLayout>
+        </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

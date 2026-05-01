@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/frg_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -18,17 +17,8 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="56dp">
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/accentPrimary"/>
-
-            <com.edlplan.ui.TriangleEffectView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:alpha="0.3"/>
+            android:layout_height="56dp"
+            android:background="@color/accentPrimary">
 
             <ImageButton
                 android:id="@+id/back_button"
@@ -36,7 +26,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:background="@android:color/transparent"
-                android:padding="12dp"
+                android:padding="14dp"
                 android:src="@drawable/close_black"/>
 
             <TextView
@@ -48,16 +38,12 @@
                 android:textColor="@color/textPrimary"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
-
         </RelativeLayout>
 
         <FrameLayout
             android:id="@android:id/list_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/surface"
-            tools:ignore="NewApi"/>
-
+            android:background="@color/surface"/>
     </LinearLayout>
-
 </RelativeLayout>

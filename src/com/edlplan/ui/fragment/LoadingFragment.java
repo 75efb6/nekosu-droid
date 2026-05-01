@@ -31,12 +31,16 @@ public class LoadingFragment extends BaseFragment {
     protected void playOnLoadAnim() {
         View body = findViewById(R.id.frg_body);
         if(body == null) return;
-        body.setTranslationY(100);
+        body.setAlpha(0);
+        body.setScaleX(0.8f);
+        body.setScaleY(0.8f);
         body.animate().cancel();
         body.animate()
-                .translationY(0)
-                .setDuration(200)
-                .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
+                .alpha(1)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(300)
+                .setInterpolator(EasingHelper.asInterpolator(Easing.OutBack))
                 .start();
         playBackgroundHideInAnim(200);
     }
@@ -46,9 +50,11 @@ public class LoadingFragment extends BaseFragment {
         if(body == null) return;
         body.animate().cancel();
         body.animate()
-                .translationY(100)
-                .setDuration(200)
-                .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
+                .alpha(0)
+                .scaleX(0.8f)
+                .scaleY(0.8f)
+                .setDuration(180)
+                .setInterpolator(EasingHelper.asInterpolator(Easing.InQuad))
                 .setListener(new BaseAnimationListener() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
@@ -58,7 +64,7 @@ public class LoadingFragment extends BaseFragment {
                     }
                 })
                 .start();
-        playBackgroundHideOutAnim(200);
+        playBackgroundHideOutAnim(180);
     }
 
 }

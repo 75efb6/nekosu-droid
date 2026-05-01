@@ -112,25 +112,31 @@ public class ScoreMenuFragment extends BaseFragment {
     private void playOnLoadAnim() {
         View body = findViewById(R.id.fullLayout);
         body.setAlpha(0);
-        body.setTranslationY(200);
+        body.setScaleX(0.9f);
+        body.setScaleY(0.9f);
+        body.setTranslationY(80);
         body.animate().cancel();
         body.animate()
-                .translationY(0)
                 .alpha(1)
-                .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
-                .setDuration(150)
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationY(0)
+                .setInterpolator(EasingHelper.asInterpolator(Easing.OutBack))
+                .setDuration(280)
                 .start();
-        playBackgroundHideInAnim(150);
+        playBackgroundHideInAnim(220);
     }
 
     private void playEndAnim(Runnable action) {
         View body = findViewById(R.id.fullLayout);
         body.animate().cancel();
         body.animate()
-                .translationY(200)
                 .alpha(0)
-                .setDuration(200)
-                .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
+                .scaleX(0.9f)
+                .scaleY(0.9f)
+                .translationY(80)
+                .setDuration(180)
+                .setInterpolator(EasingHelper.asInterpolator(Easing.InQuad))
                 .setListener(new BaseAnimationListener() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
@@ -140,7 +146,7 @@ public class ScoreMenuFragment extends BaseFragment {
                     }
                 })
                 .start();
-        playBackgroundHideOutAnim(200);
+        playBackgroundHideOutAnim(180);
     }
 
 

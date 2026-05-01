@@ -10,6 +10,7 @@ import com.reco1l.legacy.ui.multiplayer.RoomScene;
 import com.rian.difficultycalculator.attributes.DifficultyAttributes;
 import com.rian.difficultycalculator.calculator.DifficultyCalculationParameters;
 
+import org.anddev.andengine.entity.modifier.AlphaModifier;
 import org.anddev.andengine.entity.primitive.Rectangle;
 import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.text.ChangeableText;
@@ -41,6 +42,7 @@ public class ModMenu implements IModSwitcher {
 
     private static final ModMenu instance = new ModMenu();
     private Scene scene = null, parent;
+    private Rectangle bg;
     private EnumSet<GameMod> mod;
     private ChangeableText multiplierText;
     private TrackInfo selectedTrack;
@@ -85,7 +87,10 @@ public class ModMenu implements IModSwitcher {
         if (menu == null) {
             menu = new InGameSettingMenu();
         }
-
+        if (bg != null) {
+            bg.setAlpha(0);
+            bg.registerEntityModifier(new AlphaModifier(0.25f, 0f, 0.7f));
+        }
         Execution.mainThread(menu::show);
         update();
     }
@@ -220,12 +225,19 @@ public class ModMenu implements IModSwitcher {
         modButtons.clear();
         scene = new Scene();
         scene.setBackgroundEnabled(false);
-        final Rectangle bg = new Rectangle(0, 0, Config.getRES_WIDTH(),
-                Config.getRES_HEIGHT());
-        bg.setColor(0, 0, 0, 0.7f);
+        bg = new Rectangle(0, 0, Config.getRES_WIDTH(), Config.getRES_HEIGHT());
+        bg.setColor(0.05f, 0.06f, 0.12f, 0.82f);
         scene.attachChild(bg);
 
-        multiplierText = new ChangeableText(0, Utils.toRes(50),
+        final float headerH = Utils.toRes(90);
+        final Rectangle headerPanel = new Rectangle(0, 0, Config.getRES_WIDTH(), headerH);
+        headerPanel.setColor(0.08f, 0.08f, 0.18f, 0.95f);
+        scene.attachChild(headerPanel);
+        final Rectangle headerAccent = new Rectangle(0, headerH - Utils.toRes(3), Config.getRES_WIDTH(), Utils.toRes(3));
+        headerAccent.setColor(0.90f, 0.24f, 0.55f, 1.0f);
+        scene.attachChild(headerAccent);
+
+        multiplierText = new ChangeableText(0, Utils.toRes(28),
                 ResourceManager.getInstance().getFont("CaptionFont"),
                 StringTable.format(R.string.menu_mod_multiplier, 1f));
         multiplierText.setScale(1.2f);
@@ -304,6 +316,8 @@ public class ModMenu implements IModSwitcher {
             scene.registerTouchArea(resetText);
         }
         resetText.setScale(1.2f);
+        resetText.setColor(0.3f, 0.32f, 0.42f);
+        resetText.setAlpha(1.0f);
 
         final TextButton back = new TextButton(ResourceManager
                 .getInstance().getFont("CaptionFont"),
@@ -361,7 +375,8 @@ public class ModMenu implements IModSwitcher {
         back.setWidth(resetText.getWidth());
         back.setHeight(resetText.getHeight());
         back.setPosition(Config.getRES_WIDTH() - back.getWidth() - 60, Config.getRES_HEIGHT() - back.getHeight() - 30);
-        back.setColor(66 / 255f, 76 / 255f, 80 / 255f);
+        back.setColor(0.90f, 0.24f, 0.55f);
+        back.setAlpha(1.0f);
         resetText.setPosition(Config.getRES_WIDTH() - resetText.getWidth() - 60, back.getY() - resetText.getHeight() - 20);
 //		multiplierText.setPosition(back.getX() + (back.getWidth() / 2 - multiplierText.getWidth() / 2), resetText.getY() - multiplierText.getHeight() - 40);
 

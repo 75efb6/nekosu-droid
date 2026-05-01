@@ -19,11 +19,11 @@
             android:id="@+id/brightPreviewText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_margin="20dp"
-            android:background="#BB000000"
-            android:padding="8dp"
+            android:layout_centerInParent="true"
+            android:background="#CC000000"
+            android:padding="16dp"
             android:textColor="@color/textPrimary"
+            android:textSize="28sp"
             android:textStyle="bold"/>
     </RelativeLayout>
 
@@ -32,41 +32,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:gravity="center"
         android:orientation="vertical"
         android:translationY="260dp">
 
         <RelativeLayout
             android:id="@+id/frg_header"
             android:layout_width="match_parent"
-            android:layout_height="36dp">
+            android:layout_height="40dp">
 
             <RelativeLayout
                 android:id="@+id/showMoreButton"
-                android:layout_width="110dp"
-                android:layout_height="36dp"
+                android:layout_width="120dp"
+                android:layout_height="40dp"
                 android:layout_alignParentBottom="true"
-                android:layout_marginStart="24dp">
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/tab_pill"/>
-
-                <com.edlplan.ui.TriangleEffectView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:alpha="0.3"/>
+                android:layout_marginStart="20dp"
+                android:background="@drawable/tab_pill">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
+                    android:letterSpacing="0.05"
                     android:text="Settings"
                     android:textColor="@color/textPrimary"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"/>
-
             </RelativeLayout>
         </RelativeLayout>
 
@@ -74,57 +64,63 @@
             android:id="@+id/optionBody"
             android:layout_width="match_parent"
             android:layout_height="260dp"
-            android:background="@color/frgBodyBackgroundLight"
+            android:background="@color/frgBodyBackgroundDark"
             android:clickable="true"
             android:orientation="vertical">
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="3dp"
+                android:layout_height="2dp"
                 android:background="@color/accentPrimary"/>
 
             <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent"
+                android:overScrollMode="never">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="12dp">
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:layout_margin="14dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="10dp">
 
                         <CheckBox
                             android:id="@+id/enableStoryboard"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:saveEnabled="false"
-                            android:textColor="@color/textPrimary"
-                            android:text="@string/opt_enableStoryboard_title"/>
-
-                        <CheckBox
-                            android:id="@+id/enableVideo"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:saveEnabled="false"
-                            android:textColor="@color/textPrimary"
-                            android:text="Enable video"/>
-
-                        <CheckBox
-                            android:id="@+id/showScoreboard"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:saveEnabled="false"
+                            android:text="@string/opt_enableStoryboard_title"
                             android:textColor="@color/textPrimary"
-                            android:text="@string/opt_show_scoreboard_title"/>
+                            android:textSize="13sp"/>
 
+                        <CheckBox
+                            android:id="@+id/enableVideo"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:saveEnabled="false"
+                            android:text="Enable video"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="13sp"/>
+
+                        <CheckBox
+                            android:id="@+id/showScoreboard"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:saveEnabled="false"
+                            android:text="@string/opt_show_scoreboard_title"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="13sp"/>
                     </LinearLayout>
 
                     <View
@@ -135,36 +131,38 @@
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="14dp"
-                        android:paddingHorizontal="4dp"
-                        android:paddingVertical="6dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="10dp">
 
                         <TextView
                             android:id="@+id/bg_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
+                            android:text="@string/opt_bgbrightness_title"
                             android:textColor="@color/textPrimary"
-                            android:text="@string/opt_bgbrightness_title"/>
+                            android:textSize="13sp"/>
 
                         <SeekBar
                             android:id="@+id/backgroundBrightnessBar"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
+                            android:layout_marginHorizontal="8dp"
                             android:layout_toEndOf="@+id/bg_title"
                             android:layout_toStartOf="@+id/bgBrightnessText"
                             android:saveEnabled="false"/>
 
                         <TextView
                             android:id="@+id/bgBrightnessText"
-                            android:layout_width="wrap_content"
+                            android:layout_width="46dp"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
+                            android:gravity="end"
+                            android:text="25%"
                             android:textColor="@color/textSecondary"
-                            android:text="100%"/>
-
+                            android:textSize="12sp"/>
                     </RelativeLayout>
 
                     <View
@@ -176,9 +174,9 @@
                         android:id="@+id/speed_modify"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginHorizontal="14dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="4dp">
 
                         <CheckBox
                             android:id="@+id/enableSpeedChange"
@@ -186,39 +184,43 @@
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             android:saveEnabled="false"
+                            android:text="@string/opt_changespeed_title"
                             android:textColor="@color/textPrimary"
-                            android:text="@string/opt_changespeed_title"/>
+                            android:textSize="13sp"/>
 
                         <SeekBar
                             android:id="@+id/changeSpeedBar"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:layout_toStartOf="@+id/changeSpeedText"
+                            android:layout_marginHorizontal="8dp"
                             android:layout_toEndOf="@+id/enableSpeedChange"
-                            android:saveEnabled="false"
-                            android:max="30"/>
+                            android:layout_toStartOf="@+id/changeSpeedText"
+                            android:max="30"
+                            android:saveEnabled="false"/>
 
                         <TextView
                             android:id="@+id/changeSpeedText"
-                            android:layout_width="wrap_content"
+                            android:layout_width="48dp"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
+                            android:gravity="end"
+                            android:text="1.00x"
                             android:textColor="@color/textSecondary"
-                            android:text="1.0x"/>
-
+                            android:textSize="12sp"/>
                     </RelativeLayout>
 
                     <CheckBox
                         android:id="@+id/enableNCwhenSpeedChange"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="14dp"
-                        android:layout_marginHorizontal="14dp"
+                        android:paddingHorizontal="16dp"
+                        android:paddingBottom="10dp"
                         android:saveEnabled="false"
+                        android:text="@string/opt_enablenc_whenspeedchange_title"
                         android:textColor="@color/textPrimary"
-                        android:text="@string/opt_enablenc_whenspeedchange_title"/>
+                        android:textSize="13sp"/>
 
                     <View
                         android:id="@+id/force_diffstat_split_view"
@@ -230,9 +232,9 @@
                         android:id="@+id/custom_ar_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginHorizontal="14dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="4dp">
 
                         <CheckBox
                             android:id="@+id/custom_ar_toggle"
@@ -240,35 +242,38 @@
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             android:saveEnabled="false"
+                            android:text="@string/opt_forcear_title"
                             android:textColor="@color/textPrimary"
-                            android:text="@string/opt_forcear_title"/>
+                            android:textSize="13sp"/>
 
                         <SeekBar
                             android:id="@+id/custom_ar_bar"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:layout_toStartOf="@+id/custom_ar_text"
+                            android:layout_marginHorizontal="8dp"
                             android:layout_toEndOf="@+id/custom_ar_toggle"
+                            android:layout_toStartOf="@+id/custom_ar_text"
                             android:saveEnabled="false"/>
 
                         <TextView
                             android:id="@+id/custom_ar_text"
-                            android:layout_width="wrap_content"
+                            android:layout_width="52dp"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
+                            android:gravity="end"
+                            android:text="AR 9.0"
                             android:textColor="@color/textSecondary"
-                            android:text="AR 10.0"/>
-
+                            android:textSize="12sp"/>
                     </RelativeLayout>
 
                     <RelativeLayout
                         android:id="@+id/custom_od_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginHorizontal="14dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingBottom="4dp">
 
                         <CheckBox
                             android:id="@+id/custom_od_toggle"
@@ -276,35 +281,38 @@
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             android:saveEnabled="false"
+                            android:text="Force OD"
                             android:textColor="@color/textPrimary"
-                            android:text="Force OD"/>
+                            android:textSize="13sp"/>
 
                         <SeekBar
                             android:id="@+id/custom_od_bar"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
+                            android:layout_marginHorizontal="8dp"
                             android:layout_toEndOf="@+id/custom_od_toggle"
                             android:layout_toStartOf="@+id/custom_od_text"
                             android:saveEnabled="false"/>
 
                         <TextView
                             android:id="@+id/custom_od_text"
-                            android:layout_width="wrap_content"
+                            android:layout_width="52dp"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
+                            android:gravity="end"
+                            android:text="OD 9.0"
                             android:textColor="@color/textSecondary"
-                            android:text="OD 10.0"/>
-
+                            android:textSize="12sp"/>
                     </RelativeLayout>
 
                     <RelativeLayout
                         android:id="@+id/custom_cs_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginHorizontal="14dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingBottom="4dp">
 
                         <CheckBox
                             android:id="@+id/custom_cs_toggle"
@@ -312,14 +320,16 @@
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             android:saveEnabled="false"
+                            android:text="Force CS"
                             android:textColor="@color/textPrimary"
-                            android:text="Force CS"/>
+                            android:textSize="13sp"/>
 
                         <SeekBar
                             android:id="@+id/custom_cs_bar"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
+                            android:layout_marginHorizontal="8dp"
                             android:layout_toEndOf="@+id/custom_cs_toggle"
                             android:layout_toStartOf="@+id/custom_cs_text"
                             android:max="100"
@@ -327,21 +337,22 @@
 
                         <TextView
                             android:id="@+id/custom_cs_text"
-                            android:layout_width="wrap_content"
+                            android:layout_width="52dp"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
+                            android:gravity="end"
+                            android:text="CS 4.0"
                             android:textColor="@color/textSecondary"
-                            android:text="CS 10.0"/>
-
+                            android:textSize="12sp"/>
                     </RelativeLayout>
 
                     <RelativeLayout
                         android:id="@+id/custom_hp_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginHorizontal="14dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingBottom="8dp">
 
                         <CheckBox
                             android:id="@+id/custom_hp_toggle"
@@ -349,14 +360,16 @@
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             android:saveEnabled="false"
+                            android:text="Force HP"
                             android:textColor="@color/textPrimary"
-                            android:text="Force HP"/>
+                            android:textSize="13sp"/>
 
                         <SeekBar
                             android:id="@+id/custom_hp_bar"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
+                            android:layout_marginHorizontal="8dp"
                             android:layout_toEndOf="@+id/custom_hp_toggle"
                             android:layout_toStartOf="@+id/custom_hp_text"
                             android:max="100"
@@ -364,13 +377,14 @@
 
                         <TextView
                             android:id="@+id/custom_hp_text"
-                            android:layout_width="wrap_content"
+                            android:layout_width="52dp"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
+                            android:gravity="end"
+                            android:text="HP 7.0"
                             android:textColor="@color/textSecondary"
-                            android:text="HP 10.0"/>
-
+                            android:textSize="12sp"/>
                     </RelativeLayout>
 
                     <View
@@ -382,23 +396,24 @@
                         android:id="@+id/follow_delay_row"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="14dp"
-                        android:paddingHorizontal="4dp"
-                        android:paddingVertical="6dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="10dp">
 
                         <TextView
                             android:id="@+id/fl_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
+                            android:text="@string/opt_flashlight_follow_delay_title"
                             android:textColor="@color/textPrimary"
-                            android:text="@string/opt_flashlight_follow_delay_title"/>
+                            android:textSize="13sp"/>
 
                         <SeekBar
                             android:id="@+id/flashlightFollowDelayBar"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
+                            android:layout_marginHorizontal="8dp"
                             android:layout_toEndOf="@+id/fl_title"
                             android:layout_toStartOf="@+id/flashlightFollowDelayText"
                             android:max="100"
@@ -406,13 +421,14 @@
 
                         <TextView
                             android:id="@+id/flashlightFollowDelayText"
-                            android:layout_width="wrap_content"
+                            android:layout_width="48dp"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
+                            android:gravity="end"
+                            android:text="0ms"
                             android:textColor="@color/textSecondary"
-                            android:text="100%"/>
-
+                            android:textSize="12sp"/>
                     </RelativeLayout>
 
                 </LinearLayout>

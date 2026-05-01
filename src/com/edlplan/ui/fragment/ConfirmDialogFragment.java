@@ -62,12 +62,18 @@ public class ConfirmDialogFragment extends BaseFragment {
 
     protected void playOnLoadAnim() {
         View body = findViewById(R.id.frg_body);
-        body.setTranslationY(100);
+        body.setAlpha(0);
+        body.setScaleX(0.85f);
+        body.setScaleY(0.85f);
+        body.setTranslationY(60);
         body.animate().cancel();
         body.animate()
+                .alpha(1)
+                .scaleX(1f)
+                .scaleY(1f)
                 .translationY(0)
-                .setDuration(200)
-                .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
+                .setDuration(280)
+                .setInterpolator(EasingHelper.asInterpolator(Easing.OutBack))
                 .start();
         playBackgroundHideInAnim(200);
     }
@@ -76,9 +82,12 @@ public class ConfirmDialogFragment extends BaseFragment {
         View body = findViewById(R.id.frg_body);
         body.animate().cancel();
         body.animate()
-                .translationY(100)
-                .setDuration(200)
-                .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
+                .alpha(0)
+                .scaleX(0.85f)
+                .scaleY(0.85f)
+                .translationY(60)
+                .setDuration(180)
+                .setInterpolator(EasingHelper.asInterpolator(Easing.InQuad))
                 .setListener(new BaseAnimationListener() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
@@ -88,7 +97,7 @@ public class ConfirmDialogFragment extends BaseFragment {
                     }
                 })
                 .start();
-        playBackgroundHideOutAnim(200);
+        playBackgroundHideOutAnim(180);
     }
 
 

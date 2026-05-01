@@ -1,52 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/frg_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/frgDialogStyleBackground"
-    android:id="@+id/frg_background">
+    android:background="@color/frgDialogStyleBackground">
 
     <LinearLayout
         android:id="@+id/frg_body"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginLeft="40dp"
-        android:layout_marginRight="40dp"
-        android:layout_marginTop="100dp"
-        android:background="@color/frgBodyBackgroundLight"
+        android:layout_marginHorizontal="40dp"
+        android:layout_marginVertical="60dp"
+        android:background="@drawable/card_dark"
         android:clickable="true"
         android:orientation="vertical">
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="@color/accentPrimary"/>
+
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="52dp">
 
-            <View
-                android:background="@color/triangleBackground"
-                android:layout_width="match_parent"
-                android:layout_height="50dp" />
-
-            <com.edlplan.ui.TriangleEffectView
-                android:layout_width="match_parent"
-                android:layout_height="50dp" />
-
-            <Button
-                android:id="@+id/new_folder"
-                android:textStyle="bold"
-                android:background="#00000000"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:text="@string/favorite_new_folder" />
+                android:text="@string/favorite_manage"
+                android:textColor="@color/textPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <Button
+                android:id="@+id/new_folder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/btn_accent"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="8dp"
+                android:text="@string/favorite_new_folder"
+                android:textAllCaps="false"
+                android:textColor="@color/textPrimary"
+                android:textSize="12sp"
+                android:textStyle="bold"/>
         </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/dividerColor"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/main_recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
+            android:layout_height="match_parent"
+            android:overScrollMode="never"
+            android:padding="8dp"/>
     </LinearLayout>
-
-
-</LinearLayout>
+</RelativeLayout>

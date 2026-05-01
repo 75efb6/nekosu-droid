@@ -1,59 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/frg_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/frgDialogStyleBackground"
-    android:id="@+id/frg_background">
+    android:background="@color/frgDialogStyleBackground">
 
     <LinearLayout
         android:id="@+id/fullLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
         android:orientation="vertical">
 
-        <LinearLayout
-            android:gravity="center"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="52dp"
+            android:background="@color/surface">
 
-            <RelativeLayout
+            <View
                 android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_alignParentBottom="true"
+                android:background="@color/accentPrimary"/>
+
+            <ImageButton
+                android:id="@+id/close_button"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-        
-                <View
-                    android:background="@color/triangleBackground"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"/>
-        
-                <com.edlplan.ui.TriangleEffectView
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"/>
-        
-                <ImageButton
-                    android:id="@+id/close_button"
-                    android:src="@drawable/close_black"
-                    android:background="@android:color/transparent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </RelativeLayout>
+                android:layout_centerVertical="true"
+                android:background="@android:color/transparent"
+                android:padding="14dp"
+                android:src="@drawable/close_black"/>
+        </RelativeLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <WebView
-                    android:id="@+id/web"
-                    android:layout_centerInParent="true"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
-            </LinearLayout>
-
-        </LinearLayout>
+        <WebView
+            android:id="@+id/web"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
     </LinearLayout>
-
 </RelativeLayout>

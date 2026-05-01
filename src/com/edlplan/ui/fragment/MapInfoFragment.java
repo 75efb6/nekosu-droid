@@ -33,13 +33,20 @@ public class MapInfoFragment extends BaseFragment {
 
     private void playOnLoadAnim() {
         View body = findViewById(R.id.frg_body);
-        body.setTranslationY(200);
+        body.setAlpha(0);
+        body.setScaleX(0.92f);
+        body.setScaleY(0.92f);
+        body.setTranslationY(80);
         body.animate().cancel();
         body.animate()
+                .alpha(1)
+                .scaleX(1f)
+                .scaleY(1f)
                 .translationY(0)
-                .setDuration(200)
+                .setDuration(280)
+                .setInterpolator(EasingHelper.asInterpolator(Easing.OutBack))
                 .start();
-        playBackgroundHideInAnim(200);
+        playBackgroundHideInAnim(220);
     }
 
     private void playEndAnim(Runnable action) {

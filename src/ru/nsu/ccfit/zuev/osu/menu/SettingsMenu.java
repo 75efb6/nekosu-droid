@@ -254,6 +254,7 @@ public class SettingsMenu extends SettingsFragment {
         if (background != null) {
             background.setOnClickListener(v -> callDismissOnBackPress());
         }
+        playOnLoadAnim();
     }
 
     protected void playOnLoadAnim() {
