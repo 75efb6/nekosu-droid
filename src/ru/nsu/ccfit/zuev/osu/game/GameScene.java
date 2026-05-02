@@ -799,9 +799,6 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             final ChangeableText fmemText = memText;
             fgScene.registerUpdateHandler(new FPSCounter() {
                 int elapsedInt = 0;
-                final int frameLimit = Math.round(
-                        GlobalManager.getInstance().getMainActivity().getRefreshRate()
-                );
 
                 @Override
                 public void onUpdate(final float pSecondsElapsed) {
@@ -809,6 +806,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
                     elapsedInt++;
 
+                    int frameLimit = Math.round(GlobalManager.getInstance().getMainActivity().getRefreshRate());
                     int currentFps = Math.min(Math.round(this.getFPS()), frameLimit);
 
                     fpsText.setText(currentFps + "/" + frameLimit + " FPS");

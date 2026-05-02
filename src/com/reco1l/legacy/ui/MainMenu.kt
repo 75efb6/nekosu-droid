@@ -172,6 +172,7 @@ class MainMenu(val main: MainScene)
                 if (touchEvent.isActionDown)
                 {
                     setColor(0.7f, 0.7f, 0.7f)
+                    sound?.play()
                     return true
                 }
 
@@ -187,6 +188,7 @@ class MainMenu(val main: MainScene)
             if (touchEvent.isActionDown)
             {
                 setColor(0.7f, 0.7f, 0.7f)
+                sound?.play()
                 return true
             }
 
