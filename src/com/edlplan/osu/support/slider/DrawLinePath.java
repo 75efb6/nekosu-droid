@@ -59,21 +59,21 @@ public class DrawLinePath {
                 segNormX = new float[segs];
                 segNormY = new float[segs];
             }
+            Vec2 a = p.get(0);
             for (int i = 0; i < segs; i++) {
-                Vec2 a = p.get(i);
                 Vec2 b = p.get(i + 1);
                 segTheta[i] = Vec2.calTheta(a, b);
                 float dx = b.x - a.x;
                 float dy = b.y - a.y;
                 float len = (float) Math.sqrt(dx * dx + dy * dy);
                 if (len > 1e-6f) {
-                    // CCW perpendicular: (-dy, dx) / len — matches Vec2.lineOthNormal convention
                     segNormX[i] = -dy / len;
                     segNormY[i] = dx / len;
                 } else {
                     segNormX[i] = 0f;
                     segNormY[i] = 0f;
                 }
+                a = b;
             }
         }
         structureSize = n;
@@ -206,28 +206,33 @@ public class DrawLinePath {
         int n = structureSize;
         if (n < 2) {
             if (n == 1) {
-                addLineCap(path.get(0), FMath.Pi, FMath.Pi);
-                addLineCap(path.get(0), 0, FMath.Pi);
+                Vec2 p0 = path.get(0);
+                addLineCap(p0, FMath.Pi, FMath.Pi);
+                addLineCap(p0, 0, FMath.Pi);
             }
             return;
         }
 
+        Vec2 prev = path.get(0);
+        Vec2 next = path.get(1);
         float theta = segTheta[0];
-        addLineCap(path.get(0), theta + FMath.PiHalf, FMath.Pi);
-        addLineQuads(0, path.get(0), path.get(1));
+        addLineCap(prev, theta + FMath.PiHalf, FMath.Pi);
+        addLineQuads(0, prev, next);
 
         if (n == 2) {
-            addLineCap(path.get(1), theta - FMath.PiHalf, FMath.Pi);
+            addLineCap(next, theta - FMath.PiHalf, FMath.Pi);
             return;
         }
 
         float preTheta = theta;
         for (int i = 1; i < n - 1; i++) {
+            prev = next;
+            next = path.get(i + 1);
             float nextTheta = segTheta[i];
-            addLineCap(path.get(i), preTheta - FMath.PiHalf, nextTheta - preTheta);
-            addLineQuads(i, path.get(i), path.get(i + 1));
+            addLineCap(prev, preTheta - FMath.PiHalf, nextTheta - preTheta);
+            addLineQuads(i, prev, next);
             preTheta = nextTheta;
         }
-        addLineCap(path.get(n - 1), preTheta - FMath.PiHalf, FMath.Pi);
+        addLineCap(next, preTheta - FMath.PiHalf, FMath.Pi);
     }
 }

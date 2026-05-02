@@ -150,41 +150,23 @@ public class HitCircle extends GameObject {
         scene = null;
     }
 
-    private boolean isHit() {
+    // Returns the hit offset in seconds, or Float.NaN if no cursor is pressing within radius.
+    // When Config.isFixFrameOffset() is false the offset is always 0.
+    // Merges the old isHit() + hitOffsetToPreviousFrame() to avoid scanning cursors twice.
+    private float checkHit() {
         for (int i = 0, count = listener.getCursorsCount(); i < count; i++) {
-
             var inPosition = Utils.squaredDistance(pos, listener.getMousePos(i)) <= radius;
             if (GameHelper.isRelaxMod() && passedTime - time >= 0 && inPosition) {
-                return true;
+                return 0f;
             }
-
             var isPressed = listener.isMousePressed(this, i);
             if (isPressed && inPosition) {
-                return true;
+                return Config.isFixFrameOffset() ? (float) listener.downFrameOffset(i) / 1000f : 0f;
             } else if (GameHelper.isAutopilotMod() && isPressed) {
-                return true;
+                return 0f;
             }
         }
-        return false;
-    }
-
-    private double hitOffsetToPreviousFrame() {
-        // 因为这里是阻塞队列, 所以提前点的地方会影响判断
-        for (int i = 0, count = listener.getCursorsCount(); i < count; i++) {
-
-            var inPosition = Utils.squaredDistance(pos, listener.getMousePos(i)) <= radius;
-            if (GameHelper.isRelaxMod() && passedTime - time >= 0 && inPosition) {
-                return 0;
-            }
-
-            var isPressed = listener.isMousePressed(this, i);
-            if (isPressed && inPosition) {
-                return listener.downFrameOffset(i);
-            } else if (GameHelper.isAutopilotMod() && isPressed) {
-                return 0;
-            }
-        }
-        return 0;
+        return Float.NaN;
     }
 
 
@@ -208,24 +190,22 @@ public class HitCircle extends GameObject {
                 removeFromScene();
                 return;
             }
-        } else if (passedTime * 2 > time && isHit()) {
-            float signAcc = passedTime - time;
-            if (Config.isFixFrameOffset()) {
-                signAcc += (float) hitOffsetToPreviousFrame() / 1000f;
+        } else if (passedTime * 2 > time) {
+            float hitOffset = checkHit();
+            if (!Float.isNaN(hitOffset)) {
+                float signAcc = passedTime - time + hitOffset;
+                final float acc = Math.abs(signAcc);
+                //Log.i("note-ini", "signAcc: " + signAcc);
+                if (acc <= GameHelper.getDifficultyHelper().hitWindowFor50(GameHelper.getDifficulty())) {
+                    playSound();
+                }
+                listener.registerAccuracy(signAcc);
+                passedTime = -1;
+                startHit = true;
+                listener.onCircleHit(id, signAcc, pos, endsCombo, (byte) 0, color);
+                removeFromScene();
+                return;
             }
-            final float acc = Math.abs(signAcc);
-            //Log.i("note-ini", "signAcc: " + signAcc);
-            if (acc <= GameHelper.getDifficultyHelper().hitWindowFor50(GameHelper.getDifficulty())) {
-                playSound();
-            }
-            listener.registerAccuracy(signAcc);
-            passedTime = -1;
-            // Remove circle and register hit in update thread
-            float finalSignAcc = signAcc;
-            startHit = true;
-            listener.onCircleHit(id, finalSignAcc, pos, endsCombo, (byte) 0, color);
-            removeFromScene();
-            return;
         }
 
         if (GameHelper.isKiai()) {
@@ -299,23 +279,21 @@ public class HitCircle extends GameObject {
     } // update(float dt)
 
     @Override
-    public void tryHit(final float dt){
-        if (passedTime * 2 > time && isHit()) {
-            float signAcc = passedTime - time;
-            if (Config.isFixFrameOffset()) {
-                signAcc += (float) hitOffsetToPreviousFrame() / 1000f;
+    public void tryHit(final float dt) {
+        if (passedTime * 2 > time) {
+            float hitOffset = checkHit();
+            if (!Float.isNaN(hitOffset)) {
+                float signAcc = passedTime - time + hitOffset;
+                final float acc = Math.abs(signAcc);
+                //Log.i("note-ini", "signAcc: " + signAcc);
+                if (acc <= GameHelper.getDifficultyHelper().hitWindowFor50(GameHelper.getDifficulty())) {
+                    playSound();
+                }
+                listener.registerAccuracy(signAcc);
+                passedTime = -1;
+                listener.onCircleHit(id, signAcc, pos, endsCombo, (byte) 0, color);
+                removeFromScene();
             }
-            final float acc = Math.abs(signAcc);
-            //Log.i("note-ini", "signAcc: " + signAcc);
-            if (acc <= GameHelper.getDifficultyHelper().hitWindowFor50(GameHelper.getDifficulty())) {
-                playSound();
-            }
-            listener.registerAccuracy(signAcc);
-            passedTime = -1;
-            // Remove circle and register hit in update thread
-            float finalSignAcc = signAcc;
-            listener.onCircleHit(id, finalSignAcc, pos, endsCombo, (byte) 0, color);
-            removeFromScene();
         }
     }
 }

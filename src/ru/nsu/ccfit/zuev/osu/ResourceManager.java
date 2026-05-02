@@ -47,6 +47,8 @@ import ru.nsu.ccfit.zuev.skins.SkinManager;
 import ru.nsu.ccfit.zuev.skins.StringSkinData;
 
 public class ResourceManager {
+    private static final Pattern SOUND_NAME_PATTERN = Pattern.compile("([^\\d.]+)");
+
     private final static ResourceManager mgr = new ResourceManager();
     private final Map<String, Font> fonts = new HashMap<>();
     private final Map<String, TextureRegion> textures = new HashMap<>();
@@ -684,8 +686,7 @@ public class ResourceManager {
         if (resName.length() == 0) {
             return;
         }
-        Pattern pattern = Pattern.compile("([^\\d.]+)");
-        Matcher matcher = pattern.matcher(resName);
+        Matcher matcher = SOUND_NAME_PATTERN.matcher(resName);
         if (matcher.find()) {
             String setName = matcher.group(1);
             if (!sounds.containsKey(setName)) {

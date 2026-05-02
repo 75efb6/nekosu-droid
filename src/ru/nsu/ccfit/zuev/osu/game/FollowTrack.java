@@ -6,15 +6,15 @@ import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
 
-import java.util.ArrayList;
-
 import ru.nsu.ccfit.zuev.osu.ResourceManager;
 import ru.nsu.ccfit.zuev.skins.SkinManager;
 import ru.nsu.ccfit.zuev.osu.Utils;
 import ru.nsu.ccfit.zuev.osu.helper.AnimSprite;
 
 public class FollowTrack extends GameObject {
-    private final ArrayList<Sprite> points = new ArrayList<Sprite>();
+    private static final int MAX_POINTS = 30;
+    private final Sprite[] points = new Sprite[MAX_POINTS];
+    private int pointsCount;
     private final int frameCount;
     private GameObjectListener listener;
     private float timeLeft;
@@ -54,9 +54,10 @@ public class FollowTrack extends GameObject {
         }
         empty = false;
 
-        points.clear();
+        pointsCount = 0;
         final PointF pos = new PointF();
         float percent;
+        final float rotDeg = (float) (angle * 180 / Math.PI);
         for (int i = 0; i < count; i++) {
             percent = 1 - (i + 1) / (float) (count + 1)/* - 32 * scale / dist */;
             pos.x = start.x * percent + end.x * (1 - percent);
@@ -73,9 +74,9 @@ public class FollowTrack extends GameObject {
             }
             point.setScale(scale);
             point.setAlpha(0);
-            point.setRotation((float) (angle * 180 / Math.PI));
+            point.setRotation(rotDeg);
             scene.attachChild(point, 0);
-            points.add(point);
+            points[pointsCount++] = point;
         }
 
         listener.addPassiveObject(this);
@@ -89,51 +90,47 @@ public class FollowTrack extends GameObject {
         }
         time += dt;
 
+        final int n = pointsCount;
         if (timeLeft <= approach) {
-            float percent = (time) / (approach * 0.5f);
-            if (percent > 1) {
-                percent = 1;
-            }
-            for (int i = 0; i < points.size(); i++) {
-                points.get(i).setAlpha(percent);
+            float percent = time / (approach * 0.5f);
+            if (percent > 1) percent = 1;
+            for (int i = 0; i < n; i++) {
+                points[i].setAlpha(percent);
             }
         } else if (time < timeLeft - approach) {
-            float percent = (time) / (timeLeft - approach);
-            if (percent > 1) {
-                percent = 1;
+            float percent = time / (timeLeft - approach);
+            if (percent > 1) percent = 1;
+            int visible = (int) (percent * n);
+            for (int i = 0; i < visible; i++) {
+                points[i].setAlpha(1);
             }
-            for (int i = 0; i < percent * points.size(); i++) {
-                points.get(i).setAlpha(1);
-            }
-            if (percent < 1) {
-                points.get((int) (percent * points.size())).setAlpha(
-                        percent - (int) percent);
+            if (percent < 1 && visible < n) {
+                points[visible].setAlpha(percent - (int) percent);
             }
         } else {
             float percent = 1 - (timeLeft - time) / approach;
-            if (percent > 1) {
-                percent = 1;
+            if (percent > 1) percent = 1;
+            int faded = (int) (percent * n);
+            for (int i = 0; i < faded; i++) {
+                points[i].setAlpha(0);
             }
-            for (int i = 0; i < percent * points.size(); i++) {
-                points.get(i).setAlpha(0);
-            }
-            if (percent >= 0 && percent < 1) {
-                points.get((int) (percent * points.size())).setAlpha(
-                        1 - percent + (int) percent);
+            if (percent >= 0 && percent < 1 && faded < n) {
+                points[faded].setAlpha(1 - percent + (int) percent);
             }
         }
 
         if (time >= timeLeft) {
             empty = true;
 
-            for (int i = 0, pointsSize = points.size(); i < pointsSize; i++) {
-                Sprite sp = points.get(i);
+            for (int i = 0; i < n; i++) {
+                Sprite sp = points[i];
                 sp.detachSelf();
                 if (sp instanceof AnimSprite) {
                     SpritePool.getInstance().putAnimSprite("followpoint-", (AnimSprite) sp);
                 } else {
                     SpritePool.getInstance().putSprite("followpoint", sp);
                 }
+                points[i] = null;
             }
             listener.removePassiveObject(FollowTrack.this);
             GameObjectPool.getInstance().putTrac(FollowTrack.this);

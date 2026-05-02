@@ -566,18 +566,29 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                 null
         );
 
-        for (final String s : beatmapData.rawTimingPoints) {
-            final TimingPoint tp = new TimingPoint(s.split("[,]"),
-                    currentTimingPoint);
-            if (!tp.wasInderited()) {
-                currentTimingPoint = tp;
-                break;
+        // Pre-split each raw timing point string once — used by both passes below.
+        final ArrayList<String> rawTPs = beatmapData.rawTimingPoints;
+        final int tpCount = rawTPs.size();
+        final String[][] splitTPs = new String[tpCount][];
+        for (int i = 0; i < tpCount; i++) {
+            splitTPs[i] = rawTPs.get(i).split(",");
+        }
+
+        // Pass 1: find the first uninherited TP without allocating TimingPoint objects.
+        // Non-inherited = positive beat length (field 1 does not start with '-').
+        for (String[] pars : splitTPs) {
+            if (pars.length >= 2) {
+                String ms = pars[1].trim();
+                if (!ms.isEmpty() && ms.charAt(0) != '-') {
+                    currentTimingPoint = new TimingPoint(pars, currentTimingPoint);
+                    break;
+                }
             }
         }
 
-        for (final String s : beatmapData.rawTimingPoints) {
-            final TimingPoint tp = new TimingPoint(s.split("[,]"),
-                    currentTimingPoint);
+        // Pass 2: build the full timingPoints queue using pre-split arrays.
+        for (String[] pars : splitTPs) {
+            final TimingPoint tp = new TimingPoint(pars, currentTimingPoint);
             timingPoints.add(tp);
             if (!tp.wasInderited()) {
                 currentTimingPoint = tp;

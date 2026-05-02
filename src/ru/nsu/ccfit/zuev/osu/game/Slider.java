@@ -73,6 +73,8 @@ public class Slider extends GameObject {
     private final BitSet tickSet = new BitSet();
     private int tickIndex;
 
+    private float[] lengthCache = new float[0];
+
     private LinePath superPath = null;
     private boolean preStageFinish = false;
 
@@ -118,6 +120,15 @@ public class Slider extends GameObject {
                 sliderPath :
                 GameHelper.calculatePath(Utils.realToTrackCoords(pos),
                         data.split("[|]"), Math.max(0, length), offset);
+
+        // Cache path.length as float[] — avoids ArrayList<Float> unboxing in getPercentPosition's binary search
+        int lenCount = path.length.size();
+        if (lengthCache.length < lenCount) {
+            lengthCache = new float[lenCount];
+        }
+        for (int i = 0; i < lenCount; i++) {
+            lengthCache[i] = path.length.get(i);
+        }
 
         num += 1;
         if (OsuSkin.get().isLimitComboTextLength()) {
@@ -378,7 +389,8 @@ public class Slider extends GameObject {
             return tmpPoint;
         }
 
-        if (path.length.size() == 1) {
+        final int lenSize = path.length.size();
+        if (lenSize == 1) {
             final PointF p = tmpPoint;
             p.x = startPosition.x * percentage + path.points.get(1).x
                     * (1 - percentage);
@@ -386,15 +398,13 @@ public class Slider extends GameObject {
                     * (1 - percentage);
             return p;
         }
-        int left = 0, right = path.length.size();
+        int left = 0, right = lenSize;
         int index = right / 2;
-        final float realLength = percentage
-                * path.length.get(path.length.size() - 1);
+        final float realLength = percentage * lengthCache[lenSize - 1];
         while (left < right) {
-            if (index < path.length.size() - 1
-                    && path.length.get(index + 1) < realLength) {
+            if (index < lenSize - 1 && lengthCache[index + 1] < realLength) {
                 left = index;
-            } else if (path.length.get(index) >= realLength) {
+            } else if (lengthCache[index] >= realLength) {
                 right = index;
             } else {
                 break;
@@ -402,8 +412,8 @@ public class Slider extends GameObject {
             index = (right + left) / 2;
         }
 
-        float addlength = realLength - path.length.get(index);
-        addlength /= path.length.get(index) - path.length.get(index + 1);
+        float addlength = realLength - lengthCache[index];
+        addlength /= lengthCache[index] - lengthCache[index + 1];
         final PointF p = tmpPoint;
         p.x = path.points.get(index).x * addlength
                 + path.points.get(index + 1).x * (1 - addlength);

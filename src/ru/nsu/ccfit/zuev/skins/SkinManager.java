@@ -44,10 +44,8 @@ public class SkinManager {
     }
 
     public static int getFrames(final String texname) {
-        if (frameCount.containsKey(texname) == false) {
-            return 0;
-        }
-        return frameCount.get(texname);
+        Integer count = frameCount.get(texname);
+        return count != null ? count : 0;
     }
 
     public static void setFrames(final String texname, final int frames) {
@@ -89,15 +87,16 @@ public class SkinManager {
             if (!f.isFile()) {
                 continue;
             }
+            final String nameLower = f.getName().toLowerCase();
             if (Config.isUseCustomSounds()
-                    && (f.getName().toLowerCase().matches(".*[.]wav")
-                    || f.getName().toLowerCase().matches(".*[.]mp3")
-                    || f.getName().toLowerCase().matches(".*[.]ogg"))
-                && f.length() >= 1024) {
+                    && (nameLower.endsWith(".wav")
+                    || nameLower.endsWith(".mp3")
+                    || nameLower.endsWith(".ogg"))
+                    && f.length() >= 1024) {
                 ResourceManager.getInstance().loadCustomSound(f);
             } else if (Config.isUseCustomSkins()
-                    && (f.getName().toLowerCase().matches(".*[.]png")
-                    || f.getName().toLowerCase().matches(".*[.]jpg"))) {
+                    && (nameLower.endsWith(".png")
+                    || nameLower.endsWith(".jpg"))) {
                 ResourceManager.getInstance().loadCustomTexture(f);
             }
 

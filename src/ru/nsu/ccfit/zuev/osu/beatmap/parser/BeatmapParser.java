@@ -60,6 +60,8 @@ public class BeatmapParser {
         file = new File(path);
     }
 
+    private static final Pattern FORMAT_PATTERN = Pattern.compile("osu file format v(\\d+)");
+
     private static final BeatmapGeneralParser generalParser = new BeatmapGeneralParser();
     private static final BeatmapMetadataParser metadataParser = new BeatmapMetadataParser();
     private static final BeatmapDifficultyParser difficultyParser = new BeatmapDifficultyParser();
@@ -89,8 +91,7 @@ public class BeatmapParser {
                 return false;
             }
 
-            Pattern pattern = Pattern.compile("osu file format v(\\d+)");
-            Matcher matcher = pattern.matcher(head);
+            Matcher matcher = FORMAT_PATTERN.matcher(head);
             if (!matcher.find()) {
                 closeSource();
                 return false;

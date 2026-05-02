@@ -21,7 +21,7 @@ public class OdrConfig {
     }
 
     public static File getMainDatabase() {
-        return new File(getDatabaseDir(), "osudroid_test.db");
+        return new File(getDatabaseDir(), "nekosu_droid.db");
     }
 
 }

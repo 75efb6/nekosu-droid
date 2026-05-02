@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DBOpenHelper extends SQLiteOpenHelper {
     public static final String SCORES_TABLENAME = "scores";
     public static final String MAPS_TABLENAME = "ddlmaps";
-    private static final String DBNAME = "osudroid_test";
+    private static final String DBNAME = "nekosu_droid";
     private static final int DBVERSION = 6;
     private static DBOpenHelper helper = null;
 
