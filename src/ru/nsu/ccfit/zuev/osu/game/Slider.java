@@ -157,7 +157,8 @@ public class Slider extends GameObject {
         preStageFinish = false;
         color.set(r, g, b);
         if (!OsuSkin.get().isSliderFollowComboColor()) {
-            color = new RGBColor(OsuSkin.get().getSliderBodyColor());
+            RGBColor bodyColor = OsuSkin.get().getSliderBodyColor();
+            color.set(bodyColor.r(), bodyColor.g(), bodyColor.b());
         }
         circleColor.set(r, g, b);
 
@@ -667,8 +668,9 @@ public class Slider extends GameObject {
                     approachCircle.setAlpha(percentage);
                 }
 
-                for (int i = 0; i < ticks.size(); i++) {
-                    if (percentage > (float) (i + 1) / ticks.size()) {
+                final int tickCount = ticks.size();
+                for (int i = 0; i < tickCount; i++) {
+                    if (percentage > (float) (i + 1) / tickCount) {
                         ticks.get(i).setAlpha(1);
                     }
                 }
@@ -806,7 +808,7 @@ public class Slider extends GameObject {
         }
 
         // Some magic with slider ticks. If it'll crash it's not my fault ^_^"
-        while (ticks.size() > 0 && percentage < 1 - 0.02f / maxTime
+        while (!ticks.isEmpty() && percentage < 1 - 0.02f / maxTime
                 && tickTime * GameHelper.getTickRate() > tickInterval) {
             tickTime -= tickInterval / GameHelper.getTickRate();
             if (followCircle.getAlpha() > 0 && replayObjectData == null ||
@@ -830,7 +832,7 @@ public class Slider extends GameObject {
             ticks.get(currentTick).setAlpha(0);
             if (reverse && currentTick > 0) {
                 currentTick--;
-            } else if (!reverse && currentTick < ticks.size() - 1) {
+            } else if (!reverse && currentTick < ticks.size() - 1) { // ticks can't be empty here
                 currentTick++;
             }
             ticksTotal++;

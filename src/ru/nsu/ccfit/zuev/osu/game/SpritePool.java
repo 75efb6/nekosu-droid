@@ -44,22 +44,16 @@ public class SpritePool {
         sprite.clearEntityModifiers();
         sprite.clearUpdateHandlers();
         count++;
-        if (sprites.containsKey(name)) {
-            sprites.get(name).add(sprite);
-        } else {
-            final LinkedList<Sprite> list = new LinkedList<Sprite>();
-            list.add(sprite);
-            sprites.put(name, list);
-        }
+        sprites.computeIfAbsent(name, k -> new LinkedList<>()).add(sprite);
     }
 
     synchronized public Sprite getSprite(final String name) {
-        if (sprites.containsKey(name)) {
-            final LinkedList<Sprite> list = sprites.get(name);
-            while (list.isEmpty() == false && list.peek().hasParent() == true) {
+        final LinkedList<Sprite> list = sprites.get(name);
+        if (list != null) {
+            while (!list.isEmpty() && list.peek().hasParent()) {
                 list.poll();
             }
-            if (list.isEmpty() == false) {
+            if (!list.isEmpty()) {
                 count--;
                 return list.poll();
             }
@@ -69,34 +63,31 @@ public class SpritePool {
         return new Sprite(0, 0, ResourceManager.getInstance().getTexture(name));
     }
 
-    synchronized public Sprite getCenteredSprite(final String name,
-                                                 final PointF pos) {
-        if (sprites.containsKey(name)) {
-            final LinkedList<Sprite> list = sprites.get(name);
-            while (list.isEmpty() == false && list.peek().hasParent() == true) {
+    synchronized public Sprite getCenteredSprite(final String name, final PointF pos) {
+        final LinkedList<Sprite> list = sprites.get(name);
+        if (list != null) {
+            while (!list.isEmpty() && list.peek().hasParent()) {
                 list.poll();
             }
-            if (list.isEmpty() == false) {
+            if (!list.isEmpty()) {
                 count--;
                 final Sprite sp = list.poll();
-                sp.setPosition(pos.x - sp.getWidth() / 2,
-                        pos.y - sp.getHeight() / 2);
+                sp.setPosition(pos.x - sp.getWidth() / 2, pos.y - sp.getHeight() / 2);
                 return sp;
             }
         }
 
         spritesCreated++;
-        return new CentredSprite(pos.x, pos.y, ResourceManager.getInstance()
-                .getTexture(name));
+        return new CentredSprite(pos.x, pos.y, ResourceManager.getInstance().getTexture(name));
     }
 
     synchronized public AnimSprite getAnimSprite(final String name, int count) {
-        if (animsprites.containsKey(name)) {
-            final LinkedList<AnimSprite> list = animsprites.get(name);
-            while (list.isEmpty() == false && list.peek().hasParent() == true) {
+        final LinkedList<AnimSprite> list = animsprites.get(name);
+        if (list != null) {
+            while (!list.isEmpty() && list.peek().hasParent()) {
                 list.poll();
             }
-            if (list.isEmpty() == false) {
+            if (!list.isEmpty()) {
                 count--;
                 return list.poll();
             }
@@ -121,13 +112,7 @@ public class SpritePool {
         sprite.clearEntityModifiers();
         sprite.clearUpdateHandlers();
         count++;
-        if (animsprites.containsKey(name)) {
-            animsprites.get(name).add(sprite);
-        } else {
-            final LinkedList<AnimSprite> list = new LinkedList<AnimSprite>();
-            list.add(sprite);
-            animsprites.put(name, list);
-        }
+        animsprites.computeIfAbsent(name, k -> new LinkedList<>()).add(sprite);
     }
 
     public void purge() {

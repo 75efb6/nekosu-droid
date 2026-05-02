@@ -35,6 +35,7 @@ public class SliderBody2D extends AbstractSliderBody {
     private float bodyWidth, borderWidth, hintWidth;
     private float startLength = 0, endLength = 0;
     private boolean enableHint = false;
+    private boolean dirty = true;
 
     public SliderBody2D(LinePath path) {
         super(path);
@@ -113,27 +114,24 @@ public class SliderBody2D extends AbstractSliderBody {
 
     @Override
     public void onUpdate() {
-        if (body == null || border == null) {
+        if (body == null || border == null || !dirty) {
             return;
         }
+        dirty = false;
 
         BuildCache cache = localCache.get();
         LinePath sub = path.cutPath(startLength, endLength).fitToLinePath(cache.path);
 
+        // Compute segment angles and normals once for all width passes
+        cache.drawLinePath.prepareForPath(sub);
+
         if (hint != null) {
-            cache.drawLinePath
-                    .reset(sub, hintWidth)
-                    .getTriangles(cache.triangleBuilder)
+            cache.drawLinePath.buildForWidth(hintWidth, cache.triangleBuilder)
                     .getVertex(hint.getVertices());
         }
-
-        cache.drawLinePath
-                .reset(sub, bodyWidth)
-                .getTriangles(cache.triangleBuilder)
+        cache.drawLinePath.buildForWidth(bodyWidth, cache.triangleBuilder)
                 .getVertex(body.getVertices());
-        cache.drawLinePath
-                .reset(sub, borderWidth)
-                .getTriangles(cache.triangleBuilder)
+        cache.drawLinePath.buildForWidth(borderWidth, cache.triangleBuilder)
                 .getVertex(border.getVertices());
     }
 
@@ -165,12 +163,18 @@ public class SliderBody2D extends AbstractSliderBody {
 
     @Override
     public void setStartLength(float length) {
-        startLength = length;
+        if (startLength != length) {
+            startLength = length;
+            dirty = true;
+        }
     }
 
     @Override
     public void setEndLength(float length) {
-        endLength = length;
+        if (endLength != length) {
+            endLength = length;
+            dirty = true;
+        }
     }
 
     @Override
@@ -204,27 +208,22 @@ public class SliderBody2D extends AbstractSliderBody {
             body.getVertices().length = 0;
             border.getVertices().length = 0;
         } else {
+            cache.drawLinePath.prepareForPath(path);
             if (hint != null) {
-                cache.drawLinePath
-                        .reset(path, hintWidth)
-                        .getTriangles(cache.triangleBuilder)
+                cache.drawLinePath.buildForWidth(hintWidth, cache.triangleBuilder)
                         .getVertex(hint.getVertices());
             }
-            cache.drawLinePath
-                    .reset(path, bodyWidth)
-                    .getTriangles(cache.triangleBuilder)
+            cache.drawLinePath.buildForWidth(bodyWidth, cache.triangleBuilder)
                     .getVertex(body.getVertices());
-            cache.drawLinePath
-                    .reset(path, borderWidth)
-                    .getTriangles(cache.triangleBuilder)
+            cache.drawLinePath.buildForWidth(borderWidth, cache.triangleBuilder)
                     .getVertex(border.getVertices());
         }
-
 
         if (!emptyOnStart) {
             startLength = 0;
             endLength = path.getMeasurer().maxLength();
         }
+        dirty = false;
 
         scene.attachChild(border, 0);
         scene.attachChild(body, 0);

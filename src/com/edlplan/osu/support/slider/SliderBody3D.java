@@ -1,5 +1,6 @@
 package com.edlplan.osu.support.slider;
 
+import com.edlplan.andengine.Triangle3DBuilder;
 import com.edlplan.andengine.Triangle3DPack;
 import com.edlplan.framework.math.line.LinePath;
 
@@ -22,6 +23,12 @@ public class SliderBody3D extends AbstractSliderBody {
     private float bodyWidth, borderWidth;
 
     private float startLength = 0, endLength = 0;
+    private boolean dirty = true;
+
+    // Cached path builder — prepared once per path, reused for both body and border widths
+    private final Draw3DLinePath pathBuilder = new Draw3DLinePath();
+    // Shared triangle builder — reset and refilled each onUpdate
+    private final Triangle3DBuilder sharedBuilder = new Triangle3DBuilder();
 
     public SliderBody3D(LinePath path) {
         super(path);
@@ -29,34 +36,25 @@ public class SliderBody3D extends AbstractSliderBody {
 
     @Override
     public void onUpdate() {
+        if (body == null || border == null || !dirty) {
+            return;
+        }
+        dirty = false;
+
         LinePath sub = path.cutPath(startLength, endLength).fitToLinePath();
 
         float zBody = -bodyWidth / borderWidth + zOff;
-
         float alpha = endLength / path.getMeasurer().maxLength();
 
-        /*bodyMask.setVertices(
-                (new Draw3DLinePath(sub, bodyWidth, zEnd - zOff, zBody - zOff))
-                        .getTriangles()
-                        .getVertex());*/
+        // Compute segment structure once for both width passes
+        pathBuilder.prepareForPath(sub);
 
         body.setVertices(
-                (new Draw3DLinePath(sub, bodyWidth, 1, 1))
-                        .getTriangles()
-                        .getVertex());
-
+                pathBuilder.buildForWidth(bodyWidth, 1, 1, sharedBuilder).getVertex());
         body.setAlpha(0.7f * alpha);
 
-        /*borderMask.setVertices(
-                (new Draw3DLinePath(sub, borderWidth, zEnd - zOff, zStart - zOff))
-                        .getTriangles()
-                        .getVertex());*/
-
         border.setVertices(
-                (new Draw3DLinePath(sub, borderWidth, -1, -1))
-                        .getTriangles()
-                        .getVertex());
-
+                pathBuilder.buildForWidth(borderWidth, -1, -1, sharedBuilder).getVertex());
         border.setAlpha(alpha);
     }
 
@@ -88,12 +86,18 @@ public class SliderBody3D extends AbstractSliderBody {
 
     @Override
     public void setStartLength(float length) {
-        startLength = length;
+        if (startLength != length) {
+            startLength = length;
+            dirty = true;
+        }
     }
 
     @Override
     public void setEndLength(float length) {
-        endLength = length;
+        if (endLength != length) {
+            endLength = length;
+            dirty = true;
+        }
     }
 
     @Override
@@ -106,14 +110,6 @@ public class SliderBody3D extends AbstractSliderBody {
 
         float zBody = -bodyWidth / borderWidth + zOff;
 
-        /*bodyMask = new Triangle3DPack(0, 0,
-                emptyOnStart ?
-                        new float[0] :
-                        (new Draw3DLinePath(path, bodyWidth, zEnd - zOff, zBody - zOff))
-                                .getTriangles()
-                                .getVertex());
-        bodyMask.setClearDepthOnStart(true);*/
-
         body = new Triangle3DPack(0, 0,
                 emptyOnStart ?
                         new float[0] :
@@ -124,14 +120,6 @@ public class SliderBody3D extends AbstractSliderBody {
 
         body.setClearDepthOnStart(true);
 
-        /*borderMask = new Triangle3DPack(0, 0,
-                emptyOnStart ?
-                        new float[0] :
-                        (new Draw3DLinePath(path, borderWidth, zEnd - zOff, zStart - zOff))
-                                .getTriangles()
-                                .getVertex()
-        );*/
-
         border = new Triangle3DPack(0, 0,
                 emptyOnStart ?
                         new float[0] :
@@ -140,17 +128,13 @@ public class SliderBody3D extends AbstractSliderBody {
                                 .getVertex()
         );
 
-        //bodyMask.setAlpha(0);
-        //borderMask.setAlpha(0);
         body.setColor(bodyColor.r(), bodyColor.g(), bodyColor.b());
         border.setColor(borderColor.r(), borderColor.g(), borderColor.b());
 
-
         scene.attachChild(border, 0);
-        //scene.attachChild(borderMask, 0);
         scene.attachChild(body, 0);
-        //scene.attachChild(bodyMask, 0);
 
+        dirty = false;
     }
 
     @Override

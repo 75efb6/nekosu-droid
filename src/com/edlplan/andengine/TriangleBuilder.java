@@ -32,16 +32,20 @@ public class TriangleBuilder extends FloatArraySlice {
         ary[length++] = p3.y;
     }
 
-    public void add(Vec2 p1, Vec2 p2, Vec2 p3) {
+    public void add(float x1, float y1, float x2, float y2, float x3, float y3) {
         if (length + 6 > ary.length) {
             ary = Arrays.copyOf(ary, ary.length * 3 / 2 + 6);
         }
-        ary[length++] = p1.x;
-        ary[length++] = p1.y;
-        ary[length++] = p2.x;
-        ary[length++] = p2.y;
-        ary[length++] = p3.x;
-        ary[length++] = p3.y;
+        ary[length++] = x1;
+        ary[length++] = y1;
+        ary[length++] = x2;
+        ary[length++] = y2;
+        ary[length++] = x3;
+        ary[length++] = y3;
+    }
+
+    public void add(Vec2 p1, Vec2 p2, Vec2 p3) {
+        add(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
     }
 
     public float[] copyVertex() {

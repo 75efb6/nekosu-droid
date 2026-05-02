@@ -47,8 +47,9 @@ public class GameObjectPool {
     }
 
     public CircleNumber getNumber(final int num) {
-        if (numbers.containsKey(num) && numbers.get(num).isEmpty() == false) {
-            return numbers.get(num).poll();
+        final LinkedList<CircleNumber> list = numbers.get(num);
+        if (list != null && !list.isEmpty()) {
+            return list.poll();
         }
 
         objectsCreated++;
@@ -56,16 +57,13 @@ public class GameObjectPool {
     }
 
     public void putNumber(final CircleNumber number) {
-        if (numbers.containsKey(number.getNum()) == false) {
-            numbers.put(number.getNum(), new LinkedList<CircleNumber>());
-        }
-        numbers.get(number.getNum()).add(number);
+        numbers.computeIfAbsent(number.getNum(), k -> new LinkedList<>()).add(number);
     }
 
     public GameEffect getEffect(final String texname) {
-        if (effects.containsKey(texname)
-                && effects.get(texname).isEmpty() == false) {
-            return effects.get(texname).poll();
+        final LinkedList<GameEffect> list = effects.get(texname);
+        if (list != null && !list.isEmpty()) {
+            return list.poll();
         }
 
         objectsCreated++;
@@ -73,10 +71,7 @@ public class GameObjectPool {
     }
 
     public void putEffect(final GameEffect effect) {
-        if (effects.containsKey(effect.getTexname()) == false) {
-            effects.put(effect.getTexname(), new LinkedList<GameEffect>());
-        }
-        effects.get(effect.getTexname()).add(effect);
+        effects.computeIfAbsent(effect.getTexname(), k -> new LinkedList<>()).add(effect);
     }
 
     public Slider getSlider() {
