@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/frg_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,74 +8,75 @@
     <LinearLayout
         android:id="@+id/fullLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_marginHorizontal="80dp"
-        android:layout_marginTop="50dp"
-        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
         android:orientation="vertical">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="40dp">
+        <LinearLayout
+            android:id="@+id/showMoreButton"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:paddingHorizontal="12dp">
 
-            <RelativeLayout
-                android:id="@+id/showMoreButton"
-                android:layout_width="160dp"
-                android:layout_height="40dp"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                android:background="@drawable/tab_pill">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:text="Create room"
-                    android:textColor="@color/textPrimary"
-                    android:textSize="13sp"
-                    android:textStyle="bold"/>
-            </RelativeLayout>
-        </RelativeLayout>
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_add"
+                android:scaleType="fitCenter"/>
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/optionBody"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:background="@color/frgBodyBackgroundDark"
             android:clickable="true"
             android:orientation="vertical">
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
+                android:layout_height="3dp"
                 android:background="@color/accentPrimary"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.12"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="18dp"
+                android:paddingBottom="16dp"
+                android:text="CREATE ROOM"
+                android:textColor="@color/textSecondary"
+                android:textSize="10sp"/>
 
             <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:overScrollMode="never">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:paddingHorizontal="20dp"
+                    android:paddingBottom="28dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Name"
+                        android:letterSpacing="0.08"
+                        android:text="NAME"
                         android:textColor="@color/textSecondary"
-                        android:textSize="11sp"
-                        android:textAllCaps="true"
-                        android:letterSpacing="0.08"/>
+                        android:textSize="10sp"/>
 
                     <EditText
                         android:id="@+id/room_name"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:layout_marginTop="6dp"
+                        android:layout_marginBottom="16dp"
                         android:background="@drawable/input_bg"
                         android:maxLength="32"
                         android:padding="12dp"
@@ -87,18 +88,17 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:text="Password"
+                        android:letterSpacing="0.08"
+                        android:text="PASSWORD"
                         android:textColor="@color/textSecondary"
-                        android:textSize="11sp"
-                        android:textAllCaps="true"
-                        android:letterSpacing="0.08"/>
+                        android:textSize="10sp"/>
 
                     <EditText
                         android:id="@+id/room_password"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:layout_marginTop="6dp"
+                        android:layout_marginBottom="16dp"
                         android:background="@drawable/input_bg"
                         android:hint="Leave empty for no password"
                         android:imeOptions="actionDone"
@@ -114,18 +114,17 @@
                         android:id="@+id/room_max_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:text="Max players: 8"
+                        android:letterSpacing="0.08"
+                        android:text="MAX PLAYERS: 8"
                         android:textColor="@color/textSecondary"
-                        android:textSize="11sp"
-                        android:textAllCaps="true"
-                        android:letterSpacing="0.08"/>
+                        android:textSize="10sp"/>
 
                     <SeekBar
                         android:id="@+id/room_max_bar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="12dp"
                         android:max="16"
                         android:min="2"
                         android:progress="8"/>
@@ -134,7 +133,7 @@
                         android:id="@+id/room_error_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
                         android:text="Name cannot be empty!"
                         android:textColor="@color/dangerColor"
                         android:textSize="12sp"
@@ -143,17 +142,15 @@
                     <TextView
                         android:id="@+id/room_create"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginBottom="8dp"
+                        android:layout_height="52dp"
                         android:background="@drawable/btn_accent"
                         android:gravity="center"
-                        android:paddingVertical="14dp"
                         android:text="Create"
                         android:textColor="@color/textPrimary"
+                        android:textSize="14sp"
                         android:textStyle="bold"/>
                 </LinearLayout>
             </ScrollView>
         </LinearLayout>
     </LinearLayout>
-</RelativeLayout>
+</FrameLayout>

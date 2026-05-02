@@ -195,13 +195,13 @@ class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
     private fun playOnLoadAnim() {
         val body = findViewById<View>(R.id.frg_body)!!
         body.alpha = 0f
-        body.translationX = 400f
+        body.translationY = 400f
         body.animate().cancel()
         body.animate()
             .alpha(1f)
-            .translationX(0f)
-            .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
-            .setDuration(300)
+            .translationY(0f)
+            .setInterpolator(EasingHelper.asInterpolator(Easing.OutCubic))
+            .setDuration(280)
             .start()
         playBackgroundHideInAnim(150)
     }
@@ -211,9 +211,9 @@ class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
         body.animate().cancel()
         body.animate()
             .alpha(0f)
-            .translationX(400f)
-            .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
-            .setDuration(300)
+            .translationY(400f)
+            .setInterpolator(EasingHelper.asInterpolator(Easing.InQuad))
+            .setDuration(180)
             .setListener(
                 object : BaseAnimationListener() {
                     override fun onAnimationEnd(animation: Animator) {

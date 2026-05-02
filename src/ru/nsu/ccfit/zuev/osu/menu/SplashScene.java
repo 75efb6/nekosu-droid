@@ -4,7 +4,9 @@ import com.reco1l.framework.lang.Execution;
 
 import org.anddev.andengine.engine.handler.IUpdateHandler;
 import org.anddev.andengine.entity.modifier.*;
+import org.anddev.andengine.entity.primitive.Rectangle;
 import org.anddev.andengine.entity.scene.Scene;
+import org.anddev.andengine.entity.scene.background.ColorBackground;
 import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.entity.text.ChangeableText;
 
@@ -27,6 +29,17 @@ public class SplashScene implements IUpdateHandler {
 
     public SplashScene() {
         scene = new Scene();
+        scene.setBackground(new ColorBackground(15 / 255f, 15 / 255f, 26 / 255f));
+
+        final Rectangle accentTop = new Rectangle(0, 0, Config.getRES_WIDTH(), 3);
+        accentTop.setColor(0.90f, 0.24f, 0.55f, 1.0f);
+        scene.attachChild(accentTop);
+
+        final Rectangle accentBottom = new Rectangle(0, Config.getRES_HEIGHT() - 3,
+                Config.getRES_WIDTH(), 3);
+        accentBottom.setColor(0.90f, 0.24f, 0.55f, 1.0f);
+        scene.attachChild(accentBottom);
+
         initializeLoading();
         initializeProgress();
         initializeInfo();

@@ -207,6 +207,7 @@ public class ModMenu implements IModSwitcher {
             parent.clearChildScene();
             parent = null;
         }
+
     }
 
     private void addButton(int x, int y, String texture, GameMod mod) {

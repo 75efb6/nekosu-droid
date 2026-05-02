@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/frg_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -14,11 +14,11 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:background="@color/surface">
+            android:background="@color/frgBodyBackgroundDark">
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
+                android:layout_height="3dp"
                 android:layout_alignParentBottom="true"
                 android:background="@color/accentPrimary"/>
 
@@ -37,4 +37,4 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
     </LinearLayout>
-</RelativeLayout>
+</FrameLayout>

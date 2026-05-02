@@ -6,6 +6,7 @@ import org.anddev.andengine.engine.handler.IUpdateHandler;
 import org.anddev.andengine.entity.modifier.FadeOutModifier;
 import org.anddev.andengine.entity.modifier.LoopEntityModifier;
 import org.anddev.andengine.entity.modifier.RotationByModifier;
+import org.anddev.andengine.entity.primitive.Rectangle;
 import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.scene.background.ColorBackground;
 import org.anddev.andengine.entity.scene.background.SpriteBackground;
@@ -45,9 +46,24 @@ public class LoadingScreen implements IUpdateHandler {
                     height, tex);
             scene.setBackground(new SpriteBackground(menuBg));
         } else {
-            scene.setBackground(new ColorBackground(70 / 255f, 129 / 255f,
-                    252 / 255f));
+            scene.setBackground(new ColorBackground(15 / 255f, 15 / 255f, 26 / 255f));
         }
+
+        // Dark overlay so skin backgrounds don't compete with the loading UI
+        final Rectangle dimOverlay = new Rectangle(0, 0, Config.getRES_WIDTH(), Config.getRES_HEIGHT());
+        dimOverlay.setColor(0.04f, 0.04f, 0.10f, 0.78f);
+        scene.attachChild(dimOverlay);
+
+        // Accent top line
+        final Rectangle accentTop = new Rectangle(0, 0, Config.getRES_WIDTH(), Utils.toRes(3));
+        accentTop.setColor(0.90f, 0.24f, 0.55f, 1.0f);
+        scene.attachChild(accentTop);
+
+        // Accent bottom line
+        final Rectangle accentBottom = new Rectangle(0, Config.getRES_HEIGHT() - Utils.toRes(3),
+                Config.getRES_WIDTH(), Utils.toRes(3));
+        accentBottom.setColor(0.90f, 0.24f, 0.55f, 1.0f);
+        scene.attachChild(accentBottom);
 
         final TextureRegion loadingTexture = ResourceManager.getInstance()
                 .getTexture("loading-title");

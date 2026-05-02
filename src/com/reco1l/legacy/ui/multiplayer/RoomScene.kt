@@ -1,6 +1,6 @@
 package com.reco1l.legacy.ui.multiplayer
 
-import android.app.AlertDialog
+import com.edlplan.ui.fragment.ConfirmDialogFragment
 import com.reco1l.api.ibancho.IPlayerEventListener
 import com.reco1l.api.ibancho.IRoomEventListener
 import com.reco1l.api.ibancho.RoomAPI
@@ -76,18 +76,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
     val chatPreview = ComposedText(0f, 0f, getResources().getFont("smallFont"), 100)
 
-    val leaveDialog = AlertDialog.Builder(getGlobal().mainActivity).apply {
-
-        setTitle("Leave room")
-        setMessage("Are you sure?")
-        setPositiveButton("Yes") { dialog, _ ->
-
-            dialog.dismiss()
-            back()
-        }
-        setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
-
-    }
+    val leaveDialog = ConfirmDialogFragment().setMessage("Leave room?\nAre you sure?")
 
 
     private var backButton: Sprite? = null
@@ -336,7 +325,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
                     this.setScale(1f)
 
                     if (!moved)
-                        mainThread { leaveDialog.show() }
+                        mainThread { leaveDialog.showForResult { back() } }
                     return true
                 }
                 if (event.isActionOutside || event.isActionMove && MathUtils.distance(dx, dy, localX, localY) > 50)
@@ -1057,13 +1046,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
             back()
             mainThread {
-                AlertDialog.Builder(getGlobal().mainActivity).apply {
-
-                    setTitle("Message")
-                    setMessage("You've been kicked by room host.")
-                    setPositiveButton("Close") { dialog, _ -> dialog.dismiss() }
-
-                }.show()
+                ConfirmDialogFragment().setMessage("You've been kicked by room host.").showForResult {}
             }
             return
         }

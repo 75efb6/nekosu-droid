@@ -1,50 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/frg_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/frgDialogStyleBackground"
-    android:elevation="1dp">
+    android:background="@color/frgDialogStyleBackground">
 
     <LinearLayout
         android:id="@+id/frg_body"
-        android:layout_width="200dp"
+        android:layout_width="180dp"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:background="@drawable/card_dark"
-        android:clickable="true"
+        android:layout_gravity="center"
+        android:background="@color/frgBodyBackgroundDark"
         android:gravity="center"
-        android:orientation="vertical"
-        android:paddingVertical="24dp">
+        android:orientation="vertical">
 
         <View
             android:layout_width="match_parent"
             android:layout_height="3dp"
-            android:layout_gravity="top"
             android:background="@color/accentPrimary"/>
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="20dp"
             android:indeterminate="true"
             app:indicatorColor="@color/accentPrimary"
             app:indicatorDirectionCircular="counterclockwise"
             app:indicatorSize="48dp"
-            app:trackCornerRadius="3dp"
-            app:trackThickness="4dp"/>
+            app:trackCornerRadius="0dp"
+            app:trackThickness="3dp"/>
 
         <TextView
             android:id="@+id/text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="12dp"
             android:textColor="@color/textSecondary"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:visibility="gone"/>
 
         <Button
@@ -52,12 +48,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/btn_accent"
-            android:paddingHorizontal="20dp"
+            android:paddingHorizontal="24dp"
             android:paddingVertical="10dp"
             android:textAllCaps="false"
             android:textColor="@color/textPrimary"
             android:textStyle="bold"
             android:visibility="gone"/>
     </LinearLayout>
-</RelativeLayout>
+</FrameLayout>

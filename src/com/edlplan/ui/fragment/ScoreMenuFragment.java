@@ -112,16 +112,12 @@ public class ScoreMenuFragment extends BaseFragment {
     private void playOnLoadAnim() {
         View body = findViewById(R.id.fullLayout);
         body.setAlpha(0);
-        body.setScaleX(0.9f);
-        body.setScaleY(0.9f);
-        body.setTranslationY(80);
+        body.setTranslationY(500f);
         body.animate().cancel();
         body.animate()
                 .alpha(1)
-                .scaleX(1f)
-                .scaleY(1f)
                 .translationY(0)
-                .setInterpolator(EasingHelper.asInterpolator(Easing.OutBack))
+                .setInterpolator(EasingHelper.asInterpolator(Easing.OutCubic))
                 .setDuration(280)
                 .start();
         playBackgroundHideInAnim(220);
@@ -132,9 +128,7 @@ public class ScoreMenuFragment extends BaseFragment {
         body.animate().cancel();
         body.animate()
                 .alpha(0)
-                .scaleX(0.9f)
-                .scaleY(0.9f)
-                .translationY(80)
+                .translationY(500f)
                 .setDuration(180)
                 .setInterpolator(EasingHelper.asInterpolator(Easing.InQuad))
                 .setListener(new BaseAnimationListener() {

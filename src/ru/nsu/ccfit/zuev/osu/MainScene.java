@@ -359,12 +359,12 @@ public class MainScene implements IUpdateHandler {
         music_nowplay = new Sprite(Utils.toRes(Config.getRES_WIDTH() - 500), 0, (float) (40 * nptex.getWidth()) / nptex.getHeight(), 40, nptex);
 
         final Rectangle bgTopRect = new Rectangle(0, 0, Config.getRES_WIDTH(), Utils.toRes(120));
-        bgTopRect.setColor(0.05f, 0.06f, 0.12f, 0.60f);
+        bgTopRect.setColor(0.05f, 0.06f, 0.12f, 0.92f);
 
         final Rectangle bgbottomRect = new Rectangle(0, 0, Config.getRES_WIDTH(),
                 Math.max(author.getHeight(), yasonline.getHeight()) + Utils.toRes(15));
         bgbottomRect.setPosition(0, Config.getRES_HEIGHT() - bgbottomRect.getHeight());
-        bgbottomRect.setColor(0.05f, 0.06f, 0.12f, 0.60f);
+        bgbottomRect.setColor(0.05f, 0.06f, 0.12f, 0.92f);
 
         final Rectangle topAccentLine = new Rectangle(0, Utils.toRes(120) - Utils.toRes(3), Config.getRES_WIDTH(), Utils.toRes(3));
         topAccentLine.setColor(0.90f, 0.24f, 0.55f, 1.0f);
@@ -379,6 +379,7 @@ public class MainScene implements IUpdateHandler {
             spectrum[i].setRotationCenter(0, 5);
             spectrum[i].setScaleCenter(0, 5);
             spectrum[i].setRotation(-220 + i * 3f);
+            spectrum[i].setColor(0.90f, 0.24f, 0.55f);
             spectrum[i].setAlpha(0.0f);
 
             scene.attachChild(spectrum[i]);

@@ -27,51 +27,52 @@
             android:textStyle="bold"/>
     </RelativeLayout>
 
+    <!-- Panel slides in from the right; handle strip on left edge stays visible -->
     <LinearLayout
         android:id="@+id/fullLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="vertical"
-        android:translationY="260dp">
+        android:layout_width="340dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:orientation="horizontal"
+        android:translationX="312dp">
 
+        <!-- Left handle strip: touch here to toggle panel -->
         <RelativeLayout
             android:id="@+id/frg_header"
-            android:layout_width="match_parent"
-            android:layout_height="40dp">
+            android:layout_width="28dp"
+            android:layout_height="match_parent">
 
-            <RelativeLayout
+            <LinearLayout
                 android:id="@+id/showMoreButton"
-                android:layout_width="120dp"
-                android:layout_height="40dp"
-                android:layout_alignParentBottom="true"
-                android:layout_marginStart="20dp"
-                android:background="@drawable/tab_pill">
+                android:layout_width="28dp"
+                android:layout_height="80dp"
+                android:layout_centerInParent="true"
+                android:gravity="center">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:letterSpacing="0.05"
-                    android:text="Settings"
-                    android:textColor="@color/textPrimary"
-                    android:textSize="13sp"
-                    android:textStyle="bold"/>
-            </RelativeLayout>
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_tune"
+                    android:scaleType="fitCenter"/>
+            </LinearLayout>
+
+            <!-- Right accent stripe facing the content -->
+            <View
+                android:layout_width="3dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:background="@color/accentPrimary"/>
         </RelativeLayout>
 
+        <!-- Main content -->
         <LinearLayout
             android:id="@+id/optionBody"
-            android:layout_width="match_parent"
-            android:layout_height="260dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="@color/frgBodyBackgroundDark"
             android:clickable="true"
             android:orientation="vertical">
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:background="@color/accentPrimary"/>
 
             <ScrollView
                 android:layout_width="match_parent"
@@ -82,21 +83,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingBottom="12dp">
+                    android:paddingBottom="12dp"
+                    android:paddingTop="8dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
+                        android:orientation="vertical"
                         android:paddingHorizontal="16dp"
-                        android:paddingVertical="10dp">
+                        android:paddingTop="6dp"
+                        android:paddingBottom="4dp">
 
                         <CheckBox
                             android:id="@+id/enableStoryboard"
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:saveEnabled="false"
                             android:text="@string/opt_enableStoryboard_title"
                             android:textColor="@color/textPrimary"
@@ -104,9 +105,8 @@
 
                         <CheckBox
                             android:id="@+id/enableVideo"
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:saveEnabled="false"
                             android:text="Enable video"
                             android:textColor="@color/textPrimary"
@@ -114,9 +114,8 @@
 
                         <CheckBox
                             android:id="@+id/showScoreboard"
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:saveEnabled="false"
                             android:text="@string/opt_show_scoreboard_title"
                             android:textColor="@color/textPrimary"
@@ -211,16 +210,23 @@
                             android:textSize="12sp"/>
                     </RelativeLayout>
 
-                    <CheckBox
-                        android:id="@+id/enableNCwhenSpeedChange"
+                    <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="16dp"
-                        android:paddingBottom="10dp"
-                        android:saveEnabled="false"
-                        android:text="@string/opt_enablenc_whenspeedchange_title"
-                        android:textColor="@color/textPrimary"
-                        android:textSize="13sp"/>
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp">
+
+                        <CheckBox
+                            android:id="@+id/enableNCwhenSpeedChange"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:saveEnabled="false"
+                            android:text="@string/opt_enablenc_whenspeedchange_title"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="13sp"/>
+                    </RelativeLayout>
 
                     <View
                         android:id="@+id/force_diffstat_split_view"
@@ -273,6 +279,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="16dp"
+                        android:paddingTop="8dp"
                         android:paddingBottom="4dp">
 
                         <CheckBox
@@ -312,6 +319,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="16dp"
+                        android:paddingTop="8dp"
                         android:paddingBottom="4dp">
 
                         <CheckBox
@@ -352,6 +360,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="16dp"
+                        android:paddingTop="8dp"
                         android:paddingBottom="8dp">
 
                         <CheckBox

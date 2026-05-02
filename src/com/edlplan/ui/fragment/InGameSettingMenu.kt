@@ -116,13 +116,13 @@ class InGameSettingMenu : BaseFragment() {
         showMore.setOnTouchListener { v, event ->
             if (event.action == TouchEvent.ACTION_DOWN) {
                 v.animate().cancel()
-                v.animate().scaleX(0.9f).scaleY(0.9f).translationY(v.height * 0.1f).setDuration(100)
+                v.animate().scaleX(0.9f).scaleY(0.9f).translationX(v.width * 0.1f).setDuration(100)
                     .start()
                 toggleSettingPanel()
                 return@setOnTouchListener true
             } else if (event.action == TouchEvent.ACTION_UP) {
                 v.animate().cancel()
-                v.animate().scaleX(1f).scaleY(1f).translationY(0f).setDuration(100).start()
+                v.animate().scaleX(1f).scaleY(1f).translationX(0f).setDuration(100).start()
                 return@setOnTouchListener true
             }
             false
@@ -487,7 +487,7 @@ class InGameSettingMenu : BaseFragment() {
     }
 
     private fun isSettingPanelShow(): Boolean {
-        return abs(findViewById<LinearLayout>(R.id.fullLayout)?.translationY ?: 11f) < 10
+        return abs(findViewById<LinearLayout>(R.id.fullLayout)?.translationX ?: 11f) < 10
     }
 
     private fun updateVisibility() {
@@ -528,7 +528,7 @@ class InGameSettingMenu : BaseFragment() {
         val layout = findViewById<View>(R.id.fullLayout)
         layout?.animate()?.cancel()
         layout?.animate()
-            ?.translationY(0f)
+            ?.translationX(0f)
             ?.setDuration(200)
             ?.setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
             ?.setListener(
@@ -538,7 +538,7 @@ class InGameSettingMenu : BaseFragment() {
                         val background = findViewById<RelativeLayout>(R.id.frg_background)!!
                         background.isClickable = true
                         background.setOnClickListener {
-                            playShowPanelAnim()
+                            playHidePanelAnim()
                         }
                     }
                 }
@@ -550,7 +550,7 @@ class InGameSettingMenu : BaseFragment() {
         val layout = findViewById<View>(R.id.fullLayout)
         layout?.animate()?.cancel()
         layout?.animate()
-            ?.translationY(findViewById<LinearLayout>(R.id.optionBody)!!.height.toFloat())
+            ?.translationX(findViewById<LinearLayout>(R.id.optionBody)!!.width.toFloat())
             ?.setDuration(200)
             ?.setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
             ?.setListener(

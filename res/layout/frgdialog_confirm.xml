@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/frg_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,11 +7,10 @@
 
     <LinearLayout
         android:id="@+id/frg_body"
-        android:layout_width="280dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:background="@drawable/card_dark"
-        android:clickable="true"
+        android:layout_gravity="bottom"
+        android:background="@color/frgBodyBackgroundDark"
         android:orientation="vertical">
 
         <View
@@ -21,41 +20,29 @@
             android:background="@color/dangerColor"/>
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:paddingTop="20dp"
-            android:paddingHorizontal="20dp"
-            android:text="Confirm"
-            android:textColor="@color/textPrimary"
-            android:textSize="16sp"
-            android:textStyle="bold"/>
-
-        <TextView
             android:id="@+id/confirm_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:lineSpacingMultiplier="1.3"
-            android:padding="20dp"
+            android:lineSpacingMultiplier="1.5"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="20dp"
             android:text="@string/menu_properties_delete_confirm"
             android:textColor="@color/textSecondary"
             android:textSize="14sp"/>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/dividerColor"/>
-
         <Button
             android:id="@+id/okButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="54dp"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginBottom="28dp"
             android:background="@drawable/btn_danger"
-            android:layout_margin="16dp"
-            android:paddingVertical="12dp"
+            android:letterSpacing="0.1"
             android:text="@string/dialog_ok"
-            android:textAllCaps="false"
+            android:textAllCaps="true"
             android:textColor="@color/textPrimary"
+            android:textSize="13sp"
             android:textStyle="bold"/>
     </LinearLayout>
-</RelativeLayout>
+</FrameLayout>

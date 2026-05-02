@@ -19,6 +19,8 @@ public class ConfirmDialogFragment extends BaseFragment {
     @StringRes
     private int text;
 
+    private String messageString;
+
     public ConfirmDialogFragment() {
         setDismissOnBackgroundClick(true);
     }
@@ -36,7 +38,9 @@ public class ConfirmDialogFragment extends BaseFragment {
                 dismiss();
             }
         });
-        if (text != 0) {
+        if (messageString != null) {
+            ((TextView) findViewById(R.id.confirm_message)).setText(messageString);
+        } else if (text != 0) {
             ((TextView) findViewById(R.id.confirm_message)).setText(text);
         }
         playOnLoadAnim();
@@ -55,6 +59,14 @@ public class ConfirmDialogFragment extends BaseFragment {
         return this;
     }
 
+    public ConfirmDialogFragment setMessage(String text) {
+        this.messageString = text;
+        if (findViewById(R.id.confirm_message) != null) {
+            ((TextView) findViewById(R.id.confirm_message)).setText(text);
+        }
+        return this;
+    }
+
     public void showForResult(OnResult result) {
         this.onResult = result;
         show();
@@ -63,17 +75,13 @@ public class ConfirmDialogFragment extends BaseFragment {
     protected void playOnLoadAnim() {
         View body = findViewById(R.id.frg_body);
         body.setAlpha(0);
-        body.setScaleX(0.85f);
-        body.setScaleY(0.85f);
-        body.setTranslationY(60);
+        body.setTranslationY(500f);
         body.animate().cancel();
         body.animate()
                 .alpha(1)
-                .scaleX(1f)
-                .scaleY(1f)
                 .translationY(0)
                 .setDuration(280)
-                .setInterpolator(EasingHelper.asInterpolator(Easing.OutBack))
+                .setInterpolator(EasingHelper.asInterpolator(Easing.OutCubic))
                 .start();
         playBackgroundHideInAnim(200);
     }
@@ -83,9 +91,7 @@ public class ConfirmDialogFragment extends BaseFragment {
         body.animate().cancel();
         body.animate()
                 .alpha(0)
-                .scaleX(0.85f)
-                .scaleY(0.85f)
-                .translationY(60)
+                .translationY(500f)
                 .setDuration(180)
                 .setInterpolator(EasingHelper.asInterpolator(Easing.InQuad))
                 .setListener(new BaseAnimationListener() {

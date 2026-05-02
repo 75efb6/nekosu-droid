@@ -69,6 +69,18 @@ abstract class SettingsFragment : PreferenceFragmentCompat(), BackPressListener 
         isCreated = true
         root = super<PreferenceFragmentCompat>.onCreateView(inflater, container, savedInstanceState)
         onLoadView()
+
+        root?.post {
+            val body = root?.findViewById<View>(R.id.body) ?: return@post
+            body.translationX = -body.width.toFloat()
+            body.animate()
+                .translationX(0f)
+                .setDuration(280)
+                .setInterpolator(EasingHelper.asInterpolator(Easing.OutCubic))
+                .start()
+            playBackgroundHideInAnim(200)
+        }
+
         return root as View
     }
 }

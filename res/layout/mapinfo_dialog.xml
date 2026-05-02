@@ -1,19 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/mapinfo_dialog"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/frgDialogStyleBackground">
 
+    <View
+        android:id="@+id/frg_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"/>
+
     <LinearLayout
         android:id="@+id/frg_body"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginHorizontal="40dp"
-        android:layout_marginTop="80dp"
-        android:layout_marginBottom="40dp"
-        android:background="@drawable/card_dark"
-        android:clickable="true"
+        android:layout_gravity="bottom"
+        android:layout_marginTop="72dp"
+        android:background="@color/frgBodyBackgroundDark"
         android:orientation="vertical">
 
         <View
@@ -23,15 +27,16 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp">
+            android:layout_height="52dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:text="Map Info"
+                android:letterSpacing="0.12"
+                android:text="MAP INFO"
                 android:textColor="@color/textPrimary"
-                android:textSize="16sp"
+                android:textSize="12sp"
                 android:textStyle="bold"/>
 
             <Button
@@ -40,14 +45,14 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:layout_marginEnd="12dp"
+                android:layout_marginEnd="16dp"
                 android:background="@drawable/btn_accent"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
-                android:text="Back"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="10dp"
+                android:text="Close"
                 android:textAllCaps="false"
                 android:textColor="@color/textPrimary"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 android:textStyle="bold"/>
         </RelativeLayout>
 
@@ -65,10 +70,10 @@
                 android:id="@+id/mapinfo_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:lineSpacingMultiplier="1.4"
+                android:lineSpacingMultiplier="1.6"
                 android:padding="20dp"
                 android:textColor="@color/textPrimary"
                 android:textSize="13sp"/>
         </ScrollView>
     </LinearLayout>
-</RelativeLayout>
+</FrameLayout>

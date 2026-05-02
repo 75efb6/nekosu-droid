@@ -1,7 +1,7 @@
 package com.reco1l.legacy.ui.multiplayer
 
 import android.animation.Animator
-import android.app.AlertDialog
+import com.edlplan.ui.fragment.ConfirmDialogFragment
 import android.view.View
 import android.widget.TextView
 import com.edlplan.framework.easing.Easing
@@ -78,40 +78,21 @@ class RoomPlayerMenu : BaseFragment()
         }
 
         kick.setOnClickListener {
-            AlertDialog.Builder(getGlobal().mainActivity).apply {
-
-                setTitle("Kick ${player!!.name}")
-                setMessage("Are you sure?")
-                setPositiveButton("Yes") { dialog, _ ->
-
-                    dialog.dismiss()
+            ConfirmDialogFragment()
+                .setMessage("Kick ${player!!.name}?\nAre you sure?")
+                .showForResult {
                     dismiss()
-
-                    if (Multiplayer.isConnected)
-                        RoomAPI.kickPlayer(player!!.id)
+                    if (Multiplayer.isConnected) RoomAPI.kickPlayer(player!!.id)
                 }
-                setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
-
-            }.show()
         }
 
         host.setOnClickListener {
-
-            AlertDialog.Builder(getGlobal().mainActivity).apply {
-
-                setTitle("Make ${player!!.name} room host")
-                setMessage("Are you sure?")
-                setPositiveButton("Yes") { dialog, _ ->
-
-                    dialog.dismiss()
+            ConfirmDialogFragment()
+                .setMessage("Make ${player!!.name} room host?\nAre you sure?")
+                .showForResult {
                     dismiss()
-
-                    if (Multiplayer.isConnected)
-                        RoomAPI.setRoomHost(player!!.id)
+                    if (Multiplayer.isConnected) RoomAPI.setRoomHost(player!!.id)
                 }
-                setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
-
-            }.show()
         }
 
         playOnLoadAnim()

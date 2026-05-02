@@ -102,7 +102,7 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
             else -> "#F8558C"
         }
 
-        val html = "<font color=$color><b>${player.name}: </b></font> <font color=#000000>$message</font>"
+        val html = "<font color=$color><b>${player.name}: </b></font> <font color=#FFFFFF>$message</font>"
         val spanned = HtmlCompat.fromHtml(html, FROM_HTML_MODE_LEGACY)
 
         appendText(spanned)
@@ -281,7 +281,7 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
             getGlobal().gameScene.pause()
             return
         }
-        mainThread { RoomScene.leaveDialog.show() }
+        mainThread { RoomScene.leaveDialog.showForResult { RoomScene.back() } }
     }
 
     companion object
