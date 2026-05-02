@@ -208,9 +208,9 @@ class MainMenu(val main: MainScene)
 
     fun attachButtons()
     {
-        main.scene.attachChild(first, 1)
-        main.scene.attachChild(second, 1)
-        main.scene.attachChild(third, 1)
+        main.scene.attachChild(first)
+        main.scene.attachChild(second)
+        main.scene.attachChild(third)
     }
 
     private fun showSecondMenu()

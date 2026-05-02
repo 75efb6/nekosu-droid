@@ -799,16 +799,39 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             final ChangeableText fmemText = memText;
             fgScene.registerUpdateHandler(new FPSCounter() {
                 int elapsedInt = 0;
-                final int frameLimit = Math.round(GlobalManager.getInstance().getMainActivity().getRefreshRate());
+                final int frameLimit = Math.round(
+                        GlobalManager.getInstance().getMainActivity().getRefreshRate()
+                );
+
                 @Override
                 public void onUpdate(final float pSecondsElapsed) {
                     super.onUpdate(pSecondsElapsed);
+
                     elapsedInt++;
-                    fpsText.setText(Math.round(this.getFPS()) + "/" + frameLimit + " FPS");
+
+                    int currentFps = Math.min(Math.round(this.getFPS()), frameLimit);
+
+                    fpsText.setText(currentFps + "/" + frameLimit + " FPS");
+
+                    // FPS color status
+                    float ratio = (float) currentFps / frameLimit;
+
+                    if (ratio >= 0.8f) {
+                        // Green = good performance
+                        fpsText.setColor(0f, 1f, 0f);
+                    } else if (ratio >= 0.65f) {
+                        // Yellow = medium performance
+                        fpsText.setColor(1f, 1f, 0f);
+                    } else {
+                        // Red = bad performance
+                        fpsText.setColor(1f, 0f, 0f);
+                    }
+
                     // Reset every second so the display reflects recent performance
-                    if (this.mSecondsElapsed >= 1.0f) {
+                    if (this.mSecondsElapsed >= 1f) {
                         this.reset();
                     }
+
                     if (offsetRegs != 0 && elapsedInt > 200) {
                         float mean = avgOffset / offsetRegs;
                         accText.setText("Avg offset: "
