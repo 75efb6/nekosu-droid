@@ -159,11 +159,12 @@ public class HitCircle extends GameObject {
             if (GameHelper.isRelaxMod() && passedTime - time >= 0 && inPosition) {
                 return 0f;
             }
+            if (!inPosition && !GameHelper.isAutopilotMod()) {
+                continue;
+            }
             var isPressed = listener.isMousePressed(this, i);
-            if (isPressed && inPosition) {
-                return Config.isFixFrameOffset() ? (float) listener.downFrameOffset(i) / 1000f : 0f;
-            } else if (GameHelper.isAutopilotMod() && isPressed) {
-                return 0f;
+            if (isPressed) {
+                return (inPosition && Config.isFixFrameOffset()) ? (float) listener.downFrameOffset(i) / 1000f : 0f;
             }
         }
         return Float.NaN;

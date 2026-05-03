@@ -107,6 +107,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     private final Engine engine;
     private final Cursor[] cursors = new Cursor[CursorCount];
     private final boolean[] cursorIIsDown = new boolean[CursorCount];
+    private final boolean[] pressConsumedThisFrame = new boolean[CursorCount];
     private final StringBuilder strBuilder = new StringBuilder();
     public String filePath = null;
     private Scene scene;
@@ -1518,6 +1519,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                 c.mousePressed = false;
             }
         }
+        Arrays.fill(pressConsumedThisFrame, false);
         if(GameHelper.isFlashLight()){
             if (!GameHelper.isAuto() && !GameHelper.isAutopilotMod()) {
                 if (mainCursorId < 0){
@@ -2557,23 +2559,24 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         if (GameHelper.isAuto()) {
             return false;
         }
+
         if (activeObjects.isEmpty()) {
             return false;
         }
 
         final float frontmostHitTime = lastActiveObjectHitTime;
 
-        if (Math.abs(object.getHitTime() - frontmostHitTime) > 0.001f) {
-            // Lazer-style notelock: the frontmost object only locks subsequent ones once
-            // the current time has entered its 50ms hit window. Before that, clicks pass through.
-            final float windowStart = frontmostHitTime
-                - GameHelper.getDifficultyHelper().hitWindowFor50(GameHelper.getDifficulty());
-            if (secPassed >= windowStart) {
-                return false;
-            }
+        // Lazer notelock: subsequent objects are locked until the frontmost reaches 0ms offset.
+        // Late hits from a missed object will not lock the next note.
+        if (Math.abs(object.getHitTime() - frontmostHitTime) > 0.001f && secPassed < frontmostHitTime) {
+            return false;
         }
 
-        return cursors[index].mousePressed;
+        if (!cursors[index].mousePressed || pressConsumedThisFrame[index]) {
+            return false;
+        }
+        pressConsumedThisFrame[index] = true;
+        return true;
     }
 
     @Override

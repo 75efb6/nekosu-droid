@@ -593,16 +593,14 @@ public class Slider extends GameObject {
     private boolean isHit() {
         float radius = Utils.sqr(64 * scale);
         for (int i = 0, count = listener.getCursorsCount(); i < count; i++) {
-
             var inPosition = Utils.squaredDistance(startPosition, listener.getMousePos(i)) <= radius;
             if (GameHelper.isRelaxMod() && passedTime >= 0 && inPosition) {
                 return true;
             }
-
-            var isPressed = listener.isMousePressed(this, i);
-            if (isPressed && inPosition) {
-                return true;
-            } else if (GameHelper.isAutopilotMod() && isPressed) {
+            if (!inPosition && !GameHelper.isAutopilotMod()) {
+                continue;
+            }
+            if (listener.isMousePressed(this, i)) {
                 return true;
             }
         }
