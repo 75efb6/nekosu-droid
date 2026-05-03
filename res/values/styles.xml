@@ -19,6 +19,15 @@
         <item name="android:layout">@layout/fragment_settings</item>
     </style>
 
+    <style name="BottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/BottomSheetStyle</item>
+        <item name="android:windowIsFloating">false</item>
+    </style>
+
+    <style name="BottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
     <!--Beatmap Downloader-->
     <style name="beatmap_difficulty_icon">
         <item name="android:layout_width">wrap_content</item>

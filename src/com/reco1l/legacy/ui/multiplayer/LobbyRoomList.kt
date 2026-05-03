@@ -1,8 +1,15 @@
 package com.reco1l.legacy.ui.multiplayer
 
-import android.app.AlertDialog
-import android.view.inputmethod.EditorInfo
+import android.animation.Animator
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.TextView
+import com.edlplan.framework.easing.Easing
+import com.edlplan.ui.BaseAnimationListener
+import com.edlplan.ui.EasingHelper
+import com.edlplan.ui.fragment.BaseFragment
+import ru.nsu.ccfit.zuev.osuplus.R
 import com.reco1l.api.ibancho.RoomAPI
 import com.reco1l.api.ibancho.data.Room
 import com.reco1l.api.ibancho.data.RoomStatus.*
@@ -25,6 +32,75 @@ import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
 import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager.getInstance as getOnline
 
+
+class RoomPasswordDialog(
+    private val room: Room,
+    private val onSubmit: (String) -> Unit,
+) : BaseFragment()
+{
+    override val layoutID = R.layout.dialog_room_password
+
+    init { isDismissOnBackgroundClick = true }
+
+    override fun onLoadView()
+    {
+        findViewById<TextView>(R.id.room_name)!!.text = room.name
+
+        val input = findViewById<EditText>(R.id.password_input)!!
+
+        fun submit()
+        {
+            val imm = requireContext().getSystemService(InputMethodManager::class.java)
+            imm?.hideSoftInputFromWindow(input.windowToken, 0)
+            dismiss()
+            onSubmit(input.text.toString())
+        }
+
+        input.setOnEditorActionListener { _, _, _ -> submit(); true }
+        findViewById<View>(R.id.join_button)!!.setOnClickListener { submit() }
+
+        input.post {
+            input.requestFocus()
+            val imm = requireContext().getSystemService(InputMethodManager::class.java)
+            imm?.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT)
+        }
+
+        playOnLoadAnim()
+    }
+
+    private fun playOnLoadAnim()
+    {
+        val body = findViewById<View>(R.id.body)!!
+        body.alpha = 0f
+        body.translationY = -200f
+        body.animate().cancel()
+        body.animate()
+            .translationY(0f)
+            .alpha(1f)
+            .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
+            .setDuration(150)
+            .start()
+        playBackgroundHideInAnim(150)
+    }
+
+    override fun dismiss()
+    {
+        val body = findViewById<View>(R.id.body) ?: return super.dismiss()
+        body.animate().cancel()
+        body.animate()
+            .translationYBy(-200f)
+            .alpha(0f)
+            .setDuration(200)
+            .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
+            .setListener(object : BaseAnimationListener() {
+                override fun onAnimationEnd(animation: Animator) = super@RoomPasswordDialog.dismiss()
+            })
+            .start()
+        playBackgroundHideOutAnim(200)
+    }
+}
+
+
 class LobbyRoomList : ScrollableList()
 {
 
@@ -40,24 +116,8 @@ class LobbyRoomList : ScrollableList()
     }
 
     private fun showPasswordPrompt(room: Room) = mainThread {
-
-        val input = EditText(getGlobal().mainActivity)
-        input.inputType = EditorInfo.TYPE_TEXT_VARIATION_PASSWORD
-
-        AlertDialog.Builder(getGlobal().mainActivity).apply {
-
-            setTitle(room.name)
-            setMessage("Please enter the room password:")
-            setView(input)
-            setCancelable(false)
-            setPositiveButton("Join") { dialog, _ ->
-
-                val password = input.text.toString()
-                dialog.dismiss()
-                connectToRoom(room, password)
-            }
-
-            setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+        RoomPasswordDialog(room) { password ->
+            connectToRoom(room, password)
         }.show()
     }
 

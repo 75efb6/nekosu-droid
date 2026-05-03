@@ -215,7 +215,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         }.also {
 
             it.width = 400f
-            it.setColor(0.2f, 0.9f, 0.2f)
+            it.setColor(0.902f, 0.243f, 0.549f)
             it.setPosition(Config.getRES_WIDTH() - it.width - 20f, Config.getRES_HEIGHT() - it.height - 20f)
 
             registerTouchArea(it)
@@ -228,7 +228,13 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         {
             override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean
             {
-                if (!event.isActionUp || awaitStatusChange)
+                if (awaitStatusChange)
+                    return false
+
+                if (event.isActionDown)
+                    return true
+
+                if (!event.isActionUp)
                     return false
 
                 if (player!!.status == READY)
@@ -270,16 +276,17 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
                     RoomAPI.notifyMatchPlay()
                     return true
                 }
-                else mainThread {
+
+                mainThread {
                     options = RoomOptions()
                     options!!.show()
                 }
-                return false
+                return true
             }
         }.also {
 
             it.width = 400f
-            it.setColor(0.2f, 0.2f, 0.2f)
+            it.setColor(0.145f, 0.145f, 0.251f)
             it.setPosition(Config.getRES_WIDTH() - it.width - 20f, readyButton!!.y - it.height - 20f)
 
             registerTouchArea(it)
@@ -484,7 +491,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         if (player!!.status == READY)
         {
             readyButton!!.setText("Not ready")
-            readyButton!!.setColor(0.9f, 0.2f, 0.2f)
+            readyButton!!.setColor(0.8f, 0.15f, 0.2f)
 
             modsButton!!.isVisible = false
             secondaryButton!!.isVisible = isRoomHost
@@ -500,17 +507,17 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
                     )
                 }
 
-                secondaryButton!!.setColor(0.2f, 0.9f, 0.2f)
+                secondaryButton!!.setColor(0.902f, 0.243f, 0.549f)
             }
             return
         }
 
         readyButton!!.setText("Ready")
-        readyButton!!.setColor(0.2f, 0.9f, 0.2f)
+        readyButton!!.setColor(0.902f, 0.243f, 0.549f)
 
         secondaryButton!!.isVisible = true
         secondaryButton!!.setText("Options")
-        secondaryButton!!.setColor(0.2f, 0.2f, 0.2f)
+        secondaryButton!!.setColor(0.145f, 0.145f, 0.251f)
 
         modsButton!!.isVisible = isRoomHost || room!!.gameplaySettings.isFreeMod
     }

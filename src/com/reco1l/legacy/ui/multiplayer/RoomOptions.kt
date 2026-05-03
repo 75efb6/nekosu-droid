@@ -14,14 +14,20 @@ import android.widget.TextView
 import androidx.annotation.AnimRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
+import android.text.InputType
 import androidx.preference.*
 import androidx.preference.Preference.OnPreferenceClickListener
+import androidx.preference.EditTextPreference
+import androidx.preference.ListPreference
+import androidx.preference.Preference
 import com.edlplan.framework.easing.Easing
 import com.edlplan.ui.BaseAnimationListener
 import com.edlplan.ui.EasingHelper
 import com.edlplan.ui.SkinPathPreference
 import com.edlplan.ui.fragment.LoadingFragment
 import com.edlplan.ui.fragment.SettingsFragment
+import com.reco1l.legacy.ui.StyledInputDialog
+import com.reco1l.legacy.ui.StyledSelectionDialog
 import com.reco1l.api.ibancho.LobbyAPI
 import com.reco1l.api.ibancho.RoomAPI
 import com.reco1l.api.ibancho.data.RoomTeam
@@ -312,9 +318,40 @@ class RoomOptions : SettingsFragment()
         else dismiss()
     }
 
+    override fun onDisplayPreferenceDialog(preference: Preference)
+    {
+        when (preference) {
+            is ListPreference -> StyledSelectionDialog.show(requireContext(), preference)
+            is EditTextPreference -> {
+                val inputType = if (preference.key == "room_password")
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                else InputType.TYPE_CLASS_TEXT
+                StyledInputDialog.show(requireContext(), preference, inputType)
+            }
+            else -> super.onDisplayPreferenceDialog(preference)
+        }
+    }
+
     override fun onLoadView()
     {
         findViewById<ImageButton>(R.id.back_button)!!.setOnClickListener { navigateBack() }
+        findViewById<View>(R.id.frg_background)!!.setOnClickListener { dismiss() }
+        playOnLoadAnim()
+    }
+
+    private fun playOnLoadAnim()
+    {
+        val body = findViewById<View>(R.id.body) ?: return
+        body.alpha = 0f
+        body.translationX = 400f
+        body.animate().cancel()
+        body.animate()
+            .translationX(0f)
+            .alpha(1f)
+            .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
+            .setDuration(150)
+            .start()
+        playBackgroundHideInAnim(150)
     }
 
     private fun playOnDismissAnim(action: Runnable)

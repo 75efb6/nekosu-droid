@@ -32,35 +32,14 @@
         android:id="@+id/fullLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:layout_gravity="top"
         android:orientation="vertical"
-        android:translationY="300dp">
-
-        <RelativeLayout
-            android:id="@+id/frg_header"
-            android:layout_width="match_parent"
-            android:layout_height="28dp">
-
-            <LinearLayout
-                android:id="@+id/showMoreButton"
-                android:layout_width="wrap_content"
-                android:layout_height="28dp"
-                android:layout_centerHorizontal="true"
-                android:gravity="center"
-                android:paddingHorizontal="12dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_chat"
-                    android:scaleType="fitCenter"/>
-            </LinearLayout>
-        </RelativeLayout>
+        android:translationY="-180dp">
 
         <RelativeLayout
             android:id="@+id/optionBody"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
+            android:layout_height="180dp"
             android:background="@color/frgBodyBackgroundDark"
             android:clickable="true">
 
@@ -98,6 +77,27 @@
                 android:textColor="@color/textPrimary"
                 android:textColorHint="@color/textSecondary"
                 android:textSize="14sp"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/frg_header"
+            android:layout_width="match_parent"
+            android:layout_height="28dp">
+
+            <LinearLayout
+                android:id="@+id/showMoreButton"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:paddingHorizontal="12dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_chat"
+                    android:scaleType="fitCenter"/>
+            </LinearLayout>
         </RelativeLayout>
     </LinearLayout>
 </FrameLayout>

@@ -180,7 +180,7 @@ object LobbyScene : Scene()
         }.also {
 
             it.width = 400f
-            it.setColor(0.2f, 0.2f, 1f, 0.9f)
+            it.setColor(0.902f, 0.243f, 0.549f)
             it.setPosition(40f, 120f + 40f)
             attachChild(it)
             registerTouchArea(it)
@@ -200,7 +200,7 @@ object LobbyScene : Scene()
         }.also {
 
             it.width = 400f
-            it.setColor(0.2f, 0.2f, 0.2f, 0.9f)
+            it.setColor(0.145f, 0.145f, 0.251f)
             it.setPosition(40f, createButton!!.y + createButton!!.height + 30f)
             attachChild(it)
             registerTouchArea(it)

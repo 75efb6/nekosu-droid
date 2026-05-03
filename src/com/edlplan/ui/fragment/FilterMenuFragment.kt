@@ -195,7 +195,7 @@ class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
     private fun playOnLoadAnim() {
         val body = findViewById<View>(R.id.frg_body)!!
         body.alpha = 0f
-        body.translationY = 400f
+        body.translationY = -400f
         body.animate().cancel()
         body.animate()
             .alpha(1f)
@@ -211,7 +211,7 @@ class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
         body.animate().cancel()
         body.animate()
             .alpha(0f)
-            .translationY(400f)
+            .translationY(-400f)
             .setInterpolator(EasingHelper.asInterpolator(Easing.InQuad))
             .setDuration(180)
             .setListener(

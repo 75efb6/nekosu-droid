@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
+import com.reco1l.legacy.ui.StyledInputDialog;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
@@ -16,8 +17,10 @@ import androidx.annotation.AnimRes;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.IdRes;
 import androidx.preference.EditTextPreference;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceScreen;
+import com.reco1l.legacy.ui.StyledSelectionDialog;
 
 import com.edlplan.framework.easing.Easing;
 import com.edlplan.ui.BaseAnimationListener;
@@ -243,6 +246,20 @@ public class SettingsMenu extends SettingsFragment {
             setTitle(StringTable.get(R.string.menu_settings_title));
         }else {
            dismiss();
+        }
+    }
+
+    @Override
+    public void onDisplayPreferenceDialog(Preference preference) {
+        if (preference instanceof ListPreference) {
+            StyledSelectionDialog.show(requireContext(), (ListPreference) preference);
+        } else if (preference instanceof EditTextPreference) {
+            int inputType = "onlinePassword".equals(preference.getKey())
+                    ? InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD
+                    : InputType.TYPE_CLASS_TEXT;
+            StyledInputDialog.show(requireContext(), (EditTextPreference) preference, inputType);
+        } else {
+            super.onDisplayPreferenceDialog(preference);
         }
     }
 

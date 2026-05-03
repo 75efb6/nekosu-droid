@@ -69,7 +69,7 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
 
         findViewById<View>(R.id.frg_header)!!.animate().cancel()
         findViewById<View>(R.id.frg_header)!!.alpha = 0f
-        findViewById<View>(R.id.frg_header)!!.translationY = 100f
+        findViewById<View>(R.id.frg_header)!!.translationY = -100f
         findViewById<View>(R.id.frg_header)!!.animate()
                 .alpha(1f)
                 .translationY(0f)
@@ -253,7 +253,7 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
         {
             fullLayout.animate().cancel()
             fullLayout.animate()
-                    .translationY(findViewById<View>(R.id.optionBody)!!.height.toFloat())
+                    .translationY(-findViewById<View>(R.id.optionBody)!!.height.toFloat())
                     .setDuration(200)
                     .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
                     .setListener(object : BaseAnimationListener()
