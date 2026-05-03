@@ -1,2 +1,11 @@
 include ':AndEngine', ':LibBASS'
 include ':andnext_markdown'
+
+include ':EdlJavaExt'
+project(':EdlJavaExt').projectDir = new File('EdlGameFramework/EdlJavaExt')
+
+include ':EdlOsbSupport'
+project(':EdlOsbSupport').projectDir = new File('EdlGameFramework/EdlOsbSupport')
+
+include ':osudroidresource'
+project(':osudroidresource').projectDir = new File('osudroidstrings/osudroidresource')

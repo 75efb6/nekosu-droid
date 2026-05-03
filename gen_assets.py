@@ -240,8 +240,6 @@ def make_ranking_button():
     draw = ImageDraw.Draw(img)
     draw_rounded_rect(draw, (0, 0, W - 1, H - 1), 8, BG_HIGH)
     draw_rounded_rect(draw, (0, 0, 4, H - 1), 2, ACCENT)
-    font = ImageFont.truetype(FONT_BOLD, 20)
-    draw.text((W // 2, H // 2), "Ranking", font=font, fill=TEXT_PRI, anchor="mm")
     img.save(os.path.join(ASSETS, "ranking_button.png"))
     print("  ranking_button.png")
 
@@ -317,6 +315,7 @@ SELECTION_ICONS = {
         "c0,-2.25 3,-2.5 3,-5 0,-2.21-1.79,-4-4,-4z"),
 }
 
+"""
 def make_selection_icons():
     for fname, (color, w, h, path) in SELECTION_ICONS.items():
         scale = 4
@@ -332,7 +331,7 @@ def make_selection_icons():
         img.save(os.path.join(ASSETS, fname))
         os.unlink(tmp)
         print(f"  {fname}")
-
+"""
 
 # ── Beatmap downloader sidebar ─────────────────────────────────────────────
 
@@ -472,12 +471,7 @@ if __name__ == "__main__":
 
     print("Generating ranking assets...")
     make_ranking_button()
-    make_ranking_online("ranking_enabled.png", enabled=True)
-    make_ranking_online("ranking_disabled.png", enabled=False)
     make_ranking_nextpage()
-
-    print("Generating selection icons...")
-    make_selection_icons()
 
     print("Generating misc assets...")
     make_beatmap_downloader()

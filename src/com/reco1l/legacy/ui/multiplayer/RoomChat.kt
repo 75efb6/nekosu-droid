@@ -41,6 +41,10 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
 
     var text: TextView? = null
 
+    private var scrollDownButton: View? = null
+
+    private var isAtBottom = true
+
     val log = SpannableStringBuilder()
 
     private val isExtended: Boolean
@@ -63,9 +67,14 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
 
         text = findViewById(R.id.chat_text)!!
         text!!.movementMethod = ScrollingMovementMethod()
+        text!!.setOnScrollChangeListener { _, _, scrollY, _, _ -> updateScrollState(scrollY) }
+
+        scrollDownButton = findViewById(R.id.scrollDownButton)
+        scrollDownButton?.setOnClickListener { scrollToBottom() }
 
         // Restoring the chat log in case there is.
         text!!.text = log
+        scrollToBottom()
 
         findViewById<View>(R.id.frg_header)!!.animate().cancel()
         findViewById<View>(R.id.frg_header)!!.alpha = 0f
@@ -76,6 +85,32 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
                 .setDuration(200)
                 .setInterpolator(EasingHelper.asInterpolator(Easing.InOutQuad))
                 .start()
+    }
+
+    private fun updateScrollState(scrollY: Int)
+    {
+        val tv = text ?: return
+        val layout = tv.layout ?: return
+        val lineCount = tv.lineCount
+        if (lineCount == 0) return
+        val contentBottom = layout.getLineBottom(lineCount - 1)
+        val visibleHeight = tv.height - tv.paddingTop - tv.paddingBottom
+        val maxScroll = maxOf(0, contentBottom - visibleHeight)
+        isAtBottom = scrollY >= maxScroll - SCROLL_THRESHOLD
+        scrollDownButton?.visibility = if (isAtBottom) View.GONE else View.VISIBLE
+    }
+
+    private fun scrollToBottom()
+    {
+        val tv = text ?: return
+        tv.post {
+            val layout = tv.layout ?: return@post
+            val lineCount = tv.lineCount
+            if (lineCount == 0) return@post
+            val contentBottom = layout.getLineBottom(lineCount - 1)
+            val visibleHeight = tv.height - tv.paddingTop - tv.paddingBottom
+            tv.scrollTo(0, maxOf(0, contentBottom - visibleHeight))
+        }
     }
 
     private fun appendText(spanned: Spanned)
@@ -91,6 +126,7 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
         log.append(spanned)
 
         text?.text = log
+        if (isAtBottom) scrollToBottom()
     }
 
     fun onRoomChatMessage(player: RoomPlayer, message: String) = mainThread {
@@ -286,6 +322,8 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
 
     companion object
     {
+        private const val SCROLL_THRESHOLD = 20
+
         val DEV_UIDS = arrayOf<Long>(
                 1,
         )
