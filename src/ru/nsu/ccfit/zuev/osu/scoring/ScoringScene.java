@@ -428,7 +428,9 @@ public class ScoringScene {
         String mapperStr = "Beatmap by " + trackInfo.getCreator();
         String playerStr = "Played by " + stat.getPlayerName() + " on " +
                 new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault()).format(new java.util.Date(stat.getTime()));
-        playerStr += String.format("  %s(%s)", BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE);
+        playerStr += BuildConfig.BUILD_TYPE.equals("release")
+                ? String.format(" %s", BuildConfig.VERSION_NAME)
+                : String.format(" %s(%s)", BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE);
         if (stat.getChangeSpeed() != 1 ||
             stat.isCustomAR() ||
             stat.isCustomOD() ||

@@ -283,7 +283,7 @@ public class MainActivity extends BaseGameActivity implements
         ResourceManager.getInstance().loadHighQualityAsset("music_stop", "music_stop.png");
         ResourceManager.getInstance().loadHighQualityAsset("music_next", "music_next.png");
         ResourceManager.getInstance().loadHighQualityAsset("music_prev", "music_prev.png");
-        ResourceManager.getInstance().loadHighQualityAsset("music_np", "music_np.png");
+
         ResourceManager.getInstance().loadHighQualityAsset("songselect-top", "songselect-top.png");
         File bg;
         if ((bg = new File(Config.getSkinPath() + "menu-background.png")).exists()

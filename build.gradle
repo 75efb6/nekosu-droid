@@ -30,8 +30,8 @@ def getReleaseVersionCode() {
 }
 
 def getReleaseVersionName() {
-    def baseline = '1.1.2'
-    def versionName = baseline + new Date().format('(yyMMdd)')
+    def patchVer = "0"
+    def versionName = new Date().format('yyyyMMdd') + "." + patchVer
     println('versionName: ' + versionName)
     return versionName
 }
@@ -151,7 +151,6 @@ android {
 
     android.applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
-            def releaseTime = new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
             def fileName = "nekosu!droid-${defaultConfig.versionName}.apk"
             outputFileName = fileName
         }

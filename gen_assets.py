@@ -371,46 +371,6 @@ def make_beatmap_downloader():
     print("  beatmap_downloader.png")
 
 
-# ── music_np.png (now-playing bar background, 1364x60) ─────────────────────
-
-def make_music_np():
-    W, H = 1364, 60
-    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-
-    # Background with gradient-ish feel via two rects
-    draw_rounded_rect(draw, (0, 0, W - 1, H - 1), 8, (*BG_BASE[:3], 210))
-    draw_rounded_rect(draw, (0, 0, 220, H - 1), 8, (*BG_SURFACE[:3], 220))
-
-    # Left accent bar
-    draw.rectangle([0, 0, 4, H - 1], fill=ACCENT)
-
-    # Music note icon area
-    note_svg = (
-        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">'
-        '<path fill="#E63E8C" d="M12,3v10.55c-.59-.34-1.27-.55-2-.55-2.21,0-4,1.79-4,4s1.79,4 4,4'
-        ' 4,-1.79 4,-4V7h4V3H12z"/></svg>'
-    )
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tf:
-        tmp = tf.name
-    subprocess.run(
-        ["rsvg-convert", "-w", "28", "-h", "28", "-o", tmp],
-        input=note_svg.encode(), check=True, capture_output=True,
-    )
-    note_icon = Image.open(tmp)
-    img.paste(note_icon, (10, (H - 32) // 2), note_icon)
-    os.unlink(tmp)
-
-    # "Now Playing" text — no special Unicode characters to avoid rendering as boxes
-    font_label = ImageFont.truetype(FONT_BOLD, 15)
-    font_sub   = ImageFont.truetype(FONT_REGULAR, 13)
-    draw.text((52, 7),  "NOW PLAYING", font=font_label, fill=(*ACCENT[:3], 220))
-    draw.text((52, 27), "...",          font=font_sub,   fill=(*TEXT_SEC[:3], 160))
-
-    img.save(os.path.join(ASSETS, "music_np.png"))
-    print("  music_np.png")
-
-
 # ── missing.png (beatmap-missing indicator, 20x20) ─────────────────────────
 
 def make_missing_icon():
@@ -521,7 +481,6 @@ if __name__ == "__main__":
 
     print("Generating misc assets...")
     make_beatmap_downloader()
-    make_music_np()
     make_missing_icon()
 
     print("Generating gfx button texture...")

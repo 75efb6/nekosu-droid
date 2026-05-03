@@ -80,7 +80,7 @@ public class MainScene implements IUpdateHandler {
     public BeatmapInfo beatmapInfo;
     private Context context;
     private Sprite logo, logoOverlay, background, lastBackground;
-    private Sprite music_nowplay;
+
     private Scene scene;
     private ChangeableText musicInfoText;
     private final Random random = new Random();
@@ -183,7 +183,7 @@ public class MainScene implements IUpdateHandler {
                 String.format(
                         Locale.getDefault(),
                         "nekosu!droid %s\nby Nekosu! Team\nosu!droid by osu!droid Team\nosu! is © peppy 2007-2026",
-                        BuildConfig.VERSION_NAME + " (" + BuildConfig.BUILD_TYPE + ")"
+                        BuildConfig.VERSION_NAME
                 )) {
 
 
@@ -355,9 +355,6 @@ public class MainScene implements IUpdateHandler {
 
         musicInfoText = new ChangeableText(0, 0, ResourceManager.getInstance().getFont("font"), "", HorizontalAlign.RIGHT, 35);
 
-        final TextureRegion nptex = ResourceManager.getInstance().getTexture("music_np");
-        music_nowplay = new Sprite(Utils.toRes(Config.getRES_WIDTH() - 500), 0, (float) (40 * nptex.getWidth()) / nptex.getHeight(), 40, nptex);
-
         final Rectangle bgTopRect = new Rectangle(0, 0, Config.getRES_WIDTH(), Utils.toRes(120));
         bgTopRect.setColor(0.05f, 0.06f, 0.12f, 0.92f);
 
@@ -473,7 +470,6 @@ public class MainScene implements IUpdateHandler {
 
         scene.attachChild(logo);
         scene.attachChild(logoOverlay);
-        scene.attachChild(music_nowplay);
         scene.attachChild(musicInfoText);
         scene.attachChild(music_prev);
         scene.attachChild(music_play);
@@ -497,6 +493,17 @@ public class MainScene implements IUpdateHandler {
         progressBar.setProgressRectColor(new RGBAColor(0.9f, 0.9f, 0.9f, 0.8f));
 
         createOnlinePanel(scene);
+
+        if (BuildConfig.DEBUG) {
+            final Text devBuildText = new Text(0, 0, ResourceManager.getInstance().getFont("font"), "DEVELOPMENT BUILD");
+            devBuildText.setColor(1f, 1f, 0f);
+            devBuildText.setPosition(
+                (Config.getRES_WIDTH() - devBuildText.getWidth()) / 2f,
+                Config.getRES_HEIGHT() - devBuildText.getHeight() - 10
+            );
+            scene.attachChild(devBuildText);
+        }
+
         scene.registerUpdateHandler(this);
 
         hitsound = ResourceManager.getInstance().loadSound("menuhit", "sfx/menuhit.ogg", false);
@@ -824,10 +831,8 @@ public class MainScene implements IUpdateHandler {
             }
             try {
                 musicInfoText.setPosition(Utils.toRes(Config.getRES_WIDTH() - 500 + 470 - musicInfoText.getWidth()), musicInfoText.getY());
-                music_nowplay.setPosition(Utils.toRes(Config.getRES_WIDTH() - 500 + 470 - musicInfoText.getWidth() - 130), 0);
             } catch (NullPointerException e) {
                 musicInfoText.setPosition(Utils.toRes(Config.getRES_WIDTH() - 500 + 470 - 200), 5);
-                music_nowplay.setPosition(Utils.toRes(Config.getRES_WIDTH() - 500 + 470 - 200 - 130), 0);
             }
         }
     }
