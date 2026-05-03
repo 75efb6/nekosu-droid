@@ -64,6 +64,17 @@ class InGameSettingMenu : BaseFragment() {
 
     override fun onLoadView() {
         reload(load())
+
+        val fullLayout = findViewById<LinearLayout>(R.id.fullLayout)!!
+        fullLayout.post {
+            val halfWidth = resources.displayMetrics.widthPixels / 2
+            val params = fullLayout.layoutParams
+            params.width = halfWidth
+            fullLayout.layoutParams = params
+            fullLayout.post {
+                fullLayout.translationX = findViewById<LinearLayout>(R.id.optionBody)!!.width.toFloat()
+            }
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) = outState.run {

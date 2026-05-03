@@ -34,7 +34,7 @@
         android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
         android:orientation="horizontal"
-        android:translationX="312dp">
+        android:translationX="9999dp">
 
         <!-- Left handle strip: touch here to toggle panel -->
         <RelativeLayout
