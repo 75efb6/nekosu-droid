@@ -38,3 +38,4 @@ proguard_logs/
 .externalNativeBuild/
 
 release.jks
+/.vscode/settings.json
