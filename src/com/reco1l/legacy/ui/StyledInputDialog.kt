@@ -85,7 +85,22 @@ class StyledInputDialog : BaseFragment() {
         playBackgroundHideOutAnim(200)
     }
 
+    fun interface Callback {
+        fun onConfirm(value: String)
+    }
+
     companion object {
+
+        @JvmStatic
+        fun show(
+            context: Context,
+            title: String,
+            currentValue: String,
+            inputType: Int,
+            onConfirm: Callback,
+        ) {
+            show(context, title, currentValue, inputType) { onConfirm.onConfirm(it) }
+        }
 
         @JvmStatic
         fun show(
@@ -106,6 +121,7 @@ class StyledInputDialog : BaseFragment() {
         }
 
         @JvmStatic
+        @Suppress("UNUSED_PARAMETER")
         fun show(
             context: Context,
             title: String,

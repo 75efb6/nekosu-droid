@@ -2,7 +2,6 @@ package ru.nsu.ccfit.zuev.osu;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -29,7 +28,6 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -44,7 +42,9 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import com.reco1l.api.ibancho.LobbyAPI;
 import com.reco1l.framework.lang.Execution;
+import android.text.InputType;
 import com.reco1l.legacy.AccessibilityDetector;
+import com.reco1l.legacy.ui.StyledInputDialog;
 import com.reco1l.legacy.Multiplayer;
 import com.reco1l.legacy.UpdateManager;
 import com.reco1l.legacy.ui.multiplayer.LobbyScene;
@@ -216,24 +216,16 @@ public class MainActivity extends BaseGameActivity implements
             editor.putString("playername", "Guest");
             editor.commit();
 
-            final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
-            alert.setTitle(StringTable.get(R.string.dialog_playername_title));
-            alert.setMessage(StringTable
-                    .get(R.string.dialog_playername_message));
-
-            final EditText input = new EditText(this);
-            input.setText("Guest");
-            alert.setView(input);
-
-            alert.setPositiveButton(StringTable.get(R.string.dialog_ok),
-                    (dialog, whichButton) -> {
-                        final String value = input.getText().toString();
+            Execution.mainThread(() -> StyledInputDialog.show(
+                    this,
+                    StringTable.get(R.string.dialog_playername_title),
+                    "Guest",
+                    InputType.TYPE_CLASS_TEXT,
+                    value -> {
                         editor.putString("playername", value);
                         editor.commit();
-                    });
-
-            Execution.mainThread(alert::show);
+                    }
+            ));
         }
 
         if (!prefs.getBoolean("qualitySet", false)) {
