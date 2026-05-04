@@ -724,6 +724,16 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
 
     public void show() {
         engine.setScene(scene);
+        if (GlobalManager.getInstance().getSongService() == null) return;
+        TrackInfo track = selectedTrack != null ? selectedTrack : GlobalManager.getInstance().getSelectedTrack();
+        if (track != null && GlobalManager.getInstance().getSongService().getStatus() == Status.STOPPED) {
+            playMusic(track.getAudioFilename(), track.getPreviewTime());
+        } else {
+            float speed = ModMenu.getInstance().getSpeed();
+            boolean enableNC = ModMenu.getInstance().isEnableNCWhenSpeedChange()
+                    || ModMenu.getInstance().getMod().contains(GameMod.MOD_NIGHTCORE);
+            GlobalManager.getInstance().getSongService().applySpeed(speed, enableNC);
+        }
     }
 
     public void setFilter(final String filter, final SortOrder order,
@@ -1276,6 +1286,10 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
     private void back(boolean resetMultiplayerBeatmap) {
         unbindDataBaseChangedListener();
 
+        if (GlobalManager.getInstance().getSongService() != null) {
+            GlobalManager.getInstance().getSongService().applySpeed(1.0f, false);
+        }
+
         if (Multiplayer.isMultiplayer) {
             if (resetMultiplayerBeatmap) {
                 resetMultiplayerRoomBeatmap();
@@ -1375,9 +1389,13 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
                 }
 
                 try {
-                    GlobalManager.getInstance().getSongService().preLoad(filename);
+                    GlobalManager.getInstance().getSongService().preLoadPreview(filename);
                     GlobalManager.getInstance().getSongService().play();
                     GlobalManager.getInstance().getSongService().setVolume(0);
+                    float previewSpeed = ModMenu.getInstance().getSpeed();
+                    boolean enableNC = ModMenu.getInstance().isEnableNCWhenSpeedChange()
+                            || ModMenu.getInstance().getMod().contains(GameMod.MOD_NIGHTCORE);
+                    GlobalManager.getInstance().getSongService().applySpeed(previewSpeed, enableNC);
                     if (previewTime >= 0) {
                         GlobalManager.getInstance().getSongService().seekTo(previewTime);
                     } else {

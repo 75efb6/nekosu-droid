@@ -33,6 +33,7 @@ import org.anddev.andengine.util.MathUtils
 import org.json.JSONArray
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.ToastLogger
+import ru.nsu.ccfit.zuev.osu.game.mods.GameMod
 import ru.nsu.ccfit.zuev.osu.game.mods.GameMod.MOD_SCOREV2
 import ru.nsu.ccfit.zuev.osu.helper.AnimSprite
 import ru.nsu.ccfit.zuev.osu.helper.TextButton
@@ -600,11 +601,18 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
     // Navigation
 
+    private fun applyModMenuSpeed() {
+        val speed = getModMenu().speed
+        val enableNC = getModMenu().isEnableNCWhenSpeedChange || getModMenu().mod.contains(GameMod.MOD_NIGHTCORE)
+        getGlobal().songService?.applySpeed(speed, enableNC)
+    }
+
     override fun back()
     {
         // Stopping the attempt loop if user cancels reconnection.
         Multiplayer.isReconnecting = false
 
+        getGlobal().songService?.applySpeed(1.0f, false)
         ignoreException { RoomAPI.disconnect() }
         clear()
         LobbyScene.show()
@@ -631,6 +639,10 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         // Updating beatmap just in case only if there's no await lock.
         if (!awaitBeatmapChange)
             onRoomBeatmapChange(room!!.beatmap)
+        else if (getGlobal().songService?.status == ru.nsu.ccfit.zuev.audio.Status.STOPPED && getGlobal().selectedTrack != null)
+            onRoomBeatmapChange(room!!.beatmap)
+        else
+            applyModMenuSpeed()
 
         // Invalidating status
         invalidateStatus()
@@ -807,8 +819,9 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
             return
         }
 
-        getGlobal().songService.preLoad(getGlobal().selectedTrack.beatmap.music)
+        getGlobal().songService.preLoadPreview(getGlobal().selectedTrack.beatmap.music)
         getGlobal().songService.play()
+        applyModMenuSpeed()
     }
 
     override fun onRoomHostChange(uid: Long)

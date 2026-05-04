@@ -586,7 +586,7 @@ public class ScoringScene {
             return;
         }
         replayMusic();
-        GlobalManager.getInstance().getEngine().setScene(GlobalManager.getInstance().getSongMenu().getScene());
+        GlobalManager.getInstance().getSongMenu().show();
         GlobalManager.getInstance().getSongMenu().updateScore();
         setReplayID(-1);
     }
@@ -605,7 +605,7 @@ public class ScoringScene {
         if (songService != null) {
             songService.stop();
 //            songService.preLoadWithLoop(game.filePath);
-            songService.preLoad(track.getBeatmap().getMusic());
+            songService.preLoadPreview(track.getBeatmap().getMusic());
             songService.play();
         }
     }

@@ -2005,7 +2005,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                 GlobalManager.getInstance().getSongService().setVolume(0.2f);
                 engine.setScene(scoringScene.getScene());
             } else {
-                engine.setScene(oldScene);
+                GlobalManager.getInstance().getSongMenu().show();
             }
 
             // Handle input back in update thread
@@ -2143,7 +2143,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
         if (GlobalManager.getInstance().getSongService() != null) {
             GlobalManager.getInstance().getSongService().stop();
-            GlobalManager.getInstance().getSongService().preLoad(filePath);
+            GlobalManager.getInstance().getSongService().preLoadPreview(filePath);
             GlobalManager.getInstance().getSongService().play();
             GlobalManager.getInstance().getSongService().setVolume(Config.getBgmVolume());
         }
@@ -2202,7 +2202,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             return;
         }
         ResourceManager.getInstance().getSound("failsound").stop();
-        engine.setScene(oldScene);
+        GlobalManager.getInstance().getSongMenu().show();
     }
 
 

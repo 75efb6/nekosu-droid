@@ -213,6 +213,20 @@ public class SongService extends Service {
         }
     }
 
+    public boolean preLoadPreview(String filePath) {
+        if (checkFileExist(filePath)) {
+            if (audioFunc == null) return false;
+            return audioFunc.preLoadPreview(filePath);
+        }
+        return false;
+    }
+
+    public void applySpeed(float speed, boolean enableNC) {
+        if (audioFunc != null) {
+            audioFunc.applySpeed(speed, enableNC);
+        }
+    }
+
     public void showNotification() {
         if (this.isGaming) {
             Log.w("SongService", "NOT SHOW THE NOTIFY CUZ IS GAMING");

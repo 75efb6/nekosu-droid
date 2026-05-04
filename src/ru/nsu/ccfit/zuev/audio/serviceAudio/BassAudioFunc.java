@@ -26,6 +26,8 @@ public class BassAudioFunc {
     private ByteBuffer buffer = null;
     private int playflag = BASS.BASS_STREAM_PRESCAN;
     private boolean isGaming = false;
+    private String currentFilePath;
+    private float baseFreq = 44100f;
     private BroadcastReceiver receiver;
     private LocalBroadcastManager broadcastManager;
 
@@ -95,6 +97,7 @@ public class BassAudioFunc {
         BASS.BASS_CHANNELINFO fx = new BASS.BASS_CHANNELINFO();
         doClear();
         this.mode = mode;
+        this.currentFilePath = filePath;
         switch (mode) {
             case MODE_NONE: //None
                 channel = BASS.BASS_StreamCreateFile(filePath, 0, 0, playflag);
@@ -145,6 +148,7 @@ public class BassAudioFunc {
         BASS.BASS_CHANNELINFO fx = new BASS.BASS_CHANNELINFO();
         doClear();
         this.mode = PlayMode.MODE_SC;
+        this.currentFilePath = filePath;
         channel = BASS.BASS_StreamCreateFile(filePath, 0, 0, BASS.BASS_STREAM_DECODE | BASS.BASS_STREAM_PRESCAN);
         channel = BASS_FX.BASS_FX_TempoCreate(channel, BASS.BASS_STREAM_AUTOFREE);
         if (enableNC) {
@@ -208,7 +212,7 @@ public class BassAudioFunc {
         if (channel != 0 && ms > 0) {
             if (skipPosition == 0 || skipPosition == -1)
                 skipPosition = BASS.BASS_ChannelSeconds2Bytes(channel, ms / 1000.0);
-            if (mode == PlayMode.MODE_NONE)
+            if (mode == PlayMode.MODE_NONE || mode == PlayMode.MODE_PREVIEW)
                 return BASS.BASS_ChannelSetPosition(channel, skipPosition, BASS.BASS_POS_BYTE);
             else return BASS.BASS_ChannelSetPosition(channel, skipPosition, BASS.BASS_POS_DECODE);
         }
@@ -263,6 +267,41 @@ public class BassAudioFunc {
         float[] spectrum = new float[resSize];
         buffer.asFloatBuffer().get(spectrum);
         return spectrum;
+    }
+
+    public boolean preLoadPreview(String filePath) {
+        Log.w("BassAudioFunc", "preLoadPreview File: " + filePath);
+        doClear();
+        this.mode = PlayMode.MODE_PREVIEW;
+        this.currentFilePath = filePath;
+        int decodeChannel = BASS.BASS_StreamCreateFile(filePath, 0, 0, BASS.BASS_STREAM_DECODE | BASS.BASS_STREAM_PRESCAN);
+        channel = BASS_FX.BASS_FX_TempoCreate(decodeChannel, BASS.BASS_STREAM_AUTOFREE);
+        if (channel != 0) {
+            BASS.BASS_CHANNELINFO info = new BASS.BASS_CHANNELINFO();
+            BASS.BASS_ChannelGetInfo(channel, info);
+            baseFreq = info.freq;
+            BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_BUFFER, onFocus ? onFocusBufferLength : offFocusBufferLength);
+        }
+        return channel != 0;
+    }
+
+    public void applySpeed(float speed, boolean enableNC) {
+        if (channel == 0 || mode == PlayMode.MODE_NONE) return;
+        if (enableNC) {
+            if (speed > 1.5f) {
+                BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_FREQ, (int) (baseFreq * 1.5f));
+                BASS.BASS_ChannelSetAttribute(channel, BASS_FX.BASS_ATTRIB_TEMPO, (speed / 1.5f - 1.0f) * 100);
+            } else if (speed < 0.75f) {
+                BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_FREQ, (int) (baseFreq * 0.75f));
+                BASS.BASS_ChannelSetAttribute(channel, BASS_FX.BASS_ATTRIB_TEMPO, (speed / 0.75f - 1.0f) * 100);
+            } else {
+                BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_FREQ, (int) (baseFreq * speed));
+                BASS.BASS_ChannelSetAttribute(channel, BASS_FX.BASS_ATTRIB_TEMPO, 0.0f);
+            }
+        } else {
+            BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_FREQ, baseFreq);
+            BASS.BASS_ChannelSetAttribute(channel, BASS_FX.BASS_ATTRIB_TEMPO, (speed - 1.0f) * 100);
+        }
     }
 
     private void doClear() {

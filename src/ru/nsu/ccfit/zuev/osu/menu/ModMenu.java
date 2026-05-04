@@ -514,6 +514,10 @@ public class ModMenu implements IModSwitcher {
 
         changeMultiplierText();
 
+        if (menu != null) {
+            menu.updatePreviewSpeed();
+        }
+
         return returnValue;
     }
 

@@ -69,6 +69,8 @@ import ru.nsu.ccfit.zuev.osu.online.OnlineScoring;
 import ru.nsu.ccfit.zuev.osu.scoring.Replay;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene;
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2;
+import ru.nsu.ccfit.zuev.osu.game.mods.GameMod;
+import ru.nsu.ccfit.zuev.osu.menu.ModMenu;
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig;
 import ru.nsu.ccfit.zuev.osuplus.R;
 
@@ -554,7 +556,7 @@ public class MainScene implements IUpdateHandler {
                 if (GlobalManager.getInstance().getSongService().getStatus() == Status.PAUSED || GlobalManager.getInstance().getSongService().getStatus() == Status.STOPPED) {
                     if (GlobalManager.getInstance().getSongService().getStatus() == Status.STOPPED) {
                         loadTimingPoints(false);
-                        GlobalManager.getInstance().getSongService().preLoad(beatmapInfo.getMusic());
+                        GlobalManager.getInstance().getSongService().preLoadPreview(beatmapInfo.getMusic());
                         if (firstTimingPoint != null) {
                             bpmLength = firstTimingPoint.getBeatLength() * 1000f;
                             if (lastTimingPoint != null) {
@@ -574,6 +576,7 @@ public class MainScene implements IUpdateHandler {
                     Debug.i("BPM: " + 60 / bpmLength * 1000 + " Offset: " + offset);
 //						ToastLogger.showText("BPM: " + 60 / bpmLength * 1000 + " Offset: " + offset, false);
                     GlobalManager.getInstance().getSongService().play();
+                    applyModMenuSpeed();
                     doStop = false;
                 }
             }
@@ -706,6 +709,7 @@ public class MainScene implements IUpdateHandler {
                 }
                 progressBar.setStartTime(0);
                 GlobalManager.getInstance().getSongService().play();
+                applyModMenuSpeed();
                 GlobalManager.getInstance().getSongService().setVolume(Config.getBgmVolume());
                 if (lastTimingPoint != null) {
                     offset = lastTimingPoint.getTime() * 1000f % bpmLength;
@@ -889,7 +893,7 @@ public class MainScene implements IUpdateHandler {
 
             if (reloadMusic) {
                 if (GlobalManager.getInstance().getSongService() != null) {
-                    GlobalManager.getInstance().getSongService().preLoad(beatmapInfo.getMusic());
+                    GlobalManager.getInstance().getSongService().preLoadPreview(beatmapInfo.getMusic());
                     musicStarted = false;
                 } else {
                     Log.w("nullpoint", "GlobalManager.getInstance().getSongService() is null while reload music (MainScene.loadTimeingPoints)");
@@ -1031,6 +1035,14 @@ public class MainScene implements IUpdateHandler {
                 }
             }
         }
+    }
+
+    private void applyModMenuSpeed() {
+        if (GlobalManager.getInstance().getSongService() == null) return;
+        float speed = ModMenu.getInstance().getSpeed();
+        boolean enableNC = ModMenu.getInstance().isEnableNCWhenSpeedChange()
+                || ModMenu.getInstance().getMod().contains(GameMod.MOD_NIGHTCORE);
+        GlobalManager.getInstance().getSongService().applySpeed(speed, enableNC);
     }
 
     public void show() {

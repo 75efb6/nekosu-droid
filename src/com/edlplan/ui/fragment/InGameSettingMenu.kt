@@ -17,6 +17,7 @@ import com.edlplan.ui.EasingHelper
 import com.reco1l.framework.lang.mainThread
 import com.reco1l.legacy.Multiplayer
 import org.anddev.andengine.input.touch.TouchEvent
+import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.game.cursor.flashlight.FlashLightEntity
@@ -198,6 +199,7 @@ class InGameSettingMenu : BaseFragment() {
             isChecked = ModMenu.getInstance().isEnableNCWhenSpeedChange
             setOnCheckedChangeListener { _, isChecked ->
                 ModMenu.getInstance().isEnableNCWhenSpeedChange = isChecked
+                updatePreviewSpeed()
             }
         }
 
@@ -212,6 +214,7 @@ class InGameSettingMenu : BaseFragment() {
                 speedModifyBar.progress = 10
                 speedModifyText.text = String.format(Locale.getDefault(), "%.2fx", ModMenu.getInstance().changeSpeed)
                 ModMenu.getInstance().updateMultiplierText()
+                updatePreviewSpeed()
             }
         }
 
@@ -283,6 +286,7 @@ class InGameSettingMenu : BaseFragment() {
                         speedModifyText.text = String.format(Locale.getDefault(), "%.2fx", p)
                         ModMenu.getInstance().changeSpeed = p
                         ModMenu.getInstance().updateMultiplierText()
+                        updatePreviewSpeed()
                     }
                 }
             )
@@ -588,5 +592,14 @@ class InGameSettingMenu : BaseFragment() {
                 }
             )
             ?.start()
+    }
+
+    fun updatePreviewSpeed() {
+        val songService = GlobalManager.getInstance().getSongService() ?: return
+        if (songService.status != Status.PLAYING) return
+        val speed = ModMenu.getInstance().speed
+        val enableNC = ModMenu.getInstance().isEnableNCWhenSpeedChange ||
+            ModMenu.getInstance().mod.contains(GameMod.MOD_NIGHTCORE)
+        songService.applySpeed(speed, enableNC)
     }
 }
