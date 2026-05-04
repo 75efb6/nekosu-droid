@@ -30,7 +30,7 @@ def getReleaseVersionCode() {
 }
 
 def getReleaseVersionName() {
-    def patchVer = "0"
+    def patchVer = "1"
     def versionName = new Date().format('yyyyMMdd') + "." + patchVer
     println('versionName: ' + versionName)
     return versionName
