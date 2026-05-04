@@ -11,6 +11,7 @@ import android.util.Log;
 import java.io.File;
 
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import ru.nsu.ccfit.zuev.audio.Status;
 import ru.nsu.ccfit.zuev.osu.GlobalManager;
 import ru.nsu.ccfit.zuev.osu.MainActivity;
@@ -32,7 +33,7 @@ public class SongService extends Service {
         if (audioFunc == null) {
             audioFunc = new BassAudioFunc();
 
-            registerReceiver(notify.getReceiver(), notify.getFilter());
+            ContextCompat.registerReceiver(this, notify.getReceiver(), notify.getFilter(), ContextCompat.RECEIVER_NOT_EXPORTED);
             setReceiverStuff(notify.getReceiver(), notify.getFilter());
         }
         return new ReturnBindObject();

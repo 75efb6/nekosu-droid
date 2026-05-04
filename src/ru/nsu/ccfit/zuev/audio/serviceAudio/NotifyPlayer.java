@@ -72,10 +72,11 @@ public class NotifyPlayer {
 
         defaultIcon = BitmapFactory.decodeResource(mActivity.getResources(), R.drawable.osut);
 
-        prev = PendingIntent.getBroadcast(context, 0, new Intent(actionPrev), 0);
-        next = PendingIntent.getBroadcast(context, 0, new Intent(actionNext), 0);
-        play = PendingIntent.getBroadcast(context, 0, new Intent(actionPlay), 0);
-        close = PendingIntent.getBroadcast(context, 0, new Intent(actionClose), 0);
+        int pendingFlags = PendingIntent.FLAG_IMMUTABLE;
+        prev = PendingIntent.getBroadcast(context, 0, new Intent(actionPrev), pendingFlags);
+        next = PendingIntent.getBroadcast(context, 0, new Intent(actionNext), pendingFlags);
+        play = PendingIntent.getBroadcast(context, 0, new Intent(actionPlay), pendingFlags);
+        close = PendingIntent.getBroadcast(context, 0, new Intent(actionClose), pendingFlags);
 
         receiver = new BroadcastReceiver() {
             @Override
@@ -193,7 +194,7 @@ public class NotifyPlayer {
         mediaSession.setMetadata(metadata);
 
         PendingIntent openApp =
-                PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), 0);
+                PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
 
         builder = new NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(R.drawable.notify_inso)
