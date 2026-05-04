@@ -157,6 +157,13 @@ public class ModMenu implements IModSwitcher {
         update();
     }
 
+    public void onBackPress() {
+        if (menu != null && menu.tryDismissSettingPanel()) {
+            return;
+        }
+        hide();
+    }
+
     public void hide() {
         hide(true);
     }

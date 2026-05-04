@@ -786,7 +786,7 @@ public class MainActivity extends BaseGameActivity implements
             }
 
             if (GlobalManager.getInstance().getSongMenu().getScene().getChildScene() == ModMenu.getInstance().getScene()) {
-                ModMenu.getInstance().hide();
+                ModMenu.getInstance().onBackPress();
             }
 
             return true;
@@ -820,7 +820,7 @@ public class MainActivity extends BaseGameActivity implements
                     if (GlobalManager.getInstance().getEngine().getScene() == RoomScene.INSTANCE) {
 
                         if (RoomScene.INSTANCE.hasChildScene() && RoomScene.INSTANCE.getChildScene() == ModMenu.getInstance().getScene()) {
-                            ModMenu.getInstance().hide();
+                            ModMenu.getInstance().onBackPress();
                             return true;
                         }
                         runOnUiThread(RoomScene.INSTANCE.getLeaveDialog()::show);

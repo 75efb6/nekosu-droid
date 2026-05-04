@@ -119,7 +119,8 @@ class InGameSettingMenu : BaseFragment() {
     }
 
     private fun reload(state: SavedState?) {
-        if (state != null) {
+        // setInitialSavedState requires the fragment to not yet be attached to a FragmentManager
+        if (state != null && fragmentManager == null) {
             this.setInitialSavedState(state)
         }
 
@@ -491,10 +492,24 @@ class InGameSettingMenu : BaseFragment() {
         ModMenu.getInstance().updateMultiplierText()
     }
 
+    override fun callDismissOnBackPress() {
+        if (isSettingPanelShow()) {
+            toggleSettingPanel()
+        } else {
+            dismiss()
+        }
+    }
+
     override fun dismiss() {
         super.dismiss()
         mainThread { super.save() }
         ModMenu.getInstance().hideByFrag()
+    }
+
+    fun tryDismissSettingPanel(): Boolean {
+        if (!isSettingPanelShow()) return false
+        toggleSettingPanel()
+        return true
     }
 
     private fun isSettingPanelShow(): Boolean {
