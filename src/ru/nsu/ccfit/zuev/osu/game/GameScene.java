@@ -14,6 +14,7 @@ import com.edlplan.osu.support.timing.TimingPoints;
 import com.edlplan.osu.support.timing.controlpoint.ControlPoints;
 import com.reco1l.api.ibancho.RoomAPI;
 import com.reco1l.framework.lang.Execution;
+import com.reco1l.legacy.discord.KizzyRPC;
 import com.reco1l.legacy.engine.BlankTextureRegion;
 import com.reco1l.legacy.engine.VideoSprite;
 import com.reco1l.legacy.ui.entity.InGameLeaderboard;
@@ -769,6 +770,15 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     }
 
     private void prepareScene() {
+        ru.nsu.ccfit.zuev.osu.BeatmapInfo _bi = lastTrack != null ? lastTrack.getBeatmap() : null;
+        String _title = (_bi != null && _bi.getTitleUnicode() != null && !_bi.getTitleUnicode().isEmpty())
+                ? _bi.getTitleUnicode() : (_bi != null && _bi.getTitle() != null ? _bi.getTitle() : "Unknown");
+        String _artist = (_bi != null && _bi.getArtistUnicode() != null && !_bi.getArtistUnicode().isEmpty())
+                ? _bi.getArtistUnicode() : (_bi != null && _bi.getArtist() != null ? _bi.getArtist() : "Unknown");
+        String _difficulty = (lastTrack != null && lastTrack.getMode() != null) ? lastTrack.getMode() : "";
+        if (replaying) {
+            KizzyRPC.INSTANCE.updateForReplay(_artist, _title, _difficulty, System.currentTimeMillis());
+        } else KizzyRPC.INSTANCE.updateForPlaying(Multiplayer.isMultiplayer, _artist, _title, _difficulty, System.currentTimeMillis());
         scene.setOnSceneTouchListener(this);
         if (GlobalManager.getInstance().getCamera() instanceof SmoothCamera) {
             SmoothCamera camera = (SmoothCamera) (GlobalManager.getInstance().getCamera());
@@ -2003,6 +2013,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                     scoringScene.load(stat, lastTrack, GlobalManager.getInstance().getSongService(), replayFile, trackMD5, null);
                 }
                 GlobalManager.getInstance().getSongService().setVolume(0.2f);
+                KizzyRPC.INSTANCE.updateForResults();
                 engine.setScene(scoringScene.getScene());
             } else {
                 GlobalManager.getInstance().getSongMenu().show();

@@ -49,6 +49,10 @@ import ru.nsu.ccfit.zuev.osu.ToastLogger;
 import ru.nsu.ccfit.zuev.osu.helper.StringTable;
 import ru.nsu.ccfit.zuev.osuplus.R;
 
+import com.reco1l.legacy.discord.DiscordLoginFragment;
+import com.reco1l.legacy.discord.KizzyRPC;
+import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService;
+
 import static android.content.Intent.ACTION_VIEW;
 
 public class SettingsMenu extends SettingsFragment {
@@ -185,6 +189,20 @@ public class SettingsMenu extends SettingsFragment {
             }
             return true;
         });
+
+        final Preference discordLogin = findPreference("discordLogin");
+        discordLogin.setSummary(Config.getDiscordToken() != null
+                ? R.string.opt_discord_login_summary_logged
+                : R.string.opt_discord_login_summary_not_logged);
+        discordLogin.setOnPreferenceClickListener(preference -> {
+            DiscordLoginFragment fragment = new DiscordLoginFragment();
+            fragment.setOnDismissListener(() -> discordLogin.setSummary(
+                    Config.getDiscordToken() != null
+                            ? R.string.opt_discord_login_summary_logged
+                            : R.string.opt_discord_login_summary_not_logged));
+            fragment.show();
+            return true;
+        });
     }
 
     public void onNavigateToScreen(PreferenceScreen preferenceScreen) {
@@ -319,10 +337,25 @@ public class SettingsMenu extends SettingsFragment {
             Config.loadConfig(mActivity);
             GlobalManager.getInstance().getMainScene().reloadOnlinePanel();
             GlobalManager.getInstance().getMainScene().loadTimingPoints(false);
-            GlobalManager.getInstance().getSongService().setVolume(Config.getBgmVolume());
-            GlobalManager.getInstance().getSongService().setGaming(false);
+            SongService songService = GlobalManager.getInstance().getSongService();
+            songService.setVolume(Config.getBgmVolume());
+            songService.setGaming(false);
+            applyDiscordRpc(songService);
             SettingsMenu.super.dismiss();
         });
+    }
+
+    private void applyDiscordRpc(SongService songService) {
+        if (!Config.isDiscordRichPresence() || Config.getDiscordToken() == null) {
+            KizzyRPC.INSTANCE.disconnect();
+            return;
+        }
+        org.anddev.andengine.entity.scene.Scene current = GlobalManager.getInstance().getEngine().getScene();
+        if (current == GlobalManager.getInstance().getSongMenu().getScene()) {
+            KizzyRPC.INSTANCE.updateForSongSelection();
+        } else {
+            KizzyRPC.INSTANCE.updateForMainMenu();
+        }
     }
 
 }

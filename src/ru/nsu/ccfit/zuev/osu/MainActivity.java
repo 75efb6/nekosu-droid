@@ -49,6 +49,7 @@ import com.reco1l.legacy.Multiplayer;
 import com.reco1l.legacy.UpdateManager;
 import com.reco1l.legacy.ui.multiplayer.LobbyScene;
 import com.reco1l.legacy.ui.multiplayer.RoomScene;
+import com.reco1l.legacy.discord.KizzyRPC;
 
 import net.lingala.zip4j.ZipFile;
 
@@ -333,6 +334,7 @@ public class MainActivity extends BaseGameActivity implements
                 ResourceManager.getInstance().loadFont("font", null, 28, Color.WHITE);
                 GlobalManager.getInstance().getEngine().setScene(GlobalManager.getInstance().getMainScene().getScene());
                 GlobalManager.getInstance().getMainScene().loadBeatmap();
+                KizzyRPC.INSTANCE.updateForMainMenu();
                 initPreferences();
                 availableInternalMemory();
 

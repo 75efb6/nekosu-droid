@@ -359,4 +359,11 @@
     <string name="opt_delete_unsupported_videos_title">Delete unsupported videos</string>
     <string name="opt_delete_unsupported_videos_summary">Delete videos with unsupported formats (.avi and .flv)</string>
 
+    <!--Discord Rich Presence-->
+    <string name="opt_discord_rpc_title">Discord Rich Presence</string>
+    <string name="opt_discord_rpc_summary">Show currently playing beatmap on Discord</string>
+    <string name="opt_discord_login_title">Discord Account</string>
+    <string name="opt_discord_login_summary_not_logged">Tap to log in to Discord</string>
+    <string name="opt_discord_login_summary_logged">Logged in — tap to re-login or switch account</string>
+
 </resources>

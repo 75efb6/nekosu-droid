@@ -8,6 +8,7 @@ import com.reco1l.framework.extensions.className
 import com.reco1l.framework.extensions.orAsyncCatch
 import com.reco1l.framework.lang.updateThread
 import com.reco1l.legacy.Multiplayer
+import com.reco1l.legacy.discord.KizzyRPC
 import org.anddev.andengine.entity.modifier.LoopEntityModifier
 import org.anddev.andengine.entity.modifier.RotationByModifier
 import org.anddev.andengine.entity.primitive.Rectangle
@@ -339,6 +340,7 @@ object LobbyScene : Scene()
     {
         updateBackground()
         getGlobal().engine.scene = this
+        KizzyRPC.updateForMultiLobby()
         updateList()
 
         search.show()

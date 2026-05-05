@@ -12,6 +12,7 @@ import com.edlplan.ui.fragment.ScoreMenuFragment;
 import com.reco1l.api.ibancho.RoomAPI;
 import com.reco1l.framework.lang.Execution;
 import com.reco1l.legacy.Multiplayer;
+import com.reco1l.legacy.discord.KizzyRPC;
 import com.reco1l.legacy.ui.multiplayer.RoomScene;
 import com.rian.difficultycalculator.calculator.DifficultyCalculationParameters;
 import com.rian.difficultycalculator.utils.LRUCache;
@@ -724,6 +725,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
 
     public void show() {
         engine.setScene(scene);
+        KizzyRPC.INSTANCE.updateForSongSelection();
         if (GlobalManager.getInstance().getSongService() == null) return;
         TrackInfo track = selectedTrack != null ? selectedTrack : GlobalManager.getInstance().getSelectedTrack();
         if (track != null && GlobalManager.getInstance().getSongService().getStatus() == Status.STOPPED) {
@@ -1251,6 +1253,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
 
                     stat.setPlayerName(playerName);
                     scoreScene.load(stat, null, null, OnlineManager.getReplayURL(id), null, selectedTrack);
+                    KizzyRPC.INSTANCE.updateForResults();
                     engine.setScene(scoreScene.getScene());
                 } catch (OnlineManagerException e) {
                     Debug.e("Cannot load play info: " + e.getMessage(), e);
@@ -1267,6 +1270,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
         }
 
         scoreScene.load(stat, null, null, stat.getReplayName(), null, selectedTrack);
+        KizzyRPC.INSTANCE.updateForResults();
         engine.setScene(scoreScene.getScene());
     }
 

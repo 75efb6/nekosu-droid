@@ -36,7 +36,8 @@ public class Config {
         localUsername,
         onlineUsername,
         onlinePassword,
-        onlineDeviceID;
+        onlineDeviceID,
+        discordToken;
 
     private static boolean DELETE_OSZ,
         SCAN_DOWNLOAD,
@@ -80,7 +81,8 @@ public class Config {
         deleteUnsupportedVideos,
         submitScoreOnMultiplayer,
         keepBackgroundAspectRatio,
-        noChangeDimInBreaks;
+        noChangeDimInBreaks,
+        discordRichPresence;
 
     private static int RES_WIDTH,
         RES_HEIGHT,
@@ -217,6 +219,9 @@ public class Config {
         receiveAnnouncements = prefs.getBoolean("receiveAnnouncements", true);
         safeBeatmapBg = prefs.getBoolean("safebeatmapbg", false);
         displayRealTimePPCounter = prefs.getBoolean("displayRealTimePPCounter", false);
+
+        discordRichPresence = prefs.getBoolean("discordRichPresence", false);
+        discordToken = prefs.getString("discordToken", null);
 
         // Multiplayer
         useNightcoreOnMultiplayer = prefs.getBoolean("player_nightcore", false);
@@ -783,5 +788,21 @@ public class Config {
 
     public static boolean isNoChangeDimInBreaks() {
         return noChangeDimInBreaks;
+    }
+
+    public static boolean isDiscordRichPresence() {
+        return discordRichPresence;
+    }
+
+    public static void setDiscordRichPresence(boolean discordRichPresence) {
+        Config.discordRichPresence = discordRichPresence;
+    }
+
+    public static String getDiscordToken() {
+        return discordToken;
+    }
+
+    public static void setDiscordToken(String token) {
+        Config.discordToken = token;
     }
 }

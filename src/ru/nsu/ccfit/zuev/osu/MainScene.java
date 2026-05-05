@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.edlplan.ui.fragment.ConfirmDialogFragment;
 import com.reco1l.framework.lang.Execution;
+import com.reco1l.legacy.discord.KizzyRPC;
 import com.reco1l.legacy.ui.MainMenu;
 
 import com.reco1l.legacy.ui.beatmapdownloader.BeatmapListing;
@@ -994,6 +995,7 @@ public class MainScene implements IUpdateHandler {
                         Intent mIntent = new Intent(mActivity, MainActivity.class);
                         mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         mActivity.startActivity(mIntent);
+                        KizzyRPC.INSTANCE.updateForMainMenu();
                         System.exit(0);
                     }
                 }
@@ -1048,6 +1050,7 @@ public class MainScene implements IUpdateHandler {
     public void show() {
         GlobalManager.getInstance().getSongService().setGaming(false);
         GlobalManager.getInstance().getEngine().setScene(getScene());
+        KizzyRPC.INSTANCE.updateForMainMenu();
         if (GlobalManager.getInstance().getSelectedTrack() != null) {
             setBeatmap(GlobalManager.getInstance().getSelectedTrack().getBeatmap());
         }
