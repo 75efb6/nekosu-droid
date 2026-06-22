@@ -28,6 +28,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import ru.nsu.ccfit.zuev.osu.KeyboardConfig;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -769,6 +770,18 @@ public class MainActivity extends BaseGameActivity implements
             }
             return true;
         }
+
+        // Forward gameplay keyboard input to GameScene
+        if (GlobalManager.getInstance().getGameScene() != null
+                && GlobalManager.getInstance().getEngine() != null
+                && GlobalManager.getInstance().getEngine().getScene() == GlobalManager.getInstance().getGameScene().getScene()
+                && !GlobalManager.getInstance().getGameScene().isPaused()
+                && KeyboardConfig.isEnabled()
+                && keyCode != KeyEvent.KEYCODE_BACK && keyCode != KeyEvent.KEYCODE_MENU) {
+            GlobalManager.getInstance().getGameScene().onKeyboardDown(keyCode);
+            return true;
+        }
+
         if (GlobalManager.getInstance().getScoring() != null && keyCode == KeyEvent.KEYCODE_BACK
                 && GlobalManager.getInstance().getEngine().getScene() == GlobalManager.getInstance().getScoring().getScene()) {
             GlobalManager.getInstance().getScoring().back();
@@ -846,6 +859,30 @@ public class MainActivity extends BaseGameActivity implements
             }
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(final int keyCode, final KeyEvent event) {
+        if (this.mEngine == null) {
+            return false;
+        }
+
+        if (event.getAction() != KeyEvent.ACTION_UP) {
+            return super.onKeyUp(keyCode, event);
+        }
+
+        // Forward keyboard up events to GameScene
+        if (GlobalManager.getInstance().getGameScene() != null
+                && GlobalManager.getInstance().getEngine() != null
+                && GlobalManager.getInstance().getEngine().getScene() == GlobalManager.getInstance().getGameScene().getScene()
+                && !GlobalManager.getInstance().getGameScene().isPaused()
+                && KeyboardConfig.isEnabled()
+                && keyCode != KeyEvent.KEYCODE_BACK && keyCode != KeyEvent.KEYCODE_MENU) {
+            GlobalManager.getInstance().getGameScene().onKeyboardUp(keyCode);
+            return true;
+        }
+
+        return super.onKeyUp(keyCode, event);
     }
 
     public void forcedExit() {

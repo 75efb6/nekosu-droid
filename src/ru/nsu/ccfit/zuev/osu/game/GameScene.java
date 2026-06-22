@@ -61,6 +61,7 @@ import ru.nsu.ccfit.zuev.osu.BeatmapProperties;
 import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.Constants;
 import ru.nsu.ccfit.zuev.osu.GlobalManager;
+import ru.nsu.ccfit.zuev.osu.KeyboardConfig;
 import ru.nsu.ccfit.zuev.osu.PropertiesLibrary;
 import ru.nsu.ccfit.zuev.osu.RGBAColor;
 import ru.nsu.ccfit.zuev.osu.RGBColor;
@@ -2694,6 +2695,80 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         } else {
             return false;
         }
+        return true;
+    }
+
+
+    public boolean onKeyboardDown(int keyCode) {
+        if (replaying || !KeyboardConfig.isEnabled()) {
+            return false;
+        }
+
+        int cursorId = KeyboardConfig.getCursorForKey(keyCode);
+        if (cursorId < 0 || cursorId >= CursorCount) {
+            return false;
+        }
+
+        var cursor = cursors[cursorId];
+        var sprite = !GameHelper.isAuto() && !GameHelper.isAutopilotMod() && cursorSprites != null
+                ? cursorSprites[cursorId]
+                : null;
+
+        cursor.mousePos.x = KeyboardConfig.getCursorX();
+        cursor.mousePos.y = KeyboardConfig.getCursorY();
+
+        if (sprite != null) {
+            sprite.setPosition(cursor.mousePos.x, cursor.mousePos.y);
+            sprite.setShowing(true);
+        }
+
+        var frameOffset = previousFrameTime > 0 ? (SystemClock.uptimeMillis() - previousFrameTime) * timeMultiplier : 0;
+        var eventTime = (int) (secPassed * 1000 + frameOffset);
+
+        cursor.mouseDown = true;
+        cursor.mouseDownOffsetMS = frameOffset;
+
+        for (var value : cursors)
+            value.mouseOldDown = false;
+
+        PointF gamePoint = applyCursorTrackCoordinates(cursor);
+        if (replay != null) {
+            replay.addPress(eventTime, gamePoint, cursorId);
+        }
+        cursorIIsDown[cursorId] = true;
+
+        return true;
+    }
+
+
+    public boolean onKeyboardUp(int keyCode) {
+        if (replaying || !KeyboardConfig.isEnabled()) {
+            return false;
+        }
+
+        int cursorId = KeyboardConfig.getCursorForKey(keyCode);
+        if (cursorId < 0 || cursorId >= CursorCount) {
+            return false;
+        }
+
+        var cursor = cursors[cursorId];
+        var sprite = !GameHelper.isAuto() && !GameHelper.isAutopilotMod() && cursorSprites != null
+                ? cursorSprites[cursorId]
+                : null;
+
+        if (sprite != null) {
+            sprite.setShowing(false);
+        }
+        cursor.mouseDown = false;
+        cursorIIsDown[cursorId] = false;
+
+        var frameOffset = previousFrameTime > 0 ? (SystemClock.uptimeMillis() - previousFrameTime) * timeMultiplier : 0;
+        var eventTime = (int) (secPassed * 1000 + frameOffset);
+
+        if (replay != null) {
+            replay.addUp(eventTime, cursorId);
+        }
+
         return true;
     }
 

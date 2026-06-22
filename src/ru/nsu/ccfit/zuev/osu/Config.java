@@ -247,6 +247,7 @@ public class Config {
 
         loadOnlineConfig(context);
         FavoriteLibrary.get().load();
+        KeyboardConfig.loadConfig(context);
     }
 
     public static void loadOnlineConfig(final Context context) {
