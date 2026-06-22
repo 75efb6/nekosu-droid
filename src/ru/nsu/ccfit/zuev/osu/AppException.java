@@ -14,7 +14,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.reco1l.legacy.Multiplayer;
-import com.reco1l.legacy.discord.KizzyRPC;
+import com.reco1l.legacy.discord.DiscordRPC;
 
 import org.apache.http.HttpException;
 import org.json.JSONException;
@@ -262,7 +262,7 @@ public class AppException extends Exception implements Thread.UncaughtExceptionH
             SaveServiceObject.finishAllActivities();
             //退出程序
             android.os.Process.killProcess(android.os.Process.myPid());
-            KizzyRPC.INSTANCE.clear();
+            DiscordRPC.clear();
             System.exit(1);
         }
     }

@@ -88,6 +88,17 @@
 
         </activity>
 
+        <activity android:name="com.discord.socialsdk.AuthenticationActivity"
+                  android:exported="true"
+                  android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="discord-1518735555687612466" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name="ru.nsu.ccfit.zuev.osu.PermissionActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar"
@@ -164,6 +175,7 @@
                     android:pathPattern=".*\.osz" />
             </intent-filter>
         </activity>
+
 
     </application>
 </manifest>

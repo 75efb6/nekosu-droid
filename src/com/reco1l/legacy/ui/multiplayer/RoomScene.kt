@@ -15,7 +15,7 @@ import com.reco1l.framework.extensions.ignoreException
 import com.reco1l.framework.lang.updateThread
 import com.reco1l.framework.lang.mainThread
 import com.reco1l.legacy.Multiplayer
-import com.reco1l.legacy.discord.KizzyRPC
+import com.reco1l.legacy.discord.DiscordRPC
 import com.reco1l.legacy.data.modsToString
 import com.reco1l.legacy.ui.entity.BeatmapButton
 import com.reco1l.legacy.ui.entity.ComposedText
@@ -470,7 +470,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
                 append(" - ")
                 append("Red Team: ").append(team[RED]?.size ?: 0).append(" vs Blue Team: ").append(team[BLUE]?.size ?: 0)
             }
-        room?.let { KizzyRPC.updateForMultiRoom(it.name, it.activePlayers.size, it.maxPlayers) }
+        room?.let { DiscordRPC.updateForMultiRoom(it.name, it.activePlayers.size, it.maxPlayers) }
         }
 
         // Update room info text
@@ -638,7 +638,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
         getGlobal().engine.scene = this
 
-        room?.let { KizzyRPC.updateForMultiRoom(it.name, it.activePlayers.size, it.maxPlayers) }
+        room?.let { DiscordRPC.updateForMultiRoom(it.name, it.activePlayers.size, it.maxPlayers) }
 
         // Updating beatmap just in case only if there's no await lock.
         if (!awaitBeatmapChange)

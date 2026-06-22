@@ -17,6 +17,10 @@ out/
 # Local configuration file (sdk path, etc)
 local.properties
 
+# CMake build outputs
+.cxx/
+prefab/
+
 # Eclipse project files
 .classpath
 .project
@@ -29,6 +33,7 @@ proguard/
 *.ipr
 *.iws
 .idea/
+.vscode/
 
 build/
 build.xml
@@ -36,8 +41,11 @@ proguard_logs/
 .DS_Store
 .gradle/
 .externalNativeBuild/
+.kotlin/
 
 release.jks
 debug.jks
 google-services.json
-/.vscode/settings.json
+
+# Discord Social SDK
+DiscordSocialSdk-*.zip
