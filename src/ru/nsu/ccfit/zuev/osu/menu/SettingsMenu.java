@@ -50,7 +50,7 @@ import ru.nsu.ccfit.zuev.osu.helper.StringTable;
 import ru.nsu.ccfit.zuev.osuplus.R;
 
 import com.reco1l.legacy.discord.DiscordLoginFragment;
-import com.reco1l.legacy.discord.KizzyRPC;
+import com.reco1l.legacy.discord.DiscordRPC;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService;
 
 import static android.content.Intent.ACTION_VIEW;
@@ -191,13 +191,13 @@ public class SettingsMenu extends SettingsFragment {
         });
 
         final Preference discordLogin = findPreference("discordLogin");
-        discordLogin.setSummary(Config.getDiscordToken() != null
+        discordLogin.setSummary(DiscordRPC.isConnected
                 ? R.string.opt_discord_login_summary_logged
                 : R.string.opt_discord_login_summary_not_logged);
         discordLogin.setOnPreferenceClickListener(preference -> {
             DiscordLoginFragment fragment = new DiscordLoginFragment();
             fragment.setOnDismissListener(() -> discordLogin.setSummary(
-                    Config.getDiscordToken() != null
+                    DiscordRPC.isConnected
                             ? R.string.opt_discord_login_summary_logged
                             : R.string.opt_discord_login_summary_not_logged));
             fragment.show();
@@ -346,15 +346,15 @@ public class SettingsMenu extends SettingsFragment {
     }
 
     private void applyDiscordRpc(SongService songService) {
-        if (!Config.isDiscordRichPresence() || Config.getDiscordToken() == null) {
-            KizzyRPC.INSTANCE.disconnect();
+        if (!Config.isDiscordRichPresence() || !DiscordRPC.isConnected) {
+            DiscordRPC.disconnect();
             return;
         }
         org.anddev.andengine.entity.scene.Scene current = GlobalManager.getInstance().getEngine().getScene();
         if (current == GlobalManager.getInstance().getSongMenu().getScene()) {
-            KizzyRPC.INSTANCE.updateForSongSelection();
+            DiscordRPC.updateForSongSelection();
         } else {
-            KizzyRPC.INSTANCE.updateForMainMenu();
+            DiscordRPC.updateForMainMenu();
         }
     }
 

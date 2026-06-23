@@ -12,7 +12,7 @@ import java.io.File;
 
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
-import com.reco1l.legacy.discord.KizzyRPC;
+import com.reco1l.legacy.discord.DiscordRPC;
 import ru.nsu.ccfit.zuev.audio.Status;
 import ru.nsu.ccfit.zuev.osu.GlobalManager;
 import ru.nsu.ccfit.zuev.osu.MainActivity;
@@ -45,7 +45,7 @@ public class SongService extends Service {
         System.out.println("Service unbind");
         hideNotification();
         NotificationManagerCompat.from(getApplicationContext()).cancelAll();
-        KizzyRPC.INSTANCE.disconnect();
+        DiscordRPC.disconnect();
         exit();
         return super.onUnbind(intent);
     }

@@ -50,7 +50,7 @@ import com.reco1l.legacy.Multiplayer;
 import com.reco1l.legacy.UpdateManager;
 import com.reco1l.legacy.ui.multiplayer.LobbyScene;
 import com.reco1l.legacy.ui.multiplayer.RoomScene;
-import com.reco1l.legacy.discord.KizzyRPC;
+import com.reco1l.legacy.discord.DiscordRPC;
 
 import net.lingala.zip4j.ZipFile;
 
@@ -335,7 +335,8 @@ public class MainActivity extends BaseGameActivity implements
                 ResourceManager.getInstance().loadFont("font", null, 28, Color.WHITE);
                 GlobalManager.getInstance().getEngine().setScene(GlobalManager.getInstance().getMainScene().getScene());
                 GlobalManager.getInstance().getMainScene().loadBeatmap();
-                KizzyRPC.INSTANCE.updateForMainMenu();
+                DiscordRPC.restore(MainActivity.this);
+                DiscordRPC.updateForMainMenu();
                 initPreferences();
                 availableInternalMemory();
 
@@ -617,8 +618,9 @@ public class MainActivity extends BaseGameActivity implements
 
             if (data != null) {
 
-                if (data.toString().startsWith(LobbyAPI.INVITE_HOST))
+                if (data.toString().startsWith(LobbyAPI.INVITE_HOST)) {
                     roomInviteLink = data;
+                }
 
                 if (ContentResolver.SCHEME_FILE.equals(getIntent().getData().getScheme()))
                     beatmapToAdd = getIntent().getData().getPath();
@@ -630,6 +632,7 @@ public class MainActivity extends BaseGameActivity implements
     @Override
     public void onResume() {
         super.onResume();
+        com.reco1l.legacy.discord.DiscordRPC.INSTANCE.onActivityResume();
         if (this.mEngine == null) {
             return;
         }

@@ -12,7 +12,6 @@ buildscript {
         classpath 'com.google.gms:google-services:4.4.1'
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
     }
 }
 
@@ -21,6 +20,7 @@ allprojects {
         maven { url 'https://jitpack.io' }
         google()
         mavenCentral()
+        flatDir { dirs 'libs' }
     }
 }
 
@@ -47,7 +47,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlinx-serialization'
 
 android {
     namespace 'ru.nsu.ccfit.zuev.osuplus'
@@ -148,6 +147,14 @@ android {
     }
     buildFeatures {
         buildConfig true
+        prefab true
+    }
+
+    externalNativeBuild {
+        cmake {
+            path file('jni/CMakeLists.txt')
+            version '3.22.1'
+        }
     }
 
 
@@ -186,11 +193,9 @@ dependencies {
     implementation 'commons-io:commons-io:2.15.1'
     implementation 'com.github.delight-im:Android-AdvancedWebView:v3.2.1'
 
-    // KizzyRPC sources (vendored from github.com/dead8309/KizzyRPC)
-    implementation 'io.ktor:ktor-client-core:2.3.7'
-    implementation 'io.ktor:ktor-client-cio:2.3.7'
-    implementation 'io.ktor:ktor-client-websockets:2.3.7'
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
+    // Discord Social SDK
+    implementation(name: 'discord_partner_sdk', ext: 'aar')
+    implementation 'androidx.browser:browser:1.8.0'
 
     // Multiplayer
     implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3')
