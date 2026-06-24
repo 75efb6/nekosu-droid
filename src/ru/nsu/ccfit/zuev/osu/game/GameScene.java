@@ -110,6 +110,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     private final Cursor[] cursors = new Cursor[CursorCount];
     private final boolean[] cursorIIsDown = new boolean[CursorCount];
     private final boolean[] pressConsumedThisFrame = new boolean[CursorCount];
+    private final java.util.HashMap<Integer, Integer> kbKeyToSlot = new java.util.HashMap<>();
     private final StringBuilder strBuilder = new StringBuilder();
     public String filePath = null;
     private Scene scene;
@@ -935,6 +936,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         }
 
         Arrays.fill(cursorIIsDown, false);
+        kbKeyToSlot.clear();
 
         comboWas100 = false;
         comboWasMissed = false;
@@ -1523,7 +1525,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         }
 
         for (final Cursor c : cursors) {
-            if (c.mouseDown == true && c.mouseOldDown == false) {
+            if (c.mouseDown && !c.mouseOldDown) {
                 c.mousePressed = true;
                 c.mouseOldDown = true;
             } else {
@@ -2704,21 +2706,43 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             return false;
         }
 
-        int cursorId = KeyboardConfig.getCursorForKey(keyCode);
-        if (cursorId < 0 || cursorId >= CursorCount) {
+        int preferredSlot = KeyboardConfig.getCursorForKey(keyCode);
+        if (preferredSlot < 0 || preferredSlot >= CursorCount) {
             return false;
         }
 
-        var cursor = cursors[cursorId];
+        // Already holding this key
+        if (kbKeyToSlot.containsKey(keyCode)) {
+            return true;
+        }
+
+        // Find first free slot among {1, 2}
+        int slot = -1;
+        for (int s = 1; s < CursorCount; s++) {
+            if (!cursors[s].mouseDown) {
+                slot = s;
+                break;
+            }
+        }
+        if (slot < 0) {
+            return false;
+        }
+
+        kbKeyToSlot.put(keyCode, slot);
+
+        var cursor = cursors[slot];
         var sprite = !GameHelper.isAuto() && !GameHelper.isAutopilotMod() && cursorSprites != null
-                ? cursorSprites[cursorId]
+                ? cursorSprites[slot]
                 : null;
 
-        cursor.mousePos.x = KeyboardConfig.getCursorX();
-        cursor.mousePos.y = KeyboardConfig.getCursorY();
+        // Use touch cursor 0's position (aim) for hit detection
+        var aimCursor = cursors[0];
+        cursor.mousePos.x = aimCursor.mousePos.x;
+        cursor.mousePos.y = aimCursor.mousePos.y;
 
         if (sprite != null) {
-            sprite.setPosition(cursor.mousePos.x, cursor.mousePos.y);
+            // Sprite stays at the configured fixed position
+            sprite.setPosition(KeyboardConfig.getCursorX(slot), KeyboardConfig.getCursorY(slot));
             sprite.setShowing(true);
         }
 
@@ -2727,15 +2751,13 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
         cursor.mouseDown = true;
         cursor.mouseDownOffsetMS = frameOffset;
-
-        for (var value : cursors)
-            value.mouseOldDown = false;
+        cursor.mouseOldDown = false;
 
         PointF gamePoint = applyCursorTrackCoordinates(cursor);
         if (replay != null) {
-            replay.addPress(eventTime, gamePoint, cursorId);
+            replay.addPress(eventTime, gamePoint, slot);
         }
-        cursorIIsDown[cursorId] = true;
+        cursorIIsDown[slot] = true;
 
         return true;
     }
@@ -2746,27 +2768,29 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             return false;
         }
 
-        int cursorId = KeyboardConfig.getCursorForKey(keyCode);
-        if (cursorId < 0 || cursorId >= CursorCount) {
+        int slot = kbKeyToSlot.getOrDefault(keyCode, -1);
+        if (slot < 0 || slot >= CursorCount) {
             return false;
         }
 
-        var cursor = cursors[cursorId];
+        kbKeyToSlot.remove(keyCode);
+
+        var cursor = cursors[slot];
         var sprite = !GameHelper.isAuto() && !GameHelper.isAutopilotMod() && cursorSprites != null
-                ? cursorSprites[cursorId]
+                ? cursorSprites[slot]
                 : null;
 
         if (sprite != null) {
             sprite.setShowing(false);
         }
         cursor.mouseDown = false;
-        cursorIIsDown[cursorId] = false;
+        cursorIIsDown[slot] = false;
 
         var frameOffset = previousFrameTime > 0 ? (SystemClock.uptimeMillis() - previousFrameTime) * timeMultiplier : 0;
         var eventTime = (int) (secPassed * 1000 + frameOffset);
 
         if (replay != null) {
-            replay.addUp(eventTime, cursorId);
+            replay.addUp(eventTime, slot);
         }
 
         return true;

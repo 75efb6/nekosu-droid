@@ -226,12 +226,10 @@
             android:summary="Use keyboard keys to tap hit objects during gameplay"/>
 
         <PreferenceScreen android:key="kbKeybinds" android:title="Keybinds" android:summary="Configure which keys map to cursors">
-            <EditTextPreference android:key="kbKey0" android:title="Cursor 1 key"
-                android:summary="Key code for first cursor (default: 54 = z)"
-                android:defaultValue="54" android:inputType="number"/>
-            <EditTextPreference android:key="kbKey1" android:title="Cursor 2 key"
-                android:summary="Key code for second cursor (default: 53 = x)"
-                android:defaultValue="53" android:inputType="number"/>
+            <Preference android:key="kbKey0" android:title="Cursor 1 key"
+                android:summary="Z"/>
+            <Preference android:key="kbKey1" android:title="Cursor 2 key"
+                android:summary="X"/>
             <Preference android:title="Key code reference"
                 android:summary="z=54, x=53, c=46, space=62, v=50, b=45"/>
         </PreferenceScreen>

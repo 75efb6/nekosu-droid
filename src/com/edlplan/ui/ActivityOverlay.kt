@@ -20,6 +20,11 @@ object ActivityOverlay {
     }
 
     @JvmStatic
+    fun getTopOverlay(): Fragment? {
+        return if (displayingOverlay.size > 0) displayingOverlay[displayingOverlay.size - 1] else null
+    }
+
+    @JvmStatic
     @Synchronized
     fun onBackPress(): Boolean {
         if (fragmentManager != null && displayingOverlay.size > 0) {

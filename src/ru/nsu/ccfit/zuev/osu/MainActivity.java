@@ -46,6 +46,7 @@ import com.reco1l.framework.lang.Execution;
 import android.text.InputType;
 import com.reco1l.legacy.AccessibilityDetector;
 import com.reco1l.legacy.ui.StyledInputDialog;
+import com.reco1l.legacy.ui.StyledKeybindDialog;
 import com.reco1l.legacy.Multiplayer;
 import com.reco1l.legacy.UpdateManager;
 import com.reco1l.legacy.ui.multiplayer.LobbyScene;
@@ -763,6 +764,15 @@ public class MainActivity extends BaseGameActivity implements
             return true;
         }
 
+        // Capture key for keybind binding
+        if (KeyboardConfig.isBinding() && event.getAction() == KeyEvent.ACTION_DOWN) {
+            var overlay = ActivityOverlay.getTopOverlay();
+            if (overlay instanceof com.reco1l.legacy.ui.StyledKeybindDialog) {
+                ((com.reco1l.legacy.ui.StyledKeybindDialog) overlay).onKeyPress(keyCode, StyledKeybindDialog.getKeyName(keyCode));
+                return true;
+            }
+        }
+
         if (GlobalManager.getInstance().getGameScene() != null
                 && (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU)
                 && GlobalManager.getInstance().getEngine().getScene() == GlobalManager.getInstance().getGameScene().getScene()) {
@@ -774,14 +784,17 @@ public class MainActivity extends BaseGameActivity implements
             return true;
         }
 
-        // Forward gameplay keyboard input to GameScene
+        // Forward gameplay keyboard input to GameScene on the engine thread
         if (GlobalManager.getInstance().getGameScene() != null
                 && GlobalManager.getInstance().getEngine() != null
                 && GlobalManager.getInstance().getEngine().getScene() == GlobalManager.getInstance().getGameScene().getScene()
                 && !GlobalManager.getInstance().getGameScene().isPaused()
                 && KeyboardConfig.isEnabled()
                 && keyCode != KeyEvent.KEYCODE_BACK && keyCode != KeyEvent.KEYCODE_MENU) {
-            GlobalManager.getInstance().getGameScene().onKeyboardDown(keyCode);
+            final int kc = keyCode;
+            GlobalManager.getInstance().getEngine().runOnUpdateThread(() ->
+                GlobalManager.getInstance().getGameScene().onKeyboardDown(kc)
+            );
             return true;
         }
 
@@ -874,14 +887,17 @@ public class MainActivity extends BaseGameActivity implements
             return super.onKeyUp(keyCode, event);
         }
 
-        // Forward keyboard up events to GameScene
+        // Forward keyboard up events to GameScene on the engine thread
         if (GlobalManager.getInstance().getGameScene() != null
                 && GlobalManager.getInstance().getEngine() != null
                 && GlobalManager.getInstance().getEngine().getScene() == GlobalManager.getInstance().getGameScene().getScene()
                 && !GlobalManager.getInstance().getGameScene().isPaused()
                 && KeyboardConfig.isEnabled()
                 && keyCode != KeyEvent.KEYCODE_BACK && keyCode != KeyEvent.KEYCODE_MENU) {
-            GlobalManager.getInstance().getGameScene().onKeyboardUp(keyCode);
+            final int kc = keyCode;
+            GlobalManager.getInstance().getEngine().runOnUpdateThread(() ->
+                GlobalManager.getInstance().getGameScene().onKeyboardUp(kc)
+            );
             return true;
         }
 

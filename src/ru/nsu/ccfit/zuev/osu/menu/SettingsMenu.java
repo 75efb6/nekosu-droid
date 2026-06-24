@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
 import com.reco1l.legacy.ui.StyledInputDialog;
+import com.reco1l.legacy.ui.StyledKeybindDialog;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
@@ -38,6 +39,7 @@ import com.reco1l.legacy.UpdateManager;
 
 import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.GlobalManager;
+import ru.nsu.ccfit.zuev.osu.KeyboardConfig;
 import ru.nsu.ccfit.zuev.osu.LibraryManager;
 import ru.nsu.ccfit.zuev.osu.MainActivity;
 import ru.nsu.ccfit.zuev.osu.PropertiesLibrary;
@@ -128,6 +130,26 @@ public class SettingsMenu extends SettingsFragment {
             setPreferenceScreen((PreferenceScreen) preference);
             return true;
         });
+
+        ((PreferenceScreen) findPreference("keyboard")).setOnPreferenceClickListener(preference -> {
+            setPreferenceScreen((PreferenceScreen) preference);
+            return true;
+        });
+
+        ((PreferenceScreen) findPreference("kbKeybinds")).setOnPreferenceClickListener(preference -> {
+            parentScreen = (PreferenceScreen) findPreference("keyboard");
+            setPreferenceScreen((PreferenceScreen) preference);
+            return true;
+        });
+
+        ((PreferenceScreen) findPreference("kbCursorPos")).setOnPreferenceClickListener(preference -> {
+            parentScreen = (PreferenceScreen) findPreference("keyboard");
+            setPreferenceScreen((PreferenceScreen) preference);
+            return true;
+        });
+
+        setupKeybindPreference("kbKey0", 0);
+        setupKeybindPreference("kbKey1", 1);
         // screens END
 
         final EditTextPreference onlinePassword = (EditTextPreference) findPreference("onlinePassword");
@@ -355,6 +377,42 @@ public class SettingsMenu extends SettingsFragment {
             DiscordRPC.updateForSongSelection();
         } else {
             DiscordRPC.updateForMainMenu();
+        }
+    }
+
+    private void setupKeybindPreference(String key, int slot) {
+        Preference pref = findPreference(key);
+        if (pref == null) return;
+
+        updateKeybindSummary(pref, slot);
+
+        pref.setOnPreferenceClickListener(preference -> {
+            KeyboardConfig.setBindingSlot(slot);
+
+            StyledKeybindDialog.show(
+                mActivity,
+                "Bind key for " + (slot == 0 ? "Cursor 1" : "Cursor 2"),
+                slot,
+                keyCode -> {
+                    KeyboardConfig.setBindingSlot(-1);
+                    if (KeyboardConfig.tryBind(slot, keyCode)) {
+                        KeyboardConfig.setEnabled(true);
+                        KeyboardConfig.saveToPrefs(mActivity);
+                        updateKeybindSummary(preference, slot);
+                    }
+                },
+                () -> KeyboardConfig.setBindingSlot(-1)
+            );
+            return true;
+        });
+    }
+
+    private void updateKeybindSummary(Preference pref, int slot) {
+        int keyCode = slot == 0 ? KeyboardConfig.getKeyCursor0() : KeyboardConfig.getKeyCursor1();
+        if (keyCode == 0) {
+            pref.setSummary("Not bound");
+        } else {
+            pref.setSummary(StyledKeybindDialog.getKeyName(keyCode));
         }
     }
 
