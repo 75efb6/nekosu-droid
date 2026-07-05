@@ -186,9 +186,7 @@ public class BeatmapParser {
                             colorParser.parse(data, s);
                             break;
                         case hitObjects:
-                            if (withHitObjects) {
-                                hitObjectsParser.parse(data, s);
-                            }
+                            hitObjectsParser.parse(data, s);
                             break;
                     }
                 } catch (Exception e) {
@@ -197,7 +195,10 @@ public class BeatmapParser {
             }
 
             closeSource();
-            populateObjectData(data);
+
+            if (withHitObjects) {
+                populateObjectData(data);
+            }
         } catch (IOException e) {
             Log.e("BeatmapParser.parse", e.getMessage());
             return null;

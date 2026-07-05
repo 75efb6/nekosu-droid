@@ -77,6 +77,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -319,9 +320,15 @@ public class MainActivity extends BaseGameActivity implements
             GlobalManager.getInstance().init();
             analytics.logEvent(FirebaseAnalytics.Event.APP_OPEN, null);
             GlobalManager.getInstance().setLoadingProgress(50);
-            checkNewSkins();
+
+            // Run skin and beatmap scanning in parallel
+            var skinsFuture = CompletableFuture.runAsync(this::checkNewSkins);
+            var beatmapsFuture = CompletableFuture.runAsync(this::checkNewBeatmaps);
+
+            skinsFuture.join();
             Config.loadSkins();
-            checkNewBeatmaps();
+
+            beatmapsFuture.join();
 
             if (!LibraryManager.INSTANCE.loadLibraryCache(true)) {
                 LibraryManager.INSTANCE.scanLibrary();

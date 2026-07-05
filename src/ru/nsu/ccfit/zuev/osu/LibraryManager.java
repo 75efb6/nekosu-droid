@@ -277,7 +277,7 @@ public enum LibraryManager {
             track.setFilename(file.getPath());
             track.setCreator("unknown");
 
-            final BeatmapData data = parser.parse(true);
+            final BeatmapData data = parser.parse(false);
             if (data == null || !data.populateMetadata(info) || !data.populateMetadata(track)) {
                 if (Config.isDeleteUnimportedBeatmaps()) {
                     file.delete();
@@ -413,11 +413,8 @@ public enum LibraryManager {
                 for (int j = 0; j < info.getCount(); j++) {
                     TrackInfo track = info.getTrack(j);
                     File trackFile = new File(track.getFilename());
-                    if (fileName.equals(trackFile.getName())) {
-                        String trackMD5 = FileUtils.getMD5Checksum(trackFile);
-                        if (md5.equals(trackMD5)) {
-                            return track;
-                        }
+                    if (fileName.equals(trackFile.getName()) && md5.equals(track.getMD5())) {
+                        return track;
                     }
                 }
             }

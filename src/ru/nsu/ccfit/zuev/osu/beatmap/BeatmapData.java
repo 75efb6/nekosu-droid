@@ -345,7 +345,6 @@ public class BeatmapData {
         track.setMaxCombo(getMaxCombo());
 
         DifficultyAttributes attributes = BeatmapDifficultyCalculator.calculateDifficulty(this);
-
         track.setDifficulty(GameHelper.Round(attributes.starRating, 2));
 
         return true;

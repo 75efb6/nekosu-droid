@@ -2,6 +2,7 @@ package ru.nsu.ccfit.zuev.osu.scoring;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteCantOpenDatabaseException;
 import android.database.sqlite.SQLiteDatabase;
@@ -74,12 +75,19 @@ public class ScoreLibrary {
 
     @SuppressWarnings("unchecked")
     private void loadOld(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("score_migration", Context.MODE_PRIVATE);
+        if (prefs.getBoolean("migrated", false)) {
+            return;
+        }
+
         final File folder = new File(Config.getCorePath() + "/Scores");
         if (folder.exists() == false) {
+            prefs.edit().putBoolean("migrated", true).apply();
             return;
         }
         final File f = new File(folder, "scoreboard");
         if (f.exists() == false) {
+            prefs.edit().putBoolean("migrated", true).apply();
             return;
         }
         Debug.i("Loading old scores...");
@@ -138,6 +146,7 @@ public class ScoreLibrary {
             return;
         }
         f.delete();
+        prefs.edit().putBoolean("migrated", true).apply();
     }
 
     public void save() {
