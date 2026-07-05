@@ -601,15 +601,19 @@ public class ResourceManager {
     }
 
     public TextureRegion getTexture(final String resname) {
-        if (SkinManager.isSkinEnabled() && customTextures.containsKey(resname)) {
-            return customTextures.get(resname);
+        if (SkinManager.isSkinEnabled()) {
+            var custom = customTextures.get(resname);
+            if (custom != null) {
+                return custom;
+            }
         }
-        if (!textures.containsKey(resname)) {
+        var texture = textures.get(resname);
+        if (texture == null) {
             Debug.i("Loading texture: " + resname);
 
             return loadTexture(resname, "gfx/" + resname + ".png", false);
         }
-        return textures.get(resname);
+        return texture;
     }
 
     public TextureRegion getAvatarTextureIfLoaded(final String avatarURL) {
@@ -625,14 +629,7 @@ public class ResourceManager {
     }
 
     public TextureRegion getTextureIfLoaded(final String resname) {
-        if (textures.containsKey(resname)/*
-         * &&
-         * textures.get(resname).getTexture().
-         * isLoadedToHardware()
-         */) {
-            return textures.get(resname);
-        }
-        return null;
+        return textures.get(resname);
     }
 
     public boolean isTextureLoaded(final String resname) {
@@ -712,16 +709,16 @@ public class ResourceManager {
         }
         if (set >= 2) {
             String fullName = resname + set;
-            if (customSounds.containsKey(fullName)) {
-                return customSounds.get(fullName);
-            } else {
-                return sounds.get(resname);
+            var custom = customSounds.get(fullName);
+            if (custom != null) {
+                return custom;
             }
+            return sounds.get(resname);
         }
-        if (customSounds.containsKey(resname)) {
-            return customSounds.get(resname);
+        var custom = customSounds.get(resname);
+        if (custom != null) {
+            return custom;
         }
-
         return sounds.get(resname);
     }
 

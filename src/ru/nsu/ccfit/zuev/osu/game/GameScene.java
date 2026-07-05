@@ -115,6 +115,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     private final StringBuilder strBuilder = new StringBuilder();
     private final StringBuilder soundNameBuilder = new StringBuilder();
     private final PointF skipMaxPos = new PointF();
+    private final PointF spinnerCenter = new PointF();
     public String filePath = null;
     private Scene scene;
     private Scene bgScene, mgScene, fgScene;
@@ -137,8 +138,8 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     private int currentComboNum;
     private boolean comboWasMissed = false;
     private boolean comboWas100 = false;
-    private LinkedList<GameObject> activeObjects;
-    private LinkedList<GameObject> passiveObjects;
+    private ArrayList<GameObject> activeObjects;
+    private ArrayList<GameObject> passiveObjects;
     private LinkedList<GameObject> expiredObjects;
     private GameScoreText comboText, accText, scoreText;  //显示的文字  连击数  ACC  分数
     private GameScoreTextShadow scoreShadow;
@@ -525,8 +526,8 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             return false;
         }
 
-        activeObjects = new LinkedList<>();
-        passiveObjects = new LinkedList<>();
+        activeObjects = new ArrayList<>();
+        passiveObjects = new ArrayList<>();
         expiredObjects = new LinkedList<>();
         lastObjectId = -1;
 
@@ -1720,7 +1721,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         updateActiveObjects(dt);
 
         if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) {
-            autoCursor.moveToObject(activeObjects.peek(), secPassed, this);
+            autoCursor.moveToObject(activeObjects.get(0), secPassed, this);
         }
 
         var downPressCursorCount = 0;
@@ -1767,7 +1768,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
             final PointF pos = data.getPos();
             // Fix matching error on new beatmaps
-            final int objDefine = Integer.parseInt(params[3]);
+            final int objDefine = data.comboCode;
 
             final float time = data.getRawTime();
             if (time > totalLength) {
@@ -1834,7 +1835,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
                 circle.init(this, mgScene, pos, data.getTime() - secPassed,
                         col.r(), col.g(), col.b(), scale, currentComboNum,
-                        Integer.parseInt(params[4]), tempSound, isFirst);
+                        data.sampleSet, tempSound, isFirst);
                 circle.setEndsCombo(objects.isEmpty()
                         || nextObj.isNewCombo());
                 addObject(circle);
@@ -1878,7 +1879,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                     tempSound = params[6];
                 }
                 spinner.init(this, bgScene, (data.getTime() - secPassed) / timeMultiplier,
-                        (endTime - data.getTime()) / timeMultiplier, rps, Integer.parseInt(params[4]),
+                        (endTime - data.getTime()) / timeMultiplier, rps, data.sampleSet,
                         tempSound, stat);
                 spinner.setEndsCombo(objects.isEmpty()
                         || nextObj.isNewCombo());
@@ -1906,20 +1907,20 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                     SliderPath sliderPath = getSliderPath(sliderIndex);
                     slider.init(this, mgScene, pos, data.getPosOffset(), data.getTime() - secPassed,
                         col.r(), col.g(), col.b(), scale, currentComboNum,
-                        Integer.parseInt(params[4]),
-                        Integer.parseInt(params[6]),
-                        Float.parseFloat(params[7]), params[5],
-                        currentTimingPoint, soundspec, tempSound, isFirst, Double.parseDouble(params[2]),
+                        data.sampleSet,
+                        data.customSound,
+                        (float) data.timingShift, params[5],
+                        currentTimingPoint, soundspec, tempSound, isFirst, data.timingShift,
                         sliderPath);
                     sliderIndex++;
                 }
                 else{
                     slider.init(this, mgScene, pos, data.getPosOffset(), data.getTime() - secPassed,
                     col.r(), col.g(), col.b(), scale, currentComboNum,
-                    Integer.parseInt(params[4]),
-                    Integer.parseInt(params[6]),
-                    Float.parseFloat(params[7]), params[5],
-                    currentTimingPoint, soundspec, tempSound, isFirst, Double.parseDouble(params[2]));
+                    data.sampleSet,
+                    data.customSound,
+                    (float) data.timingShift, params[5],
+                    currentTimingPoint, soundspec, tempSound, isFirst, data.timingShift);
                 }
                 slider.setEndsCombo(objects.isEmpty()
                         || nextObj.isNewCombo());
@@ -2471,8 +2472,9 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             replay.addObjectResult(id, acc, null);
         }
 
-        final PointF pos = new PointF((float) Config.getRES_WIDTH() / 2,
+        spinnerCenter.set((float) Config.getRES_WIDTH() / 2,
                 (float) Config.getRES_HEIGHT() / 2);
+        final PointF pos = spinnerCenter;
         if (score == 0) {
             final GameEffect effect = GameObjectPool.getInstance().getEffect(
                     "hit0");

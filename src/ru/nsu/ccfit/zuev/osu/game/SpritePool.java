@@ -30,7 +30,7 @@ public class SpritePool {
         return spritesCreated;
     }
 
-    synchronized public void putSprite(final String name, final Sprite sprite) {
+    public void putSprite(final String name, final Sprite sprite) {
         if (count > CAPACITY) {
             return;
         }
@@ -47,7 +47,7 @@ public class SpritePool {
         sprites.computeIfAbsent(name, k -> new LinkedList<>()).add(sprite);
     }
 
-    synchronized public Sprite getSprite(final String name) {
+    public Sprite getSprite(final String name) {
         final LinkedList<Sprite> list = sprites.get(name);
         if (list != null) {
             while (!list.isEmpty() && list.peek().hasParent()) {
@@ -63,7 +63,7 @@ public class SpritePool {
         return new Sprite(0, 0, ResourceManager.getInstance().getTexture(name));
     }
 
-    synchronized public Sprite getCenteredSprite(final String name, final PointF pos) {
+    public Sprite getCenteredSprite(final String name, final PointF pos) {
         final LinkedList<Sprite> list = sprites.get(name);
         if (list != null) {
             while (!list.isEmpty() && list.peek().hasParent()) {
@@ -81,7 +81,7 @@ public class SpritePool {
         return new CentredSprite(pos.x, pos.y, ResourceManager.getInstance().getTexture(name));
     }
 
-    synchronized public AnimSprite getAnimSprite(final String name, int count) {
+    public AnimSprite getAnimSprite(final String name, int count) {
         final LinkedList<AnimSprite> list = animsprites.get(name);
         if (list != null) {
             while (!list.isEmpty() && list.peek().hasParent()) {
@@ -97,7 +97,7 @@ public class SpritePool {
         return new AnimSprite(0, 0, name, count, count);
     }
 
-    synchronized public void putAnimSprite(final String name,
+    public void putAnimSprite(final String name,
                                            final AnimSprite sprite) {
         if (count > CAPACITY) {
             return;

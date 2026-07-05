@@ -6,11 +6,13 @@ import ru.nsu.ccfit.zuev.osu.Utils;
 
 public class GameObjectData {
     private final int time;
-    private final int comboCode;
+    public final int comboCode;
     private final String[] rawdata;
-    // private SliderHelper.SliderPath path = null;
     private final PointF pos;
     private float posOffset;
+    public final int sampleSet;
+    public final int customSound;
+    public final double timingShift;
 
     public GameObjectData(final String line) {
         String[] data = line.split("[,]");
@@ -33,6 +35,10 @@ public class GameObjectData {
         pos = Utils.trackToRealCoords(new PointF(Float.parseFloat(rawdata[0]),
                 Float.parseFloat(rawdata[1])));
         posOffset = 0;
+
+        sampleSet = rawdata.length > 4 ? Integer.parseInt(rawdata[4]) : 0;
+        customSound = rawdata.length > 6 ? Integer.parseInt(rawdata[6]) : 0;
+        timingShift = rawdata.length > 7 ? Double.parseDouble(rawdata[7]) : 0;
     }
 
     public PointF getPos() {
