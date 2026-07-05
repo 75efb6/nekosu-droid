@@ -484,6 +484,7 @@ public enum LibraryManager {
 
             if (computed % 50 == 0) {
                 ToastLogger.showText("Computed " + computed + "/" + tracksToCompute.size() + " star ratings...", false);
+                saveToCache();
             }
         }
 
