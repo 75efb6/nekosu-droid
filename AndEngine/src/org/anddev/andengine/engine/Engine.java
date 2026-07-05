@@ -69,8 +69,6 @@ public class Engine implements SensorEventListener, OnTouchListener, ITouchEvent
 	private static final SensorDelay SENSORDELAY_DEFAULT = SensorDelay.GAME;
 	private static final int UPDATEHANDLERS_CAPACITY_DEFAULT = 32;
 
-	public static int INPUT_PAUSE_DURATION = 0;
-
 	// ===========================================================
 	// Fields
 	// ===========================================================
@@ -365,20 +363,7 @@ public class Engine implements SensorEventListener, OnTouchListener, ITouchEvent
     @Override
 	public boolean onTouch(final View pView, final MotionEvent pSurfaceMotionEvent) {
 		if(this.mRunning) {
-			final boolean handled = this.mTouchController.onHandleMotionEvent(pSurfaceMotionEvent);
-			try {
-				/*
-				 * As a human cannot interact 1000x per second, we pause the
-				 * UI-Thread for a little.
-				 */
-				if (INPUT_PAUSE_DURATION != 0) {
-					Thread.sleep(INPUT_PAUSE_DURATION);
-				}
-				// TODO Maybe this can be removed, when TouchEvents are handled on the UpdateThread!}
-			} catch (final InterruptedException e) {
-				Debug.e(e);
-			}
-			return handled;
+			return this.mTouchController.onHandleMotionEvent(pSurfaceMotionEvent);
 		} else {
 			return false;
 		}

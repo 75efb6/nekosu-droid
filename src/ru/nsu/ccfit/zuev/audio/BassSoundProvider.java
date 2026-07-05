@@ -41,8 +41,8 @@ public class BassSoundProvider {
         if (sample != 0) {
             channel = BASS.BASS_SampleGetChannel(sample, false);
             BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_NOBUFFER, 1);
-            BASS.BASS_ChannelPlay(channel, false);
             BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_VOL, volume * Config.getSoundVolume());
+            BASS.BASS_ChannelPlay(channel, false);
         }
     }
 

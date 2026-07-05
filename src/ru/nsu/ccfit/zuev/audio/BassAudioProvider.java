@@ -26,6 +26,7 @@ public class BassAudioProvider {
     private int multiplier = 0;
 
     private ByteBuffer buffer = null;
+    private float[] spectrumBuffer = null;
 
     public BassAudioProvider() {
         freq.value = 1.0f;
@@ -145,9 +146,11 @@ public class BassAudioProvider {
         BASS.BASS_ChannelGetData(channel, buffer, BASS.BASS_DATA_FFT1024);
 
         int resSize = WINDOW_FFT >> 1;
-        float[] spectrum = new float[resSize];
-        buffer.asFloatBuffer().get(spectrum);
-        return spectrum;
+        if (spectrumBuffer == null || spectrumBuffer.length != resSize) {
+            spectrumBuffer = new float[resSize];
+        }
+        buffer.asFloatBuffer().get(spectrumBuffer);
+        return spectrumBuffer;
     }
 
     public int getErrorCode() {
