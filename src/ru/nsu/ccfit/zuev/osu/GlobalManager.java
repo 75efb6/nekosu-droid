@@ -10,6 +10,7 @@ import org.anddev.andengine.engine.camera.Camera;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService;
 import ru.nsu.ccfit.zuev.osu.game.GameScene;
+import ru.nsu.ccfit.zuev.osu.game.GlobalFPSOverlay;
 import ru.nsu.ccfit.zuev.osu.menu.SongMenu;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoreLibrary;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene;
@@ -71,6 +72,9 @@ public class GlobalManager {
         getSongMenu().setScoringScene(getScoring());
         getGameScene().setScoringScene(getScoring());
         getGameScene().setOldScene(getSongMenu().getScene());
+
+        new GlobalFPSOverlay().attachToCamera(camera);
+
         if (songService != null) {
             songService.stop();
             songService.hideNotification();
