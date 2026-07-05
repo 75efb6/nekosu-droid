@@ -61,7 +61,7 @@ public class BeatmapHitObjectsParser extends BeatmapSectionParser {
         }
 
         int repeat = parseInt(pars[6]);
-        double rawLength = Math.max(0, parseDouble(pars[7], maxCoordinateValue));
+        double rawLength = Math.max(0, parseDouble(pars[7]));
 
         if (repeat > 9000) {
             throw new UnsupportedOperationException("Repeat count is way too high");
@@ -74,8 +74,8 @@ public class BeatmapHitObjectsParser extends BeatmapSectionParser {
         for (int i = 1; i < curvePointsData.length; i++) {
             String[] curvePointData = curvePointsData[i].split(":");
             Vector2 curvePointPosition = new Vector2(
-                    (int) parseFloat(curvePointData[0], maxCoordinateValue),
-                    (int) parseFloat(curvePointData[1], maxCoordinateValue)
+                    (int) parseFloat(curvePointData[0]),
+                    (int) parseFloat(curvePointData[1])
             );
 
             curvePoints.add(curvePointPosition.subtract(position));
