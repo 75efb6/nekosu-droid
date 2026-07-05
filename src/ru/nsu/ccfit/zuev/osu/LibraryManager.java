@@ -2,15 +2,12 @@ package ru.nsu.ccfit.zuev.osu;
 
 import android.os.Build;
 import com.reco1l.legacy.engine.VideoTexture;
-import com.rian.difficultycalculator.attributes.DifficultyAttributes;
 import org.anddev.andengine.util.Debug;
 import org.jetbrains.annotations.Nullable;
 import ru.nsu.ccfit.zuev.osu.beatmap.BeatmapData;
 import ru.nsu.ccfit.zuev.osu.beatmap.parser.BeatmapParser;
-import ru.nsu.ccfit.zuev.osu.helper.BeatmapDifficultyCalculator;
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils;
 import ru.nsu.ccfit.zuev.osu.helper.StringTable;
-import ru.nsu.ccfit.zuev.osu.game.GameHelper;
 import ru.nsu.ccfit.zuev.osuplus.R;
 
 import java.io.*;
@@ -28,8 +25,6 @@ public enum LibraryManager {
     private int currentIndex = 0;
 
     private static boolean isCaching = true;
-    private volatile boolean starRatingPaused = false;
-    private volatile boolean starRatingRunning = false;
 
     public File getLibraryCacheFile() {
         return new File(GlobalManager.getInstance().getMainActivity().getFilesDir(), String.format("library.%s.dat", VERSION));
@@ -282,7 +277,7 @@ public enum LibraryManager {
             track.setFilename(file.getPath());
             track.setCreator("unknown");
 
-            final BeatmapData data = parser.parse(false);
+            final BeatmapData data = parser.parse(true);
             if (data == null || !data.populateMetadata(info) || !data.populateMetadata(track)) {
                 if (Config.isDeleteUnimportedBeatmaps()) {
                     file.delete();
@@ -432,73 +427,6 @@ public enum LibraryManager {
             scanLibrary();
         }
         saveToCache();
-    }
-
-    public void computeStarRatings() {
-        if (starRatingRunning) {
-            return;
-        }
-
-        var tracksToCompute = new ArrayList<TrackInfo>();
-
-        synchronized (library) {
-            for (var beatmap : library) {
-                for (int j = 0; j < beatmap.getCount(); j++) {
-                    TrackInfo track = beatmap.getTrack(j);
-                    if (track.getDifficulty() == 0) {
-                        tracksToCompute.add(track);
-                    }
-                }
-            }
-        }
-
-        if (tracksToCompute.isEmpty()) {
-            return;
-        }
-
-        starRatingRunning = true;
-        ToastLogger.showText("Computing star ratings for " + tracksToCompute.size() + " beatmaps...", false);
-
-        int computed = 0;
-
-        for (var track : tracksToCompute) {
-            while (starRatingPaused) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    starRatingRunning = false;
-                    return;
-                }
-            }
-
-            var data = new BeatmapParser(new File(track.getFilename())).parse(true);
-
-            if (data == null) {
-                continue;
-            }
-
-            DifficultyAttributes attributes = BeatmapDifficultyCalculator.calculateDifficulty(data);
-            track.setDifficulty(GameHelper.Round(attributes.starRating, 2));
-            computed++;
-
-            if (computed % 50 == 0) {
-                ToastLogger.showText("Computed " + computed + "/" + tracksToCompute.size() + " star ratings...", false);
-                saveToCache();
-            }
-        }
-
-        starRatingRunning = false;
-        ToastLogger.showText("Computed " + computed + " star ratings", false);
-        saveToCache();
-    }
-
-    public void pauseStarRatingComputation() {
-        starRatingPaused = true;
-    }
-
-    public void resumeStarRatingComputation() {
-        starRatingPaused = false;
     }
 
     private static final class LibraryCacheManager {

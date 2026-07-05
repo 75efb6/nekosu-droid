@@ -1,6 +1,5 @@
 package ru.nsu.ccfit.zuev.osu;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -128,7 +127,7 @@ public class AppException extends Exception implements Thread.UncaughtExceptionH
         return new AppException();
     }
 
-    public static StringBuffer getTraceInfo(Activity a, Throwable e) {
+    public static StringBuffer getTraceInfo(Context a, Throwable e) {
         StringBuffer sb = new StringBuffer();
 
         Throwable ex = e.getCause() == null ? e : e.getCause();
@@ -321,7 +320,7 @@ public class AppException extends Exception implements Thread.UncaughtExceptionH
             exceptionStr.append("System Screen Info:").append(getScreenInfo(context)).append("\n").append("\n");
             exceptionStr.append("System OS Info:").append(getMobileInfo()).append("\n").append("\n");
             exceptionStr.append("Exception: ").append(ex.getMessage()).append("\n").append("\n");
-            exceptionStr.append("Exception stack：").append(getTraceInfo((Activity) context, ex)).append("\n").append("\n");
+            exceptionStr.append("Exception stack：").append(getTraceInfo(context, ex)).append("\n").append("\n");
         } catch (NameNotFoundException e) {
             e.printStackTrace();
         }
@@ -391,7 +390,7 @@ public class AppException extends Exception implements Thread.UncaughtExceptionH
         JSONObject osJson = new JSONObject();
 
         DisplayMetrics displaymetrics = new DisplayMetrics();
-        ((Activity) ctx).getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        ((android.view.WindowManager) ctx.getSystemService(android.content.Context.WINDOW_SERVICE)).getDefaultDisplay().getMetrics(displaymetrics);
         for (Field field : displaymetrics.getClass().getDeclaredFields()) {
             try {
                 field.setAccessible(true);

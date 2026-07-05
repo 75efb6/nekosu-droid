@@ -2,6 +2,7 @@ package ru.nsu.ccfit.zuev.osu.menu;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 
 import com.edlplan.ext.EdExtensionHelper;
 import com.edlplan.favorite.FavoriteLibrary;
@@ -81,7 +82,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
     private ScoringScene scoreScene;
     private float camY = 0;
     private float velocityY;
-    private Activity context;
+    private Context context;
     private Entity backLayer = new Entity();
     private ArrayList<MenuItem> items = new ArrayList<>();
     private MenuItem selectedItem = null;
@@ -145,7 +146,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
                      final GameScene pGame) {
         this.engine = engine;
         game = pGame;
-        this.context = (Activity) context.getApplicationContext();
+        this.context = context.getApplicationContext();
     }
 
     public void loadFilter(IFilterMenu filterMenu) {
@@ -724,7 +725,6 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
     public FilterMenuFragment getFilterMenu() { return filterMenu; }
 
     public void show() {
-        LibraryManager.INSTANCE.resumeStarRatingComputation();
         engine.setScene(scene);
         DiscordRPC.updateForSongSelection();
         if (GlobalManager.getInstance().getSongService() == null) return;
@@ -1541,7 +1541,10 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
                 if (trackid >= 0) {
                     item.select(true, true);
                     if (trackid != 0) {
-                        item.selectTrack(item.getTrackSpritesById(trackid), false);
+                        MenuItemTrack track = item.getTrackSpritesById(trackid);
+                        if (track != null) {
+                            item.selectTrack(track, false);
+                        }
                     }
                     break;
                 }

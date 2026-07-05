@@ -262,7 +262,7 @@ public class Config {
 
     public static void setSize() {
         final DisplayMetrics dm = new DisplayMetrics();
-        ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(dm);
+        ((android.view.WindowManager) context.getSystemService(android.content.Context.WINDOW_SERVICE)).getDefaultDisplay().getMetrics(dm);
 
         int width = Math.max(dm.widthPixels, dm.heightPixels), height = Math.min(dm.widthPixels, dm.heightPixels);
         //int width = dm.widthPixels, height =  dm.heightPixels;

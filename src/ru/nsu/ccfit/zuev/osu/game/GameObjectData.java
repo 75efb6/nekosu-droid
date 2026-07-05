@@ -36,9 +36,25 @@ public class GameObjectData {
                 Float.parseFloat(rawdata[1])));
         posOffset = 0;
 
-        sampleSet = rawdata.length > 4 ? Integer.parseInt(rawdata[4]) : 0;
-        customSound = rawdata.length > 6 ? Integer.parseInt(rawdata[6]) : 0;
-        timingShift = rawdata.length > 7 ? Double.parseDouble(rawdata[7]) : 0;
+        sampleSet = rawdata.length > 4 ? parseIntSafe(rawdata[4]) : 0;
+        customSound = rawdata.length > 6 ? parseIntSafe(rawdata[6]) : 0;
+        timingShift = rawdata.length > 7 ? parseDoubleSafe(rawdata[7]) : 0;
+    }
+
+    private static int parseIntSafe(final String s) {
+        try {
+            return Integer.parseInt(s);
+        } catch (final NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private static double parseDoubleSafe(final String s) {
+        try {
+            return Double.parseDouble(s);
+        } catch (final NumberFormatException e) {
+            return 0;
+        }
     }
 
     public PointF getPos() {

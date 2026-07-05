@@ -1,6 +1,5 @@
 package ru.nsu.ccfit.zuev.osu;
 
-import android.app.Activity;
 import android.content.Context;
 
 import org.anddev.andengine.util.Debug;
@@ -32,9 +31,9 @@ public class PropertiesLibrary {
     }
 
     @SuppressWarnings("unchecked")
-    public void load(final Activity activity) {
-        context = activity;
-        final File lib = new File(activity.getFilesDir(), "properties");
+    public void load(final Context context) {
+        this.context = context;
+        final File lib = new File(context.getFilesDir(), "properties");
         if (lib.exists() == false) {
             return;
         }
@@ -124,7 +123,7 @@ public class PropertiesLibrary {
 
     public void setProperties(final String path,
                               final BeatmapProperties properties) {
-        this.load((Activity) context);
+        this.load(context);
         props.put(path, properties);
         if (properties.favorite == false && properties.getOffset() == 0) {
             props.remove(path);

@@ -334,9 +334,6 @@ public class MainActivity extends BaseGameActivity implements
                 LibraryManager.INSTANCE.scanLibrary();
             }
 
-            // Compute star ratings in background
-            Execution.async(LibraryManager.INSTANCE::computeStarRatings);
-
             SplashScene.INSTANCE.playWelcomeAnimation();
 
             Execution.delayed(2500, () -> {

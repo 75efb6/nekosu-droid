@@ -717,7 +717,6 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     }
 
     public void startGame(final TrackInfo track, final String replayFile) {
-        LibraryManager.INSTANCE.pauseStarRatingComputation();
         org.anddev.andengine.opengl.texture.TextureManager.setSuppressGC(true);
         GameHelper.updateGameid();
         if (!replaying) {
@@ -801,16 +800,13 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         if (Config.isShowFPS() || Config.isDisplayRealTimePPCounter()) {
             final Font font = ResourceManager.getInstance().getFont(
                     "smallFont");
-            final ChangeableText fpsText = new ChangeableText(Utils.toRes(790),
-                    Utils.toRes(520), font, "000/000 FPS");
             final ChangeableText urText = new ChangeableText(Utils.toRes(720),
                     Utils.toRes(480), font, "00.00 UR    ");
             final ChangeableText accText = new ChangeableText(Utils.toRes(720),
                     Utils.toRes(440), font, "Avg offset: 0ms     ");
-            fpsText.setPosition(Config.getRES_WIDTH() - fpsText.getWidth() - 5, Config.getRES_HEIGHT() - fpsText.getHeight() - 10);
-            accText.setPosition(Config.getRES_WIDTH() - accText.getWidth() - 5, fpsText.getY() - accText.getHeight());
+            final float fpsOverlayH = font.getLineHeight() + 12;
+            accText.setPosition(Config.getRES_WIDTH() - accText.getWidth() - 5, Config.getRES_HEIGHT() - accText.getHeight() - 10 - fpsOverlayH);
             urText.setPosition(Config.getRES_WIDTH() - urText.getWidth() - 5, accText.getY() - urText.getHeight());
-            fgScene.attachChild(fpsText);
             fgScene.attachChild(accText);
             fgScene.attachChild(urText);
 
@@ -837,30 +833,12 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
                     elapsedInt++;
 
-                    int frameLimit = Math.round(GlobalManager.getInstance().getMainActivity().getRefreshRate());
-                    int currentFps = Math.min(Math.round(this.getFPS()), frameLimit);
-
-                    fpsText.setText(strBuilder.append(currentFps).append('/').append(frameLimit).append(" FPS").toString());
-                    strBuilder.setLength(0);
-
-                    // FPS color status
-                    float ratio = (float) currentFps / frameLimit;
-
-                    if (ratio >= 0.8f) {
-                        // Green = good performance
-                        fpsText.setColor(0f, 1f, 0f);
-                    } else if (ratio >= 0.65f) {
-                        // Yellow = medium performance
-                        fpsText.setColor(1f, 1f, 0f);
-                    } else {
-                        // Red = bad performance
-                        fpsText.setColor(1f, 0f, 0f);
-                    }
-
                     // Reset every second so the display reflects recent performance
                     if (this.mSecondsElapsed >= 1f) {
                         this.reset();
                     }
+
+                    strBuilder.setLength(0);
 
                     if (offsetRegs != 0 && elapsedInt > 200) {
                         float mean = avgOffset / offsetRegs;
@@ -870,6 +848,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                         strBuilder.setLength(0);
                         elapsedInt = 0;
                     }
+
                     {
                         float ur = (float) stat.getUnstableRate();
                         int urInt = (int) (ur * 100 + 0.5f);
@@ -878,8 +857,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                         strBuilder.setLength(0);
                     }
 
-                    fpsText.setPosition(Config.getRES_WIDTH() - fpsText.getWidth() - 5, Config.getRES_HEIGHT() - fpsText.getHeight() - 10);
-                    accText.setPosition(Config.getRES_WIDTH() - accText.getWidth() - 5, fpsText.getY() - accText.getHeight());
+                    accText.setPosition(Config.getRES_WIDTH() - accText.getWidth() - 5, Config.getRES_HEIGHT() - accText.getHeight() - 10 - fpsOverlayH);
                     urText.setPosition(Config.getRES_WIDTH() - urText.getWidth() - 5, accText.getY() - urText.getHeight());
                     if (ppText != null) {
                         ppText.setPosition(Config.getRES_WIDTH() - ppText.getWidth() - 5, urText.getY() - ppText.getHeight());

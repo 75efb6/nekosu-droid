@@ -459,6 +459,9 @@ public class MenuItem {
     }
 
     public MenuItemTrack getTrackSpritesById(int index){
+        if (index < 0 || index >= trackSprites.length) {
+            return null;
+        }
         return trackSprites[index];
     }
 }

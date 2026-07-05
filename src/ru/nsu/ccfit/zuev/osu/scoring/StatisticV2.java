@@ -785,10 +785,11 @@ public class StatisticV2 implements Serializable {
 
         if (totalOffsetSum > 1) {
             double avgOffset = hitOffsetSum / totalOffsetSum;
+            double oldMean = (hitOffsetSum - msAccuracy) / (totalOffsetSum - 1);
 
             unstableRate = 10 * Math.sqrt(
                 ((totalOffsetSum - 1) * Math.pow(unstableRate / 10, 2) +
-                    (msAccuracy - avgOffset / totalOffsetSum) * (msAccuracy - (avgOffset - msAccuracy) / (totalOffsetSum - 1))) / totalOffsetSum
+                    (msAccuracy - oldMean) * (msAccuracy - avgOffset)) / totalOffsetSum
             );
         }
     }
