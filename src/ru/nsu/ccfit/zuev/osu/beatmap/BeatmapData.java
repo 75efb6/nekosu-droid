@@ -1,6 +1,5 @@
 package ru.nsu.ccfit.zuev.osu.beatmap;
 
-import com.rian.difficultycalculator.attributes.DifficultyAttributes;
 import com.rian.difficultycalculator.beatmap.BeatmapControlPointsManager;
 import com.rian.difficultycalculator.beatmap.BeatmapHitObjectsManager;
 import com.rian.difficultycalculator.beatmap.hitobject.HitObject;
@@ -19,8 +18,6 @@ import ru.nsu.ccfit.zuev.osu.beatmap.sections.BeatmapDifficulty;
 import ru.nsu.ccfit.zuev.osu.beatmap.sections.BeatmapEvents;
 import ru.nsu.ccfit.zuev.osu.beatmap.sections.BeatmapGeneral;
 import ru.nsu.ccfit.zuev.osu.beatmap.sections.BeatmapMetadata;
-import ru.nsu.ccfit.zuev.osu.game.GameHelper;
-import ru.nsu.ccfit.zuev.osu.helper.BeatmapDifficultyCalculator;
 import ru.nsu.ccfit.zuev.osu.helper.StringTable;
 import ru.nsu.ccfit.zuev.osuplus.R;
 
@@ -343,9 +340,6 @@ public class BeatmapData {
         track.setSpinnerCount(hitObjects.getSpinnerCount());
         track.setMusicLength(getDuration());
         track.setMaxCombo(getMaxCombo());
-
-        DifficultyAttributes attributes = BeatmapDifficultyCalculator.calculateDifficulty(this);
-        track.setDifficulty(GameHelper.Round(attributes.starRating, 2));
 
         return true;
     }
