@@ -31,6 +31,12 @@ public class TextureManager {
 	private final ArrayList<ITexture> mTexturesToBeLoaded = new ArrayList<ITexture>();
 	private final ArrayList<ITexture> mTexturesToBeUnloaded = new ArrayList<ITexture>();
 
+	private static boolean suppressGC = false;
+
+	public static void setSuppressGC(boolean suppress) {
+		suppressGC = suppress;
+	}
+
 	// ===========================================================
 	// Constructors
 	// ===========================================================
@@ -168,6 +174,11 @@ public class TextureManager {
 				texturesLoaded.remove(textureToBeUnloaded);
 				texturesManaged.remove(textureToBeUnloaded);
 			}
+		}
+
+		/* Invoke the GC outside of gameplay to avoid frame spikes. */
+		if(!suppressGC && (texturesToBeLoadedCount > 0 || texturesToBeUnloadedCount > 0)){
+			System.gc();
 		}
 	}
 

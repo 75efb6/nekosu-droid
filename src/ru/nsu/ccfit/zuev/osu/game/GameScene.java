@@ -718,6 +718,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
     public void startGame(final TrackInfo track, final String replayFile) {
         LibraryManager.INSTANCE.pauseStarRatingComputation();
+        org.anddev.andengine.opengl.texture.TextureManager.setSuppressGC(true);
         GameHelper.updateGameid();
         if (!replaying) {
             EdExtensionHelper.onStartGame(track);
@@ -2194,6 +2195,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     }
 
     public void quit() {
+        org.anddev.andengine.opengl.texture.TextureManager.setSuppressGC(false);
 
         // Handle input back in update thread
         var touchOptions = new TouchOptions();
