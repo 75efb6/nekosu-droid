@@ -227,6 +227,11 @@ public class GameHelper {
         pathPool.add(path);
     }
 
+    public static void clearPools() {
+        pathPool.clear();
+        pointPool.clear();
+    }
+
     private static SliderPath newPath() {
         if (pathPool.isEmpty()) {
             return new SliderPath();

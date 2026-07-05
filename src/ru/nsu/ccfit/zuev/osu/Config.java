@@ -104,7 +104,7 @@ public class Config {
     private static Context context;
 
     public static void loadConfig(final Context context) {
-        Config.context = context;
+        Config.context = context.getApplicationContext();
         final SharedPreferences prefs = PreferenceManager
                 .getDefaultSharedPreferences(context);
         String s;

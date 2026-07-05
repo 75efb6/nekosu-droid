@@ -14,7 +14,7 @@ public class InputManager {
     }
 
     public static void setContext(final Context context) {
-        InputManager.context = context;
+        InputManager.context = context.getApplicationContext();
     }
 
     public static InputManager getInstance() {

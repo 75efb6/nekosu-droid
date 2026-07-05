@@ -619,6 +619,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
         GameObjectPool.getInstance().purge();
         SpritePool.getInstance().purge();
+        GameHelper.clearPools();
         ModifierFactory.clear();
 
         // TODO replay
@@ -1963,6 +1964,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             SkinManager.setSkinEnabled(false);
             GameObjectPool.getInstance().purge();
             SpritePool.getInstance().purge();
+            GameHelper.clearPools();
             passiveObjects.clear();
             breakPeriods.clear();
             cursorSprites = null;
@@ -2148,6 +2150,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         SkinManager.setSkinEnabled(false);
         GameObjectPool.getInstance().purge();
         SpritePool.getInstance().purge();
+        GameHelper.clearPools();
         if (passiveObjects != null) {
             passiveObjects.clear();
         }

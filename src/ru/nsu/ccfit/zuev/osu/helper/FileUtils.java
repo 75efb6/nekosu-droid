@@ -83,6 +83,12 @@ public class FileUtils {
             }
 
             zip.extractAll(folderFile.getAbsolutePath());
+
+            // If the extracted folder contains only a single subdirectory and no files,
+            // promote the subdirectory contents up one level (handles .osk files with
+            // a root folder wrapping the skin).
+            promoteSingleSubfolder(folderFile);
+
             if((Config.isDELETE_OSZ() && sourceFileName.toLowerCase().endsWith(".osz"))
                 || sourceFileName.toLowerCase().endsWith(".osk")) {
                 file.delete();
@@ -101,6 +107,28 @@ public class FileUtils {
         }
 
         return true;
+    }
+
+    private static void promoteSingleSubfolder(final File folder) {
+        if (!folder.exists() || !folder.isDirectory()) return;
+
+        final File[] children = folder.listFiles();
+        if (children == null || children.length != 1) return;
+
+        final File onlyChild = children[0];
+        if (!onlyChild.isDirectory()) return;
+
+        // Move all contents from the single subdirectory up to the parent
+        final File[] subChildren = onlyChild.listFiles();
+        if (subChildren == null) return;
+
+        for (final File child : subChildren) {
+            final File dest = new File(folder, child.getName());
+            child.renameTo(dest);
+        }
+
+        // Remove the now-empty subdirectory
+        onlyChild.delete();
     }
 
     public static String getFileChecksum(String algorithm, File file) {

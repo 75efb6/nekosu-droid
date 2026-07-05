@@ -352,7 +352,12 @@ public class OnlineManager {
         try {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
-            return BitmapFactory.decodeFile(avatarFile.getPath());
+            BitmapFactory.decodeFile(avatarFile.getPath(), options);
+            if (options.outWidth > 0 && options.outHeight > 0) {
+                // Return a 1x1 placeholder — caller only needs to know dimensions are valid
+                return Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565);
+            }
+            return null;
         } catch (NullPointerException e) {
             return null;
         }
@@ -395,7 +400,11 @@ public class OnlineManager {
         try {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
-            return BitmapFactory.decodeFile(bannerFile.getPath());
+            BitmapFactory.decodeFile(bannerFile.getPath(), options);
+            if (options.outWidth > 0 && options.outHeight > 0) {
+                return Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565);
+            }
+            return null;
         } catch (NullPointerException e) {
             return null;
         }

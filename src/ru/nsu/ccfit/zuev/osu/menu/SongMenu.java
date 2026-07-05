@@ -145,7 +145,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
                      final GameScene pGame) {
         this.engine = engine;
         game = pGame;
-        this.context = context;
+        this.context = (Activity) context.getApplicationContext();
     }
 
     public void loadFilter(IFilterMenu filterMenu) {

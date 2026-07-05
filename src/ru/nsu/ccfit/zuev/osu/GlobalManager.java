@@ -2,6 +2,8 @@ package ru.nsu.ccfit.zuev.osu;
 
 import android.util.DisplayMetrics;
 
+import java.lang.ref.WeakReference;
+
 import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.engine.camera.Camera;
 
@@ -23,7 +25,7 @@ public class GlobalManager {
     private MainScene mainScene;
     private ScoringScene scoring;
     private SongMenu songMenu;
-    private MainActivity mainActivity;
+    private WeakReference<MainActivity> mainActivityRef;
     private int loadingProgress;
     private String info;
     private SongService songService;
@@ -47,22 +49,23 @@ public class GlobalManager {
     }
 
     public void init() {
-        saveServiceObject = (SaveServiceObject) mainActivity.getApplication();
+        final MainActivity activity = getMainActivity();
+        saveServiceObject = (SaveServiceObject) activity.getApplication();
         songService = saveServiceObject.getSongService();
         setLoadingProgress(10);
         setMainScene(new MainScene());
-        getMainScene().load(mainActivity);
+        getMainScene().load(activity);
         setInfo("Loading skin...");
         skinNow = Config.getSkinPath();
         ResourceManager.getInstance().loadSkin(skinNow);
-        ScoreLibrary.getInstance().load(mainActivity);
+        ScoreLibrary.getInstance().load(activity);
         setLoadingProgress(20);
-        PropertiesLibrary.getInstance().load(mainActivity);
+        PropertiesLibrary.getInstance().load(activity);
         setLoadingProgress(30);
         setGameScene(new GameScene(getEngine()));
         setSongMenu(new SongMenu());
         setLoadingProgress(40);
-        getSongMenu().init(mainActivity, getEngine(), getGameScene());
+        getSongMenu().init(activity, getEngine(), getGameScene());
         getSongMenu().load();
         setScoring(new ScoringScene(getEngine(), getGameScene(), getSongMenu()));
         getSongMenu().setScoringScene(getScoring());
@@ -131,11 +134,11 @@ public class GlobalManager {
     }
 
     public MainActivity getMainActivity() {
-        return mainActivity;
+        return mainActivityRef != null ? mainActivityRef.get() : null;
     }
 
     public void setMainActivity(MainActivity mainActivity) {
-        this.mainActivity = mainActivity;
+        this.mainActivityRef = new WeakReference<>(mainActivity);
     }
 
     public int getLoadingProgress() {
@@ -172,7 +175,10 @@ public class GlobalManager {
 
     public DisplayMetrics getDisplayMetrics() {
         final DisplayMetrics dm = new DisplayMetrics();
-        mainActivity.getWindowManager().getDefaultDisplay().getMetrics(dm);
+        final MainActivity activity = getMainActivity();
+        if (activity != null) {
+            activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
+        }
         return dm;
     }
 }

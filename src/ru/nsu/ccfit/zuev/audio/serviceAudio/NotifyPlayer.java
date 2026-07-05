@@ -54,6 +54,7 @@ public class NotifyPlayer {
 
     private MediaSessionCompat mediaSession;
     private Notification notification;
+    private Bitmap currentLargeIcon;
 
     public boolean isShowing = false;
     private Bitmap defaultIcon;
@@ -149,12 +150,19 @@ public class NotifyPlayer {
             bitmap = BitmapFactory.decodeFile(beatmap.getTrack(0).getBackground());
         }
 
+        Bitmap iconToUse = bitmap != null ? bitmap : defaultIcon;
         builder.setContentTitle(title);
         builder.setContentText(artist);
-        builder.setLargeIcon(bitmap != null ? bitmap : defaultIcon);
+        builder.setLargeIcon(iconToUse);
 
         notification = builder.build();
         manager.notify(NOTIFICATION_ID, notification);
+
+        // Recycle the previous decoded bitmap if it was different from defaultIcon
+        if (currentLargeIcon != null && currentLargeIcon != defaultIcon && !currentLargeIcon.isRecycled()) {
+            currentLargeIcon.recycle();
+        }
+        currentLargeIcon = bitmap;
     }
 
     public void show() {

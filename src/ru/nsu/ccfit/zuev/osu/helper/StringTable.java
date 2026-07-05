@@ -12,7 +12,7 @@ public class StringTable {
     private static Formatter f;
 
     public static void setContext(final Context context) {
-        StringTable.context = context;
+        StringTable.context = context.getApplicationContext();
     }
 
     public static String get(@StringRes final int resid) {
