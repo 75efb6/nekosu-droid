@@ -28,6 +28,8 @@ public enum LibraryManager {
     private int currentIndex = 0;
 
     private static boolean isCaching = true;
+    private volatile boolean starRatingPaused = false;
+    private volatile boolean starRatingRunning = false;
 
     public File getLibraryCacheFile() {
         return new File(GlobalManager.getInstance().getMainActivity().getFilesDir(), String.format("library.%s.dat", VERSION));
@@ -433,6 +435,10 @@ public enum LibraryManager {
     }
 
     public void computeStarRatings() {
+        if (starRatingRunning) {
+            return;
+        }
+
         var tracksToCompute = new ArrayList<TrackInfo>();
 
         synchronized (library) {
@@ -450,11 +456,22 @@ public enum LibraryManager {
             return;
         }
 
+        starRatingRunning = true;
         ToastLogger.showText("Computing star ratings for " + tracksToCompute.size() + " beatmaps...", false);
 
         int computed = 0;
 
         for (var track : tracksToCompute) {
+            while (starRatingPaused) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    starRatingRunning = false;
+                    return;
+                }
+            }
+
             var data = new BeatmapParser(new File(track.getFilename())).parse(true);
 
             if (data == null) {
@@ -470,8 +487,17 @@ public enum LibraryManager {
             }
         }
 
+        starRatingRunning = false;
         ToastLogger.showText("Computed " + computed + " star ratings", false);
         saveToCache();
+    }
+
+    public void pauseStarRatingComputation() {
+        starRatingPaused = true;
+    }
+
+    public void resumeStarRatingComputation() {
+        starRatingPaused = false;
     }
 
     private static final class LibraryCacheManager {

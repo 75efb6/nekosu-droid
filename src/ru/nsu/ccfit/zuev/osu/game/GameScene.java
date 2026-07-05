@@ -62,6 +62,7 @@ import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.Constants;
 import ru.nsu.ccfit.zuev.osu.GlobalManager;
 import ru.nsu.ccfit.zuev.osu.KeyboardConfig;
+import ru.nsu.ccfit.zuev.osu.LibraryManager;
 import ru.nsu.ccfit.zuev.osu.PropertiesLibrary;
 import ru.nsu.ccfit.zuev.osu.RGBAColor;
 import ru.nsu.ccfit.zuev.osu.RGBColor;
@@ -715,6 +716,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     }
 
     public void startGame(final TrackInfo track, final String replayFile) {
+        LibraryManager.INSTANCE.pauseStarRatingComputation();
         GameHelper.updateGameid();
         if (!replaying) {
             EdExtensionHelper.onStartGame(track);

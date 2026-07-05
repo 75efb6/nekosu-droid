@@ -724,6 +724,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
     public FilterMenuFragment getFilterMenu() { return filterMenu; }
 
     public void show() {
+        LibraryManager.INSTANCE.resumeStarRatingComputation();
         engine.setScene(scene);
         DiscordRPC.updateForSongSelection();
         if (GlobalManager.getInstance().getSongService() == null) return;
