@@ -112,6 +112,8 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     private final boolean[] pressConsumedThisFrame = new boolean[CursorCount];
     private final java.util.HashMap<Integer, Integer> kbKeyToSlot = new java.util.HashMap<>();
     private final StringBuilder strBuilder = new StringBuilder();
+    private final StringBuilder soundNameBuilder = new StringBuilder();
+    private final PointF skipMaxPos = new PointF();
     public String filePath = null;
     private Scene scene;
     private Scene bgScene, mgScene, fgScene;
@@ -834,7 +836,8 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                     int frameLimit = Math.round(GlobalManager.getInstance().getMainActivity().getRefreshRate());
                     int currentFps = Math.min(Math.round(this.getFPS()), frameLimit);
 
-                    fpsText.setText(currentFps + "/" + frameLimit + " FPS");
+                    fpsText.setText(strBuilder.append(currentFps).append('/').append(frameLimit).append(" FPS").toString());
+                    strBuilder.setLength(0);
 
                     // FPS color status
                     float ratio = (float) currentFps / frameLimit;
@@ -857,12 +860,19 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
                     if (offsetRegs != 0 && elapsedInt > 200) {
                         float mean = avgOffset / offsetRegs;
-                        accText.setText("Avg offset: "
-                                + (int) (mean * 1000f)
-                                + "ms");
+                        accText.setText(strBuilder.append("Avg offset: ")
+                                .append((int) (mean * 1000f))
+                                .append("ms").toString());
+                        strBuilder.setLength(0);
                         elapsedInt = 0;
                     }
-                    urText.setText(String.format(Locale.ENGLISH, "%.2f UR    ", stat.getUnstableRate()));
+                    {
+                        float ur = (float) stat.getUnstableRate();
+                        int urInt = (int) (ur * 100 + 0.5f);
+                        strBuilder.append(urInt / 100).append('.').append(urInt % 100 < 10 ? "0" : "").append(urInt % 100).append(" UR    ");
+                        urText.setText(strBuilder.toString());
+                        strBuilder.setLength(0);
+                    }
 
                     fpsText.setPosition(Config.getRES_WIDTH() - fpsText.getWidth() - 5, Config.getRES_HEIGHT() - fpsText.getHeight() - 10);
                     accText.setPosition(Config.getRES_WIDTH() - accText.getWidth() - 5, fpsText.getY() - accText.getHeight());
@@ -873,9 +883,11 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
                     if (fmemText != null) {
                         Runtime runtime = Runtime.getRuntime();
-                        fmemText.setText(
-                            ((runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024) + " MB"
-                            + "/" + (runtime.totalMemory() / 1024 / 1024) + " MB    ");
+                        long used = (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024;
+                        long total = runtime.totalMemory() / 1024 / 1024;
+                        strBuilder.append(used).append(" MB/").append(total).append(" MB    ");
+                        fmemText.setText(strBuilder.toString());
+                        strBuilder.setLength(0);
                         fmemText.setPosition(
                                 Config.getRES_WIDTH() - fmemText.getWidth() - 5,
                                 (ppText != null ? ppText : urText).getY() - fmemText.getHeight()
@@ -2046,10 +2058,10 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             skipBtn = null;
         } else if (skipBtn != null) {
 
-            var maxPos = new PointF(Config.getRES_WIDTH(), Config.getRES_HEIGHT());
+            skipMaxPos.set(Config.getRES_WIDTH(), Config.getRES_HEIGHT());
 
             for (final Cursor c : cursors) {
-                if (c.mouseDown && Utils.distance(c.mousePos, maxPos) < 250) {
+                if (c.mouseDown && Utils.distance(c.mousePos, skipMaxPos) < 250) {
 
                     if (Multiplayer.isConnected())
                     {
@@ -2530,7 +2542,8 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     }
 
     public void playSound(final String prefix, final String name) {
-        final String fullName = prefix + "-" + name;
+        final String fullName = soundNameBuilder.append(prefix).append('-').append(name).toString();
+        soundNameBuilder.setLength(0);
         BassSoundProvider snd;
         if (soundTimingPoint.getCustomSound() == 0) {
             snd = ResourceManager.getInstance().getSound(fullName);
@@ -2801,8 +2814,9 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
 
     public void stopSound(final String name) {
-        final String prefix = soundTimingPoint.getHitSound() + "-";
-        final BassSoundProvider snd = ResourceManager.getInstance().getSound(prefix + name);
+        final String fullName = soundNameBuilder.append(soundTimingPoint.getHitSound()).append('-').append(name).toString();
+        soundNameBuilder.setLength(0);
+        final BassSoundProvider snd = ResourceManager.getInstance().getSound(fullName);
         if (snd != null) {
             snd.stop();
         }

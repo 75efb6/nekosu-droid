@@ -85,6 +85,22 @@ public class Slider extends GameObject {
             mIsAnimating,
             mWasInRadius;
 
+    private final ModifierListener mFollowEnterListener = new ModifierListener() {
+        @Override
+        public void onModifierFinished(IModifier<IEntity> pModifier, IEntity pItem) {
+            mIsAnimating = false;
+        }
+    };
+    private final ModifierListener mFollowLeaveListener = new ModifierListener() {
+        @Override
+        public void onModifierFinished(IModifier<IEntity> pModifier, IEntity pItem) {
+            mIsAnimating = false;
+            if (mIsOver) {
+                Execution.updateThread(pItem::detachSelf);
+            }
+        }
+    };
+
     public Slider() {
         startCircle = SpritePool.getInstance().getSprite("sliderstartcircle");
         endCircle = SpritePool.getInstance().getSprite("sliderendcircle");
@@ -782,11 +798,7 @@ public class Slider extends GameObject {
                 float initialScale = followCircle.getAlpha() == 0 ? scale * 0.5f : followCircle.getScaleX();
 
                 followCircle.clearEntityModifiers();
-                followCircle.registerEntityModifier(new ParallelEntityModifier(new ModifierListener() {
-                    public void onModifierFinished(IModifier<IEntity> pModifier, IEntity pItem) {
-                        mIsAnimating = false;
-                    }
-                },
+                followCircle.registerEntityModifier(new ParallelEntityModifier(mFollowEnterListener,
                         new ScaleModifier(Math.min(remainTime, 0.18f * GameHelper.getTimeMultiplier()), initialScale, scale, EaseQuadOut.getInstance()),
                         new AlphaModifier(Math.min(remainTime, 0.06f * GameHelper.getTimeMultiplier()), followCircle.getAlpha(), 1f)
                 ));
@@ -795,19 +807,9 @@ public class Slider extends GameObject {
                 mIsAnimating = true;
 
                 followCircle.clearEntityModifiers();
-                followCircle.registerEntityModifier(new ParallelEntityModifier(new ModifierListener() {
-                    public void onModifierFinished(IModifier<IEntity> pModifier, IEntity pItem) {
-                        mIsAnimating = false;
-                    }
-                },
+                followCircle.registerEntityModifier(new ParallelEntityModifier(mFollowLeaveListener,
                         new ScaleModifier(0.1f * GameHelper.getTimeMultiplier(), followCircle.getScaleX(), scale * 2f),
-                        new AlphaModifier(0.1f * GameHelper.getTimeMultiplier(), followCircle.getAlpha(), 0f, new ModifierListener() {
-                            public void onModifierFinished(IModifier<IEntity> pModifier, IEntity pItem) {
-                                if (mIsOver) {
-                                    Execution.updateThread(pItem::detachSelf);
-                                }
-                            }
-                        })
+                        new AlphaModifier(0.1f * GameHelper.getTimeMultiplier(), followCircle.getAlpha(), 0f)
                 ));
             }
         } else {
