@@ -127,6 +127,26 @@ public class SettingsMenu extends SettingsFragment {
             return true;
         });
 
+        final androidx.preference.SeekBarPreference offsetPref = findPreference("offset");
+        offsetPref.setOnPreferenceClickListener(preference -> {
+            StyledInputDialog.show(mActivity, preference.getTitle().toString(),
+                String.valueOf(Config.getOffset()),
+                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED,
+                value -> {
+                    try {
+                        int newOffset = Integer.parseInt(value.trim());
+                        newOffset = Math.max(-250, Math.min(250, newOffset));
+                        offsetPref.setValue(newOffset);
+                        Config.setOffset(newOffset);
+                        androidx.preference.PreferenceManager
+                            .getDefaultSharedPreferences(mActivity)
+                            .edit().putInt("offset", newOffset).apply();
+                    } catch (NumberFormatException ignored) {
+                    }
+                });
+            return true;
+        });
+
         ((PreferenceScreen) findPreference("beatmaps")).setOnPreferenceClickListener(preference -> {
             setPreferenceScreen((PreferenceScreen) preference);
             return true;
