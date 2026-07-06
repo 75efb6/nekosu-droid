@@ -294,9 +294,23 @@ object DiscordRPC {
         } else {
             "Playing a beatmap..."
         }
+
+        var partySize = 0
+        var partyMax = 0
+
+        if (isMultiplayer) {
+            val room = com.reco1l.legacy.Multiplayer.room
+            if (room != null) {
+                partySize = room.activePlayers.size
+                partyMax = room.maxPlayers
+            }
+        }
+
         setActivity(
             details = details,
-            state = "$artist - $title [$difficulty]"
+            state = "$artist - $title [$difficulty]",
+            partySize = partySize,
+            partyMax = partyMax
         )
     }
 
@@ -310,7 +324,27 @@ object DiscordRPC {
 
     @JvmStatic
     fun updateForResults() {
-        setActivity(details = "In results screen...")
+        updateForResults(false)
+    }
+
+    @JvmStatic
+    fun updateForResults(isMultiplayer: Boolean) {
+        var partySize = 0
+        var partyMax = 0
+
+        if (isMultiplayer) {
+            val room = com.reco1l.legacy.Multiplayer.room
+            if (room != null) {
+                partySize = room.activePlayers.size
+                partyMax = room.maxPlayers
+            }
+        }
+
+        setActivity(
+            details = "In results screen...",
+            partySize = partySize,
+            partyMax = partyMax
+        )
     }
 
     @JvmStatic
