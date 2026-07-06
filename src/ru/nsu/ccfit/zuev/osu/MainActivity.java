@@ -156,6 +156,7 @@ public class MainActivity extends BaseGameActivity implements
         opt.setNeedsSound(true);
         opt.getRenderOptions().disableExtensionVertexBufferObjects();
         opt.getTouchOptions().enableRunOnUpdateThread();
+        opt.setUpdateThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
         final Engine engine = new Engine(opt);
         try {
             if (MultiTouch.isSupported(this)) {

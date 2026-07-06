@@ -41,7 +41,7 @@ public class BassAudioFunc {
      * <br>
      * This is pretty low to achieve the smallest latency possible without introducing CPU overhead.
      */
-    private final float onFocusBufferLength = 0.1f;
+    private final float onFocusBufferLength = 0.02f;
 
     /**
      * The playback buffer length that is used when the game is not on focus, in seconds.
@@ -51,6 +51,12 @@ public class BassAudioFunc {
     private final float offFocusBufferLength = 0.5f;
 
     public BassAudioFunc() {
+    }
+
+    private void applyTempoOptions() {
+        BASS.BASS_ChannelSetAttribute(channel, BASS_FX.BASS_ATTRIB_TEMPO_OPTION_SEQUENCE_MS, 20);
+        BASS.BASS_ChannelSetAttribute(channel, BASS_FX.BASS_ATTRIB_TEMPO_OPTION_SEEKWINDOW_MS, 10);
+        BASS.BASS_ChannelSetAttribute(channel, BASS_FX.BASS_ATTRIB_TEMPO_OPTION_OVERLAP_MS, 4);
     }
 
     public void onGameResume() {
@@ -101,24 +107,23 @@ public class BassAudioFunc {
         switch (mode) {
             case MODE_NONE: //None
                 channel = BASS.BASS_StreamCreateFile(filePath, 0, 0, playflag);
-                // BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_NOBUFFER, 1);
                 break;
             case MODE_HT: //HT
                 channel = BASS.BASS_StreamCreateFile(filePath, 0, 0, BASS.BASS_STREAM_DECODE | BASS.BASS_STREAM_PRESCAN);
                 channel = BASS_FX.BASS_FX_TempoCreate(channel, BASS.BASS_STREAM_AUTOFREE);
-                // BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_NOBUFFER, 1);
+                applyTempoOptions();
                 BASS.BASS_ChannelSetAttribute(channel, BASS_FX.BASS_ATTRIB_TEMPO, -25.0f);
                 break;
             case MODE_DT: //DT
                 channel = BASS.BASS_StreamCreateFile(filePath, 0, 0, BASS.BASS_STREAM_DECODE | BASS.BASS_STREAM_PRESCAN);
                 channel = BASS_FX.BASS_FX_TempoCreate(channel, BASS.BASS_STREAM_AUTOFREE);
-                // BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_NOBUFFER, 1);
+                applyTempoOptions();
                 BASS.BASS_ChannelSetAttribute(channel, BASS_FX.BASS_ATTRIB_TEMPO, 50.0f);
                 break;
             case MODE_NC: //NC
                 channel = BASS.BASS_StreamCreateFile(filePath, 0, 0, BASS.BASS_STREAM_DECODE | BASS.BASS_STREAM_PRESCAN);
                 channel = BASS_FX.BASS_FX_TempoCreate(channel, BASS.BASS_STREAM_AUTOFREE);
-                // BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_NOBUFFER, 1);
+                applyTempoOptions();
 
                 BASS.BASS_ChannelGetInfo(channel, fx);
                 BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_FREQ, (int) (fx.freq * 1.5));
@@ -127,7 +132,7 @@ public class BassAudioFunc {
             case MODE_SU: //SU
                 channel = BASS.BASS_StreamCreateFile(filePath, 0, 0, BASS.BASS_STREAM_DECODE | BASS.BASS_STREAM_PRESCAN);
                 channel = BASS_FX.BASS_FX_TempoCreate(channel, BASS.BASS_STREAM_AUTOFREE);
-                // BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_NOBUFFER, 1);
+                applyTempoOptions();
                 BASS.BASS_ChannelSetAttribute(channel, BASS_FX.BASS_ATTRIB_TEMPO, 25.0f);
                 break;
         }
@@ -151,6 +156,7 @@ public class BassAudioFunc {
         this.currentFilePath = filePath;
         channel = BASS.BASS_StreamCreateFile(filePath, 0, 0, BASS.BASS_STREAM_DECODE | BASS.BASS_STREAM_PRESCAN);
         channel = BASS_FX.BASS_FX_TempoCreate(channel, BASS.BASS_STREAM_AUTOFREE);
+        applyTempoOptions();
         if (enableNC) {
             BASS.BASS_ChannelGetInfo(channel, fx);
             if (speed > 1.5){
@@ -276,6 +282,7 @@ public class BassAudioFunc {
         this.currentFilePath = filePath;
         int decodeChannel = BASS.BASS_StreamCreateFile(filePath, 0, 0, BASS.BASS_STREAM_DECODE | BASS.BASS_STREAM_PRESCAN);
         channel = BASS_FX.BASS_FX_TempoCreate(decodeChannel, BASS.BASS_STREAM_AUTOFREE);
+        applyTempoOptions();
         if (channel != 0) {
             BASS.BASS_CHANNELINFO info = new BASS.BASS_CHANNELINFO();
             BASS.BASS_ChannelGetInfo(channel, info);

@@ -32,11 +32,12 @@ public class BassAudioProvider {
         freq.value = 1.0f;
 
         // This likely doesn't help, but also doesn't seem to cause any issues or any CPU increase.
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_BUFFER, 20);
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATEPERIOD, 5);
 
         // Reduce latency to a known sane minimum.
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_PERIOD, 5);
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_BUFFER, 10);
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_BUFFER, 5);
 
         // Ensure there are no brief delays on audio operations (causing stream stalls etc.) after periods of silence.
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_NONSTOP, 1);
