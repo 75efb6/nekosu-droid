@@ -16,7 +16,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
+import android.provider.Settings;
 
 import com.reco1l.legacy.Multiplayer;
 import net.margaritov.preference.colorpicker.ColorPickerPreference;
@@ -234,16 +234,7 @@ public class Config {
         }
 
         //Init
-        onlineDeviceID = prefs.getString("installID", null);
-        if (onlineDeviceID == null) {
-            onlineDeviceID = UUID.randomUUID().toString().replace("-", "").substring(0, 32);
-            Editor editor = prefs.edit();
-            editor.putString("installID", onlineDeviceID);
-            editor.putString("corePath", corePath);
-            editor.putString("skinTopPath", skinTopPath);
-            editor.putString("skinPath", skinPath);
-            editor.commit();
-        }
+        onlineDeviceID = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
 
         loadOnlineConfig(context);
         FavoriteLibrary.get().load();
