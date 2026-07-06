@@ -3223,15 +3223,19 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         if (targetSec < secPassed) {
             // Backward seek: rebuild objects queue
             int excludedCount = 0;
+            int excludedSliders = 0;
             for (var data : allObjects) {
                 if (data.getTime() + approachRate <= targetSec) {
                     excludedCount++;
+                    if (data.isSlider()) {
+                        excludedSliders++;
+                    }
                 } else {
                     break;
                 }
             }
             lastObjectId = excludedCount - 1;
-            sliderIndex = 0;
+            sliderIndex = excludedSliders;
 
             objects.clear();
             for (var data : allObjects) {

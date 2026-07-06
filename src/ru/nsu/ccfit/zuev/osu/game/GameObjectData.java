@@ -93,6 +93,14 @@ public class GameObjectData {
         return (comboCode & 4) > 0;
     }
 
+    public boolean isSlider() {
+        return (comboCode & 2) > 0;
+    }
+
+    public boolean isSpinner() {
+        return (comboCode & 8) > 0;
+    }
+
     public float getTime() {
         return time / 1000.0f;
     }
