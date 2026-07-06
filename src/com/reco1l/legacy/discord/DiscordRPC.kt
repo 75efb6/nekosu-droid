@@ -340,8 +340,14 @@ object DiscordRPC {
             }
         }
 
+        val details = if (isMultiplayer) {
+            "On results screen in a multiplayer game..."
+        } else {
+            "On results screen..."
+        }
+
         setActivity(
-            details = "In results screen...",
+            details = details,
             partySize = partySize,
             partyMax = partyMax
         )
