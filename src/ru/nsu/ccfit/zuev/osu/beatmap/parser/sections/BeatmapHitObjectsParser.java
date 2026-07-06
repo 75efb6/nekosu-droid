@@ -67,7 +67,7 @@ public class BeatmapHitObjectsParser extends BeatmapSectionParser {
             throw new UnsupportedOperationException("Repeat count is way too high");
         }
 
-        final int maxCurvePoints = 500;
+        final int maxCurvePoints = 128;
         String sliderData = pars[5];
 
         SliderPathType sliderType = SliderPathType.parse(sliderData.charAt(0));

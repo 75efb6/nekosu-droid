@@ -52,7 +52,7 @@ public class GameHelper {
     private static int gameid = 0;
     private static final Queue<SliderPath> pathPool = new LinkedList<>();
     private static final Queue<PointF> pointPool = new LinkedList<>();
-    private static final int MAX_CONTROL_POINTS = 500;
+    private static final int MAX_CONTROL_POINTS = 128;
 
     private static DifficultyHelper difficultyHelper = DifficultyHelper.StdDifficulty;
 
