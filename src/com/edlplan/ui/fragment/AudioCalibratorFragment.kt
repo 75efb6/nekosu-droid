@@ -65,13 +65,13 @@ class AudioCalibratorFragment : BaseFragment() {
         override fun run() {
             if (state != State.COUNTDOWN && state != State.COLLECTING) return
 
-            if (beatCount % 3 == 2) {
+            beatCount++
+            if (beatCount % 3 == 0) {
                 metronomeAccent?.play()
             } else {
                 metronomeClick?.play()
             }
             lastBeatTimeMs = SystemClock.elapsedRealtime()
-            beatCount++
 
             if (state == State.COUNTDOWN) {
                 countdownBeatsRemaining--
