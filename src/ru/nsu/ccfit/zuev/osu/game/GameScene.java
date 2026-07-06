@@ -192,6 +192,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     private SliderPath[] sliderPaths = null;
     private int sliderIndex = 0;
     private ReplayOverlayFragment replayOverlayFragment;
+    private int pendingReplaySeekMs = -1;
 
     private StoryboardSprite storyboardSprite;
 
@@ -1399,6 +1400,14 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     public void onUpdate(final float pSecondsElapsed) {
         previousFrameTime = SystemClock.uptimeMillis();
         Utils.clearSoundMask();
+
+        // Process pending replay seek on the update thread to avoid ConcurrentModificationException
+        if (pendingReplaySeekMs >= 0) {
+            int pos = pendingReplaySeekMs;
+            pendingReplaySeekMs = -1;
+            processReplaySeek(pos);
+        }
+
         float dt = pSecondsElapsed * timeMultiplier;
         if (GlobalManager.getInstance().getSongService().getStatus() == Status.PLAYING) {
             //处理时间差过于庞大的情况
@@ -3205,12 +3214,14 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
     public void replaySeekTo(int positionMs) {
         if (!replaying) return;
+        pendingReplaySeekMs = positionMs;
+    }
 
+    private void processReplaySeek(int positionMs) {
         float targetSec = positionMs / 1000f;
 
-        // Rebuild objects queue if seeking backwards
         if (targetSec < secPassed) {
-            // Reset lastObjectId to correct value so replay.objectData indices match
+            // Backward seek: rebuild objects queue
             int excludedCount = 0;
             for (var data : allObjects) {
                 if (data.getTime() + approachRate <= targetSec) {
@@ -3229,7 +3240,6 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                 }
             }
 
-            // Remove active objects that are now in the future
             var iter = activeObjects.iterator();
             while (iter.hasNext()) {
                 var obj = iter.next();
@@ -3239,7 +3249,6 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                 }
             }
 
-            // Remove passive objects that are now in the future
             iter = passiveObjects.iterator();
             while (iter.hasNext()) {
                 var obj = iter.next();
@@ -3247,6 +3256,12 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                     obj.cleanupFromScene();
                     iter.remove();
                 }
+            }
+        } else {
+            // Forward seek: consume objects that are now in the past
+            while (!objects.isEmpty() && objects.peek().getTime() + approachRate <= targetSec) {
+                var data = objects.poll();
+                lastObjectId++;
             }
         }
 
@@ -3275,7 +3290,6 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                     lastMovement = movement;
                 }
 
-                // Set cursor position to the last recorded position at or before seek time
                 if (lastMovement != null) {
                     cursors[i].mousePos.x = lastMovement.getPoint().x;
                     cursors[i].mousePos.y = lastMovement.getPoint().y;
