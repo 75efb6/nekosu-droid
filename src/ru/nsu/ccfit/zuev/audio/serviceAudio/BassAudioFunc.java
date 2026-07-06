@@ -213,8 +213,7 @@ public class BassAudioFunc {
 
     public boolean jump(int ms) {
         if (channel != 0 && ms > 0) {
-            if (skipPosition == 0 || skipPosition == -1)
-                skipPosition = BASS.BASS_ChannelSeconds2Bytes(channel, ms / 1000.0);
+            skipPosition = BASS.BASS_ChannelSeconds2Bytes(channel, ms / 1000.0);
             if (mode == PlayMode.MODE_NONE || mode == PlayMode.MODE_PREVIEW)
                 return BASS.BASS_ChannelSetPosition(channel, skipPosition, BASS.BASS_POS_BYTE);
             else return BASS.BASS_ChannelSetPosition(channel, skipPosition, BASS.BASS_POS_DECODE);

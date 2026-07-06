@@ -1418,16 +1418,16 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             final float normalError = Config.isSyncMusic() ? dt : 0.05f;
 
             if (secPassed + offset - realsecPassed > criticalError) {
-                return;
-            }
-
-            if (Math.abs(secPassed + offset - realsecPassed) > normalError) {
+                // Instead of freezing, snap to audio position to avoid deadlock after seek/pause
+                secPassed = realsecPassed - offset;
+            } else if (Math.abs(secPassed + offset - realsecPassed) > normalError) {
                 if (secPassed + offset > realsecPassed) {
                     dt /= 2f;
                 } else {
                     dt *= 2f;
                 }
             }
+
             secPassed += dt;
         }
 
