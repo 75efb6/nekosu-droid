@@ -52,6 +52,7 @@ public class GameHelper {
     private static int gameid = 0;
     private static final Queue<SliderPath> pathPool = new LinkedList<>();
     private static final Queue<PointF> pointPool = new LinkedList<>();
+    private static final int MAX_CONTROL_POINTS = 500;
 
     private static DifficultyHelper difficultyHelper = DifficultyHelper.StdDifficulty;
 
@@ -132,6 +133,24 @@ public class GameHelper {
                 lastIndex++;
             }
             points.get(lastIndex).add(point);
+        }
+
+        // Downsample sub-curves with excessive control points to prevent OOM
+        // on aspire-style maps with pixel-art sliders (100K+ control points).
+        for (final ArrayList<PointF> plist : points) {
+            if (plist.size() > MAX_CONTROL_POINTS) {
+                int step = Math.max(1, (plist.size() - 1) / (MAX_CONTROL_POINTS - 1));
+                ArrayList<PointF> downsampled = new ArrayList<>(MAX_CONTROL_POINTS + 1);
+                for (int i = 0; i < plist.size(); i += step) {
+                    downsampled.add(plist.get(i));
+                }
+                PointF lastPt = plist.get(plist.size() - 1);
+                if (downsampled.get(downsampled.size() - 1) != lastPt) {
+                    downsampled.add(lastPt);
+                }
+                plist.clear();
+                plist.addAll(downsampled);
+            }
         }
 
         ArrayList<PointF> section;

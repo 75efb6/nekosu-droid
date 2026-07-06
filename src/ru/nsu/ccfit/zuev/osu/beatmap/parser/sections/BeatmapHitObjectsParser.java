@@ -67,18 +67,33 @@ public class BeatmapHitObjectsParser extends BeatmapSectionParser {
             throw new UnsupportedOperationException("Repeat count is way too high");
         }
 
-        String[] curvePointsData = pars[5].split("[|]");
-        SliderPathType sliderType = SliderPathType.parse(curvePointsData[0].charAt(0));
+        final int maxCurvePoints = 500;
+        String sliderData = pars[5];
+
+        SliderPathType sliderType = SliderPathType.parse(sliderData.charAt(0));
         ArrayList<Vector2> curvePoints = new ArrayList<>();
         curvePoints.add(new Vector2(0));
-        for (int i = 1; i < curvePointsData.length; i++) {
-            String[] curvePointData = curvePointsData[i].split(":");
-            Vector2 curvePointPosition = new Vector2(
-                    (int) parseFloat(curvePointData[0]),
-                    (int) parseFloat(curvePointData[1])
-            );
 
-            curvePoints.add(curvePointPosition.subtract(position));
+        int start = 2;
+        int pointCount = 0;
+        while (start < sliderData.length() && pointCount < maxCurvePoints) {
+            int pipe = sliderData.indexOf('|', start);
+            if (pipe == -1) pipe = sliderData.length();
+
+            int colon = sliderData.indexOf(':', start);
+            if (colon > 0 && colon < pipe) {
+                int colon2 = sliderData.indexOf(':', colon + 1);
+                if (colon2 > 0 && colon2 < pipe) {
+                    Vector2 curvePointPosition = new Vector2(
+                            (int) parseFloat(sliderData.substring(start, colon)),
+                            (int) parseFloat(sliderData.substring(colon + 1, pipe))
+                    );
+                    curvePoints.add(curvePointPosition.subtract(position));
+                    pointCount++;
+                }
+            }
+
+            start = pipe + 1;
         }
 
         // A special case for old beatmaps where the first

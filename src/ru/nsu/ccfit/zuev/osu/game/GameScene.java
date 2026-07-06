@@ -686,10 +686,8 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         }
 
         lastTrack = track;
-        if (Config.isCalculateSliderPathInGameStart()){
-            stackNotes();
-            calculateAllSliderPaths();
-        }
+        stackNotes();
+        calculateAllSliderPaths();
 
         // Resetting variables before starting the game.
         Multiplayer.finalData = null;
@@ -1758,18 +1756,10 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             // usage of this is done if condition 'objects.isEmpty()' is false. Ignore IDE warnings.
             var nextObj = objects.peek();
 
-            // Stack notes
-            // If Config.isCalculateSliderPathInGameStart(), do this in stackNotes()
-            if (Config.isCalculateSliderPathInGameStart() == false &&
-                objects.isEmpty() == false && (objDefine & 1) > 0) {
-                if (nextObj.getTime() - data.getTime() < 2f * GameHelper.getStackLeniency()
-                        && Utils.squaredDistance(pos, nextObj.getPos()) < scale) {
-                    nextObj.setPosOffset(
-                            data.getPosOffset() + 4 * scale);
-                }
-            }
-            // If this object is silder and isCalculateSliderPathInGameStart(), the pos is += in calculateAllSliderPaths()
-            if (Config.isCalculateSliderPathInGameStart() == false || (objDefine & 2) <= 0){
+            // Stack notes — done in stackNotes() before gameplay starts
+
+            // Slider positions already adjusted in calculateAllSliderPaths()
+            if ((objDefine & 2) <= 0){
                 pos.x += data.getPosOffset();
                 pos.y += data.getPosOffset();
             }
@@ -1882,25 +1872,15 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                 if (params.length > 9) {
                     tempSound = params[9];
                 }
-                if (Config.isCalculateSliderPathInGameStart()){
-                    SliderPath sliderPath = getSliderPath(sliderIndex);
-                    slider.init(this, mgScene, pos, data.getPosOffset(), data.getTime() - secPassed,
-                        col.r(), col.g(), col.b(), scale, currentComboNum,
-                        data.sampleSet,
-                        data.customSound,
-                        (float) data.timingShift, params[5],
-                        currentTimingPoint, soundspec, tempSound, isFirst, (double) data.getRawTime(),
-                        sliderPath);
-                    sliderIndex++;
-                }
-                else{
-                    slider.init(this, mgScene, pos, data.getPosOffset(), data.getTime() - secPassed,
+                SliderPath sliderPath = getSliderPath(sliderIndex);
+                slider.init(this, mgScene, pos, data.getPosOffset(), data.getTime() - secPassed,
                     col.r(), col.g(), col.b(), scale, currentComboNum,
                     data.sampleSet,
                     data.customSound,
                     (float) data.timingShift, params[5],
-                    currentTimingPoint, soundspec, tempSound, isFirst, (double) data.getRawTime());
-                }
+                    currentTimingPoint, soundspec, tempSound, isFirst, (double) data.getRawTime(),
+                    sliderPath);
+                sliderIndex++;
                 slider.setEndsCombo(objects.isEmpty()
                         || nextObj.isNewCombo());
                 addObject(slider);

@@ -67,7 +67,6 @@ public class Config {
         useCustomComboColors,
         forceRomanized,
         fixFrameOffset,
-        calculateSliderPathInGameStart,
         displayScoreStatistics,
         hideReplayMarquee,
         hideInGameUI,
@@ -212,7 +211,6 @@ public class Config {
         hideNaviBar = prefs.getBoolean("hidenavibar", false);
         enablePP = false;//prefs.getBoolean("enablePP",true);
         fixFrameOffset = prefs.getBoolean("fixFrameOffset", true);
-        calculateSliderPathInGameStart = prefs.getBoolean("calculateSliderPathInGameStart", false);
         displayScoreStatistics = prefs.getBoolean("displayScoreStatistics", false);
         hideReplayMarquee = prefs.getBoolean("hideReplayMarquee", false);
         hideInGameUI = prefs.getBoolean("hideInGameUI", false);
@@ -279,9 +277,6 @@ public class Config {
         return fixFrameOffset;
     }
 
-    public static boolean isCalculateSliderPathInGameStart() {
-        return calculateSliderPathInGameStart;
-    }
 
     public static boolean isDisplayScoreStatistics() {
         return displayScoreStatistics;
