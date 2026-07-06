@@ -276,7 +276,7 @@ object DiscordRPC {
     fun updateForMultiRoom(roomName: String, playerCount: Int, maxPlayers: Int) {
         setActivity(
             details = "Inside a room...",
-            state = "$roomName ($playerCount of $maxPlayers)",
+            state = "$roomName",
             partySize = playerCount,
             partyMax = maxPlayers
         )
