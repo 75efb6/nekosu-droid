@@ -135,6 +135,9 @@
             android:key="offset" app:min="-500" android:max="500" app:showSeekBarValue="true" android:defaultValue="0"/>
         <!-- <EditTextPreference android:title="@string/opt_offset_title" android:summary="@string/opt_offset_summary"
             android:key="offset" android:defaultValue="0"/> -->
+        <Preference android:key="calibrator"
+            android:title="@string/opt_calibrator_title"
+            android:summary="@string/opt_calibrator_summary"/>
         <ListPreference android:entries="@array/metronome_switch_names" android:title="@string/opt_metronome_switch_title"
             android:key="metronomeswitch" android:summary="@string/opt_metronome_switch_summary"
             android:defaultValue="1" android:entryValues="@array/metronome_switch_values"/>

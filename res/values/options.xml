@@ -89,6 +89,12 @@
         <item>placeholder</item>
     </string-array>
 
+    <string-array name="calibrator_sample_counts">
+        <item>10</item>
+        <item>20</item>
+        <item>50</item>
+    </string-array>
+
     <string name="opt_main">Settings</string>
 
     <string name="opt_onlineOpt">Account Option</string>
@@ -124,6 +130,9 @@
 
     <string name="opt_offset_title">Global offset</string>
     <string name="opt_offset_summary">Music offset in ms (positive values mean earlier)</string>
+
+    <string name="opt_calibrator_title">Audio calibrator</string>
+    <string name="opt_calibrator_summary">Automatically calibrate your audio offset</string>
 
     <string name="opt_special">Special</string>
     <string name="opt_taiko_title">Load T-Aiko! songs</string>

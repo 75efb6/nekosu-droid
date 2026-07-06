@@ -26,6 +26,7 @@ import com.reco1l.legacy.ui.StyledSelectionDialog;
 import com.edlplan.framework.easing.Easing;
 import com.edlplan.ui.BaseAnimationListener;
 import com.edlplan.ui.SkinPathPreference;
+import com.edlplan.ui.fragment.AudioCalibratorFragment;
 import com.edlplan.ui.fragment.LoadingFragment;
 import com.edlplan.ui.fragment.SettingsFragment;
 import com.edlplan.ui.EasingHelper;
@@ -118,6 +119,11 @@ public class SettingsMenu extends SettingsFragment {
 
         ((PreferenceScreen) findPreference("sound")).setOnPreferenceClickListener(preference -> {
             setPreferenceScreen((PreferenceScreen) preference);
+            return true;
+        });
+
+        findPreference("calibrator").setOnPreferenceClickListener(preference -> {
+            new AudioCalibratorFragment().show();
             return true;
         });
 
