@@ -5,12 +5,8 @@ import com.edlplan.andengine.TriangleBuilder;
 import com.edlplan.andengine.TrianglePack;
 import com.edlplan.framework.math.Color4;
 import com.edlplan.framework.math.line.LinePath;
-import com.reco1l.framework.lang.Execution;
-
-import org.anddev.andengine.entity.IEntity;
 import org.anddev.andengine.entity.modifier.*;
 import org.anddev.andengine.entity.scene.Scene;
-import org.anddev.andengine.util.modifier.IModifier;
 import org.anddev.andengine.util.modifier.ease.EaseQuadOut;
 
 import ru.nsu.ccfit.zuev.osu.RGBColor;
@@ -183,8 +179,12 @@ public class SliderBody2D extends AbstractSliderBody {
         body = SpriteCache.trianglePackCache.get();
         border = SpriteCache.trianglePackCache.get();
 
+        body.clearEntityModifiers();
+        border.clearEntityModifiers();
+
         if (enableHint) {
             hint = SpriteCache.trianglePackCache.get();
+            hint.clearEntityModifiers();
             hint.setAlpha(0);
             hint.setDepthTest(true);
             hint.setClearDepthOnStart(true);
@@ -229,30 +229,6 @@ public class SliderBody2D extends AbstractSliderBody {
         scene.attachChild(body, 0);
         if (hint != null) {
             scene.attachChild(hint, 0);
-        }
-    }
-
-    public void removeFromScene(Scene scene, float duration)
-    {
-        if (hint != null)
-        {
-            hint.registerEntityModifier(new AlphaModifier(duration, hintAlpha, 0));
-        }
-        if (body != null)
-        {
-            body.registerEntityModifier(new AlphaModifier(duration, sliderBodyBaseAlpha, 0));
-        }
-        if (border != null)
-        {
-            border.registerEntityModifier(new FadeOutModifier(duration, new IEntityModifier.IEntityModifierListener()
-            {
-                @Override public void onModifierStarted(IModifier<IEntity> pModifier, IEntity pItem) {}
-
-                @Override public void onModifierFinished(IModifier<IEntity> pModifier, IEntity pItem)
-                {
-                    Execution.updateThread(() -> removeFromScene(scene));
-                }
-            }));
         }
     }
 

@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
 import android.graphics.PointF;
+
 import com.edlplan.framework.math.Vec2;
 import com.edlplan.framework.math.line.LinePath;
 import com.edlplan.osu.support.slider.SliderBody2D;
@@ -448,22 +449,27 @@ public class Slider extends GameObject {
         }
         // Detach all objects
         if (abstractSliderBody != null) {
-            if (GameHelper.isHidden()) {
-                abstractSliderBody.removeFromScene(scene);
-            } else {
-                abstractSliderBody.removeFromScene(scene, 0.24f * GameHelper.getTimeMultiplier());
-            }
+            abstractSliderBody.removeFromScene(scene);
         }
 
-        ball.registerEntityModifier(new FadeOutModifier(0.1f * GameHelper.getTimeMultiplier(), new ModifierListener() {
-            @Override
-            public void onModifierFinished(IModifier<IEntity> pModifier, IEntity pItem) {
-                Execution.updateThread(pItem::detachSelf);
-            }
-        }));
+        if (ball != null) {
+            ball.clearEntityModifiers();
+            ball.registerEntityModifier(new FadeOutModifier(0.1f * GameHelper.getTimeMultiplier(), new ModifierListener() {
+                @Override
+                public void onModifierFinished(IModifier<IEntity> pModifier, IEntity pItem) {
+                    Execution.updateThread(() -> {
+                        pItem.detachSelf();
+                        SpritePool.getInstance().putAnimSprite("sliderb", (AnimSprite) pItem);
+                    });
+                }
+            }));
+        }
 
-        if (!Config.isComplexAnimations()) {
-            followCircle.detachSelf();
+        if (followCircle != null) {
+            if (!Config.isComplexAnimations()) {
+                followCircle.detachSelf();
+            }
+            SpritePool.getInstance().putSprite("sliderfollowcircle", followCircle);
         }
         startCircle.detachSelf();
         endCircle.detachSelf();
@@ -472,8 +478,6 @@ public class Slider extends GameObject {
         approachCircle.detachSelf();
         startArrow.detachSelf();
         endArrow.detachSelf();
-        SpritePool.getInstance().putAnimSprite("sliderb", ball);
-        SpritePool.getInstance().putSprite("sliderfollowcircle", followCircle);
         for (int i = 0, ticksSize = ticks.size(); i < ticksSize; i++) {
             Sprite sp = ticks.get(i);
             sp.detachSelf();
@@ -481,6 +485,7 @@ public class Slider extends GameObject {
         }
         listener.removeObject(this);
         // Put this and number into pool
+        number.detachSelf();
         GameHelper.putPath(path);
         GameObjectPool.getInstance().putSlider(this);
         GameObjectPool.getInstance().putNumber(number);
@@ -516,7 +521,9 @@ public class Slider extends GameObject {
             reverse = !reverse;
             passedTime -= maxTime;
             tickTime = passedTime;
-            ball.setFlippedHorizontal(reverse);
+            if (ball != null) {
+                ball.setFlippedHorizontal(reverse);
+            }
             // Restore ticks
             for (final Sprite sp : ticks) {
                 sp.setAlpha(1);
@@ -584,7 +591,7 @@ public class Slider extends GameObject {
         listener.onSliderEnd(id, firstHitAccuracy, tickSet);
         // Remove slider from scene
 
-        if (Config.isComplexAnimations() && mWasInRadius) {
+        if (Config.isComplexAnimations() && followCircle != null) {
             mIsAnimating = true;
 
             followCircle.clearEntityModifiers();
@@ -745,6 +752,11 @@ public class Slider extends GameObject {
             startOverlay.setAlpha(0);
         }
 
+        if (maxTime <= 0) {
+            over();
+            return;
+        }
+
         if (ball == null) // if ball still don't exist
         {
             number.detachSelf();
@@ -770,6 +782,7 @@ public class Slider extends GameObject {
         // Ball positiong
         final float percentage = (float) (passedTime / maxTime);
         final PointF ballpos = getPercentPosition(reverse ? 1 - percentage : percentage, ballAngle);
+
         // Calculating if cursor in follow circle bounds
         final float radius = 128 * scale;
         boolean inRadius = false;

@@ -310,17 +310,23 @@ public class Spline {
 
             case Bezier:
                 int lastIndex = 0;
-                for (int i = 0; i < sliderCurvePoints.size(); i++)
-                    if ((i > 0 && sliderCurvePoints.get(i) == sliderCurvePoints.get(i - 1)) || i == sliderCurvePoints.size() - 1) {
-                        ArrayList<PointF> thisLength = new ArrayList<PointF>(sliderCurvePoints.subList(lastIndex, i - lastIndex + ((i == sliderCurvePoints.size() - 1) ? 1 : 0))); // + 1); // i145
+                for (int i = 1; i < sliderCurvePoints.size(); i++) {
+                    boolean isDuplicate = sliderCurvePoints.get(i).x == sliderCurvePoints.get(i - 1).x && sliderCurvePoints.get(i).y == sliderCurvePoints.get(i - 1).y;
+                    boolean isEnd = (i == sliderCurvePoints.size() - 1);
+
+                    if (isDuplicate || isEnd) {
+                        int endIndex = isEnd && !isDuplicate ? i + 1 : i;
+                        ArrayList<PointF> thisLength = new ArrayList<PointF>(sliderCurvePoints.subList(lastIndex, endIndex));
 
                         ArrayList<PointF> points1 = CreateBezier(thisLength);
                         points.addAll(points1);
-//                        for (int j = 1; j < points1.size(); j++) {
-//                            path.add(new Line(points1.get(j - 1), points1.get(j)));
-//                        }
                         lastIndex = i;
                     }
+                }
+                if (lastIndex == 0 && !sliderCurvePoints.isEmpty()) {
+                    ArrayList<PointF> points1 = CreateBezier(sliderCurvePoints);
+                    points.addAll(points1);
+                }
                 break;
 
             case Linear:

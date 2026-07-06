@@ -1699,7 +1699,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         updateLastActiveObjectHitTime();
         updateActiveObjects(dt);
 
-        if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) {
+        if ((GameHelper.isAuto() || GameHelper.isAutopilotMod()) && !activeObjects.isEmpty()) {
             autoCursor.moveToObject(activeObjects.get(0), secPassed, this);
         }
 
@@ -1889,7 +1889,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                         data.sampleSet,
                         data.customSound,
                         (float) data.timingShift, params[5],
-                        currentTimingPoint, soundspec, tempSound, isFirst, data.timingShift,
+                        currentTimingPoint, soundspec, tempSound, isFirst, (double) data.getRawTime(),
                         sliderPath);
                     sliderIndex++;
                 }
@@ -1899,7 +1899,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                     data.sampleSet,
                     data.customSound,
                     (float) data.timingShift, params[5],
-                    currentTimingPoint, soundspec, tempSound, isFirst, data.timingShift);
+                    currentTimingPoint, soundspec, tempSound, isFirst, (double) data.getRawTime());
                 }
                 slider.setEndsCombo(objects.isEmpty()
                         || nextObj.isNewCombo());
