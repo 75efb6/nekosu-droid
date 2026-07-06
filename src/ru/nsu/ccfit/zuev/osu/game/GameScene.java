@@ -715,6 +715,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     }
 
     public void restartGame() {
+        dismissReplayOverlay();
         if (!replaying) {
             EdExtensionHelper.onRestartGame(lastTrack);
         }
@@ -1949,6 +1950,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         }
 
         if (shouldBePunished || (objects.isEmpty() && activeObjects.isEmpty() && leadOut > 2)) {
+            dismissReplayOverlay();
             scene = new Scene();
             SkinManager.setSkinEnabled(false);
             GameObjectPool.getInstance().purge();
@@ -2880,6 +2882,8 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         if (!replaying) {
             EdExtensionHelper.onGameover(lastTrack);
         }
+
+        dismissReplayOverlay();
 
         if(scorebar != null) scorebar.flush();
         ResourceManager.getInstance().getSound("failsound").play();
