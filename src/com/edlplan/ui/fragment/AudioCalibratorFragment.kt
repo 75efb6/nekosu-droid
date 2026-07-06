@@ -20,6 +20,7 @@ import com.edlplan.ui.BaseAnimationListener
 import com.edlplan.ui.EasingHelper
 import ru.nsu.ccfit.zuev.audio.BassSoundProvider
 import ru.nsu.ccfit.zuev.osu.Config
+import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.game.CalibratorErrorBarView
 import ru.nsu.ccfit.zuev.osuplus.R
 
@@ -109,6 +110,8 @@ class AudioCalibratorFragment : BaseFragment() {
         metronomeClick = BassSoundProvider().apply {
             prepare(context!!.assets, "sfx/nightcore-hat.ogg")
         }
+
+        GlobalManager.getInstance().songService?.stop()
 
         playOnLoadAnim()
     }
