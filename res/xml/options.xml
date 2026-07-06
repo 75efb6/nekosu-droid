@@ -175,6 +175,30 @@
 
     </PreferenceScreen>
 
+    <PreferenceScreen android:key="keyboard" android:title="Keyboard Input">
+        <CheckBoxPreference android:key="kbEnabled" android:defaultValue="false"
+            android:title="Enable keyboard input"
+            android:summary="Use keyboard keys to tap hit objects during gameplay"/>
+
+        <PreferenceScreen android:key="kbKeybinds" android:title="Keybinds" android:summary="Configure which keys map to cursors">
+            <Preference android:key="kbKey0" android:title="Cursor 1 key"
+                android:summary="Z"/>
+            <Preference android:key="kbKey1" android:title="Cursor 2 key"
+                android:summary="X"/>
+            <Preference android:title="Key code reference"
+                android:summary="z=54, x=53, c=46, space=62, v=50, b=45"/>
+        </PreferenceScreen>
+
+        <PreferenceScreen android:key="kbCursorPos" android:title="Cursor Position" android:summary="Set the position where keyboard taps register">
+            <SeekBarPreference android:key="kbCursorX" android:title="Cursor X position"
+                android:summary="Horizontal position (0-1280)" app:min="0" android:max="1280"
+                app:showSeekBarValue="true" android:defaultValue="640"/>
+            <SeekBarPreference android:key="kbCursorY" android:title="Cursor Y position"
+                android:summary="Vertical position" app:min="0" android:max="1280"
+                app:showSeekBarValue="true" android:defaultValue="384"/>
+        </PreferenceScreen>
+    </PreferenceScreen>
+
     <PreferenceScreen android:key="advancedopts" android:title="@string/opt_advanced_title"
         android:summary="@string/opt_advanced_summary">
         <EditTextPreference android:key="corePath" android:title="@string/opt_corepath_title"
@@ -222,29 +246,5 @@
 
     <Preference android:key="update" android:title="@string/opt_update_title"
         android:summary="@string/opt_update_summary"/>
-
-    <PreferenceScreen android:key="keyboard" android:title="Keyboard Input">
-        <CheckBoxPreference android:key="kbEnabled" android:defaultValue="false"
-            android:title="Enable keyboard input"
-            android:summary="Use keyboard keys to tap hit objects during gameplay"/>
-
-        <PreferenceScreen android:key="kbKeybinds" android:title="Keybinds" android:summary="Configure which keys map to cursors">
-            <Preference android:key="kbKey0" android:title="Cursor 1 key"
-                android:summary="Z"/>
-            <Preference android:key="kbKey1" android:title="Cursor 2 key"
-                android:summary="X"/>
-            <Preference android:title="Key code reference"
-                android:summary="z=54, x=53, c=46, space=62, v=50, b=45"/>
-        </PreferenceScreen>
-
-        <PreferenceScreen android:key="kbCursorPos" android:title="Cursor Position" android:summary="Set the position where keyboard taps register">
-            <SeekBarPreference android:key="kbCursorX" android:title="Cursor X position"
-                android:summary="Horizontal position (0-1280)" app:min="0" android:max="1280"
-                app:showSeekBarValue="true" android:defaultValue="640"/>
-            <SeekBarPreference android:key="kbCursorY" android:title="Cursor Y position"
-                android:summary="Vertical position" app:min="0" android:max="1280"
-                app:showSeekBarValue="true" android:defaultValue="384"/>
-        </PreferenceScreen>
-    </PreferenceScreen>
 
 </PreferenceScreen>
