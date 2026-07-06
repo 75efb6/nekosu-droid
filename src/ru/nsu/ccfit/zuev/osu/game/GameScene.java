@@ -135,6 +135,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     private float secPassed = 0;
     private float leadOut = 0;
     private LinkedList<GameObjectData> objects;
+    private ArrayList<GameObjectData> allObjects;
     private ArrayList<RGBColor> combos;
     private int comboNum; // use this to show combo color
     private int currentComboNum;
@@ -442,7 +443,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         GameHelper.setNightCore(false);
         GameHelper.setHalfTime(false);
 
-        GlobalManager.getInstance().getSongService().preLoad(filePath, PlayMode.MODE_NONE);
+        GlobalManager.getInstance().getSongService().preLoad(filePath, 1.0f, false);
         GameHelper.setTimeMultiplier(1f);
         //Speed Change
         if (ModMenu.getInstance().getChangeSpeed() != 1.00f){
@@ -520,8 +521,11 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
         // Parsing hit objects
         objects = new LinkedList<>();
+        allObjects = new ArrayList<>();
         for (final String s : beatmapData.rawHitObjects) {
-            objects.add(new GameObjectData(s));
+            var data = new GameObjectData(s);
+            objects.add(data);
+            allObjects.add(data);
         }
 
         if (objects.size() == 0) {
@@ -3199,6 +3203,35 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         if (!replaying) return;
 
         float targetSec = positionMs / 1000f;
+
+        // Rebuild objects queue if seeking backwards
+        if (targetSec < secPassed) {
+            objects.clear();
+            for (var data : allObjects) {
+                if (data.getTime() + approachRate > targetSec) {
+                    objects.add(data);
+                }
+            }
+
+            // Remove active objects that are now in the future
+            var iter = activeObjects.iterator();
+            while (iter.hasNext()) {
+                var obj = iter.next();
+                if (obj.getHitTime() > targetSec) {
+                    iter.remove();
+                }
+            }
+
+            // Remove passive objects that are now in the future
+            iter = passiveObjects.iterator();
+            while (iter.hasNext()) {
+                var obj = iter.next();
+                if (obj.getHitTime() > targetSec) {
+                    iter.remove();
+                }
+            }
+        }
+
         secPassed = targetSec;
 
         GlobalManager.getInstance().getSongService().seekTo(positionMs);

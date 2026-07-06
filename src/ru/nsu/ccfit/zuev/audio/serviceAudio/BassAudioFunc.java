@@ -146,9 +146,6 @@ public class BassAudioFunc {
     }
 
     public boolean preLoad(String filePath, float speed, boolean enableNC) {
-        if (speed == 1.0f) {
-            return preLoad(filePath, PlayMode.MODE_NONE);
-        }
         Log.w("BassAudioFunc", "preLoad File: " + filePath);
         BASS.BASS_CHANNELINFO fx = new BASS.BASS_CHANNELINFO();
         doClear();
@@ -293,7 +290,7 @@ public class BassAudioFunc {
     }
 
     public void applySpeed(float speed, boolean enableNC) {
-        if (channel == 0 || mode == PlayMode.MODE_NONE) return;
+        if (channel == 0) return;
         if (enableNC) {
             if (speed > 1.5f) {
                 BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_FREQ, (int) (baseFreq * 1.5f));
