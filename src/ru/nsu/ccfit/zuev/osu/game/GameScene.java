@@ -3210,6 +3210,18 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
         // Rebuild objects queue if seeking backwards
         if (targetSec < secPassed) {
+            // Reset lastObjectId to correct value so replay.objectData indices match
+            int excludedCount = 0;
+            for (var data : allObjects) {
+                if (data.getTime() + approachRate <= targetSec) {
+                    excludedCount++;
+                } else {
+                    break;
+                }
+            }
+            lastObjectId = excludedCount - 1;
+            sliderIndex = 0;
+
             objects.clear();
             for (var data : allObjects) {
                 if (data.getTime() + approachRate > targetSec) {
@@ -3247,18 +3259,27 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             video.getTexture().seekTo(videoSeekTime);
         }
 
-        // Reset cursor indices to re-sync with new position
+        // Reset cursor indices and positions to the recorded data at seek time
         for (int i = 0; i < replay.cursorIndex.length; i++) {
             replay.cursorIndex[i] = 0;
             replay.lastMoveIndex[i] = -1;
 
-            // Find the first movement after the seek position
             if (replay.cursorMoves.size() > i) {
+                Replay.ReplayMovement lastMovement = null;
                 for (int j = 0; j < replay.cursorMoves.get(i).size; j++) {
-                    if (replay.cursorMoves.get(i).movements[j].getTime() > positionMs) {
-                        replay.cursorIndex[i] = Math.max(0, j - 1);
+                    var movement = replay.cursorMoves.get(i).movements[j];
+                    if (movement.getTime() > positionMs) {
+                        replay.cursorIndex[i] = j;
                         break;
                     }
+                    lastMovement = movement;
+                }
+
+                // Set cursor position to the last recorded position at or before seek time
+                if (lastMovement != null) {
+                    cursors[i].mousePos.x = lastMovement.getPoint().x;
+                    cursors[i].mousePos.y = lastMovement.getPoint().y;
+                    cursors[i].mouseDown = lastMovement.getTouchType() != TouchType.UP;
                 }
             }
         }
@@ -3279,6 +3300,8 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         if (video != null && videoStarted) {
             video.getTexture().setPlaybackSpeed(speed);
         }
+
+        ReplayOverlay.updateSpeed(speed);
     }
 
     public void showReplayOverlay() {
