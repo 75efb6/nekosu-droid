@@ -99,6 +99,8 @@ import ru.nsu.ccfit.zuev.osu.scoring.ScoreLibrary;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene;
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2;
 import ru.nsu.ccfit.zuev.osu.scoring.TouchType;
+import com.reco1l.legacy.replay.ReplayOverlay;
+import com.reco1l.legacy.replay.ReplayOverlayFragment;
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig;
 import ru.nsu.ccfit.zuev.osuplus.R;
 import ru.nsu.ccfit.zuev.skins.OsuSkin;
@@ -188,6 +190,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     private float lastActiveObjectHitTime = 0;
     private SliderPath[] sliderPaths = null;
     private int sliderIndex = 0;
+    private ReplayOverlayFragment replayOverlayFragment;
 
     private StoryboardSprite storyboardSprite;
 
@@ -1414,6 +1417,10 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             secPassed += dt;
         }
 
+        if (replaying && musicStarted) {
+            ReplayOverlay.updatePosition((int) (secPassed * 1000));
+        }
+
         if (Multiplayer.isMultiplayer)
         {
             long mSecElapsed = (long) (pSecondsElapsed * 1000);
@@ -1732,6 +1739,10 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             totalLength = GlobalManager.getInstance().getSongService().getLength();
             musicStarted = true;
             secPassed = 0;
+
+            if (replaying) {
+                showReplayOverlay();
+            }
             return;
         }
 
@@ -2117,6 +2128,8 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
         //游戏退出
 
+        dismissReplayOverlay();
+
         if (!replaying) {
             EdExtensionHelper.onExitGame(lastTrack);
         }
@@ -2153,6 +2166,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     }
 
     public void quit() {
+        dismissReplayOverlay();
         org.anddev.andengine.opengl.texture.TextureManager.setSuppressGC(false);
 
         // Handle input back in update thread
@@ -3179,6 +3193,80 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
     public boolean getReplaying() {
         return replaying;
+    }
+
+    public void replaySeekTo(int positionMs) {
+        if (!replaying) return;
+
+        float targetSec = positionMs / 1000f;
+        secPassed = targetSec;
+
+        GlobalManager.getInstance().getSongService().seekTo(positionMs);
+
+        if (video != null) {
+            int videoSeekTime = positionMs - (int) (videoOffset * 1000);
+            video.getTexture().seekTo(videoSeekTime);
+        }
+
+        // Reset cursor indices to re-sync with new position
+        for (int i = 0; i < replay.cursorIndex.length; i++) {
+            replay.cursorIndex[i] = 0;
+            replay.lastMoveIndex[i] = -1;
+
+            // Find the first movement after the seek position
+            if (replay.cursorMoves.size() > i) {
+                for (int j = 0; j < replay.cursorMoves.get(i).size; j++) {
+                    if (replay.cursorMoves.get(i).movements[j].getTime() > positionMs) {
+                        replay.cursorIndex[i] = Math.max(0, j - 1);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    public void replaySetSpeed(float speed) {
+        if (!replaying) return;
+
+        speed = Math.max(0.25f, Math.min(3.0f, speed));
+        timeMultiplier = speed;
+
+        if (GlobalManager.getInstance().getSongService() != null) {
+            boolean enableNC = ModMenu.getInstance().isEnableNCWhenSpeedChange()
+                    || ModMenu.getInstance().getMod().contains(GameMod.MOD_NIGHTCORE);
+            GlobalManager.getInstance().getSongService().applySpeed(speed, enableNC);
+        }
+
+        if (video != null && videoStarted) {
+            video.getTexture().setPlaybackSpeed(speed);
+        }
+    }
+
+    public void showReplayOverlay() {
+        if (!replaying) return;
+
+        Execution.mainThread(() -> {
+            var activity = GlobalManager.getInstance().getMainActivity();
+            if (activity == null || activity.isFinishing()) return;
+
+            ReplayOverlay.updateTotalLength(totalLength);
+            ReplayOverlay.updateSpeed(timeMultiplier);
+            ReplayOverlay.show();
+
+            replayOverlayFragment = new ReplayOverlayFragment();
+            activity.getSupportFragmentManager()
+                .beginTransaction()
+                .add(android.R.id.content, replayOverlayFragment, "replay_overlay")
+                .commitAllowingStateLoss();
+        });
+    }
+
+    public void dismissReplayOverlay() {
+        if (replayOverlayFragment != null && replayOverlayFragment.isAdded()) {
+            replayOverlayFragment.dismissOverlay();
+            replayOverlayFragment = null;
+        }
+        ReplayOverlay.hide();
     }
 
     public boolean saveFailedReplay() {
