@@ -5,6 +5,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceScreen android:key="onlineOption" android:title="@string/opt_onlineOpt">
+        <PreferenceCategory android:key="discordOption" android:title="Discord">
+            <CheckBoxPreference android:key="discordRichPresence" android:title="@string/opt_discord_rpc_title"
+                android:summary="@string/opt_discord_rpc_summary" android:defaultValue="false"/>
+            <Preference android:key="discordLogin" android:title="@string/opt_discord_login_title"
+                android:summary="@string/opt_discord_login_summary_not_logged"/>
+        </PreferenceCategory>
+
         <PreferenceCategory android:key="onlineOption_normal" android:title="@string/opt_onlineOpt_normal">
             <CheckBoxPreference android:key="stayOnline" android:defaultValue="false"
                 android:summary="@string/opt_stayonline_summary"
@@ -238,10 +245,6 @@
             android:summary="@string/opt_safe_beatmap_bg_summary" android:defaultValue="false"/>
         <CheckBoxPreference android:key="receiveAnnouncements" android:title="@string/opt_receive_announcements_title"
             android:summary="@string/opt_receive_announcements_summary" android:defaultValue="true"/>
-        <CheckBoxPreference android:key="discordRichPresence" android:title="@string/opt_discord_rpc_title"
-            android:summary="@string/opt_discord_rpc_summary" android:defaultValue="false"/>
-        <Preference android:key="discordLogin" android:title="@string/opt_discord_login_title"
-            android:summary="@string/opt_discord_login_summary_not_logged"/>
     </PreferenceScreen>
 
     <Preference android:key="update" android:title="@string/opt_update_title"
