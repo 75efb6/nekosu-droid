@@ -492,6 +492,34 @@ public class Slider extends GameObject {
         scene = null;
     }
 
+    @Override
+    public void cleanupFromScene() {
+        if (scene == null) return;
+        if (abstractSliderBody != null) {
+            abstractSliderBody.removeFromScene(scene);
+        }
+        if (ball != null) {
+            ball.clearEntityModifiers();
+            ball.detachSelf();
+        }
+        if (followCircle != null) {
+            followCircle.detachSelf();
+        }
+        startCircle.detachSelf();
+        endCircle.detachSelf();
+        startOverlay.detachSelf();
+        endOverlay.detachSelf();
+        approachCircle.detachSelf();
+        startArrow.detachSelf();
+        endArrow.detachSelf();
+        for (int i = 0, ticksSize = ticks.size(); i < ticksSize; i++) {
+            ticks.get(i).detachSelf();
+        }
+        number.detachSelf();
+        listener.removeObject(this);
+        scene = null;
+    }
+
     private void over() {
         repeatCount--;
         if (mWasInRadius && replayObjectData == null ||

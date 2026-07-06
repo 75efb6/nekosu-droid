@@ -150,6 +150,17 @@ public class HitCircle extends GameObject {
         scene = null;
     }
 
+    @Override
+    public void cleanupFromScene() {
+        if (scene == null) return;
+        overlay.detachSelf();
+        circle.detachSelf();
+        number.detachSelf();
+        approachCircle.detachSelf();
+        listener.removeObject(this);
+        scene = null;
+    }
+
     // Returns the hit offset in seconds, or Float.NaN if no cursor is pressing within radius.
     // When Config.isFixFrameOffset() is false the offset is always 0.
     // Merges the old isHit() + hitOffsetToPreviousFrame() to avoid scanning cursors twice.

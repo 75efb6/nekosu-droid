@@ -3222,6 +3222,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             while (iter.hasNext()) {
                 var obj = iter.next();
                 if (obj.getHitTime() > targetSec) {
+                    obj.cleanupFromScene();
                     iter.remove();
                 }
             }
@@ -3231,6 +3232,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             while (iter.hasNext()) {
                 var obj = iter.next();
                 if (obj.getHitTime() > targetSec) {
+                    obj.cleanupFromScene();
                     iter.remove();
                 }
             }

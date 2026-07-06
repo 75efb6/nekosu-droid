@@ -231,6 +231,24 @@ public class Spinner extends GameObject {
         }
     }
 
+    @Override
+    public void cleanupFromScene() {
+        if (scene == null) return;
+        if (clearText != null) {
+            scene.detachChild(clearText);
+        }
+        scene.detachChild(spinText);
+        scene.detachChild(background);
+        approachCircle.detachSelf();
+        scene.detachChild(circle);
+        scene.detachChild(metre);
+        if (bonusScore != null) {
+            bonusScore.detachFromScene(scene);
+        }
+        listener.removeObject(this);
+        scene = null;
+    }
+
 
     @Override
     public void update(final float dt) {
