@@ -44,6 +44,8 @@ class AudioCalibratorFragment : BaseFragment() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var metronomeClick: BassSoundProvider? = null
+    private var metronomeAccent: BassSoundProvider? = null
+    private var beatCount = 0
 
     private lateinit var stateText: TextView
     private lateinit var countText: TextView
@@ -63,8 +65,13 @@ class AudioCalibratorFragment : BaseFragment() {
         override fun run() {
             if (state != State.COUNTDOWN && state != State.COLLECTING) return
 
-            metronomeClick?.play()
+            if (beatCount % 3 == 2) {
+                metronomeAccent?.play()
+            } else {
+                metronomeClick?.play()
+            }
             lastBeatTimeMs = SystemClock.elapsedRealtime()
+            beatCount++
 
             if (state == State.COUNTDOWN) {
                 countdownBeatsRemaining--
@@ -110,6 +117,9 @@ class AudioCalibratorFragment : BaseFragment() {
         metronomeClick = BassSoundProvider().apply {
             prepare(context!!.assets, "sfx/nightcore-hat.ogg")
         }
+        metronomeAccent = BassSoundProvider().apply {
+            prepare(context!!.assets, "sfx/nightcore-clap.ogg")
+        }
 
         GlobalManager.getInstance().songService?.stop()
 
@@ -120,6 +130,8 @@ class AudioCalibratorFragment : BaseFragment() {
         handler.removeCallbacksAndMessages(null)
         metronomeClick?.free()
         metronomeClick = null
+        metronomeAccent?.free()
+        metronomeAccent = null
         playOnDismissAnim(Runnable { super@AudioCalibratorFragment.dismiss() })
     }
 
@@ -138,6 +150,7 @@ class AudioCalibratorFragment : BaseFragment() {
 
         targetTapCount = sampleCountSpinner.selectedItem.toString().toIntOrNull() ?: 20
         tapCount = 0
+        beatCount = 0
         tapErrors.clear()
         errorBar.clear()
 
