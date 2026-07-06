@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class Spline {
     private static final float TWO_PI = (float) (Math.PI * 2);
     private static Spline instance = null;
-    private static int DetailLevel = 50;
+    private static int DetailLevel = 20;
     private CurveTypes m_curve_type;
     private ArrayList<PointF> m_ctrl_pts;
     private ArrayList<Line> m_path;
