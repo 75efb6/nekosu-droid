@@ -51,6 +51,7 @@ import ru.nsu.ccfit.zuev.osu.TrackInfo;
 import ru.nsu.ccfit.zuev.osu.Utils;
 import ru.nsu.ccfit.zuev.osu.beatmap.BeatmapData;
 import ru.nsu.ccfit.zuev.osu.beatmap.parser.BeatmapParser;
+import ru.nsu.ccfit.zuev.osu.editor.EditorScene;
 import ru.nsu.ccfit.zuev.osu.game.GameHelper;
 import ru.nsu.ccfit.zuev.osu.game.GameScene;
 import ru.nsu.ccfit.zuev.osu.game.mods.GameMod;
@@ -668,6 +669,43 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
         scene.registerTouchArea(optionSelection);
         frontLayer.attachChild(randomMap);
         scene.registerTouchArea(randomMap);
+
+        // Edit button - launches beatmap editor
+        Sprite editButton = new Sprite(0, 0, ResourceManager.getInstance().getTexture("menu-back")) {
+            boolean moved = false;
+            private float dx = 0, dy = 0;
+
+            @Override
+            public boolean onAreaTouched(final TouchEvent pSceneTouchEvent,
+                                         final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
+                if (pSceneTouchEvent.isActionDown()) {
+                    setColor(0.7f, 0.7f, 0.7f);
+                    moved = false;
+                    dx = pTouchAreaLocalX;
+                    dy = pTouchAreaLocalY;
+                    return true;
+                }
+                if (pSceneTouchEvent.isActionUp()) {
+                    setColor(1f, 1f, 1f);
+                    if (!moved && selectedTrack != null) {
+                        openEditor();
+                    }
+                    return true;
+                }
+                if (pSceneTouchEvent.isActionOutside()
+                        || pSceneTouchEvent.isActionMove()
+                        && (MathUtils.distance(dx, dy, pTouchAreaLocalX,
+                        pTouchAreaLocalY) > 50)) {
+                    setColor(1f, 1f, 1f);
+                    moved = true;
+                }
+                return false;
+            }
+        };
+        editButton.setColor(0.4f, 0.8f, 0.4f); // Green tint to distinguish from back button
+        editButton.setPosition(randomMap.getX() + randomMap.getWidthScaled(), Config.getRES_HEIGHT() - editButton.getHeight());
+        frontLayer.attachChild(editButton);
+        scene.registerTouchArea(editButton);
 
         if (OnlineScoring.getInstance().createSecondPanel() != null) {
             OnlinePanel panel = OnlineScoring.getInstance().getSecondPanel();
@@ -1600,6 +1638,34 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
                     scoringSwitcher.setFrame(1);
                 }
             }
+        });
+    }
+
+    /**
+     * Opens the beatmap editor for the currently selected track.
+     */
+    private void openEditor() {
+        if (selectedTrack == null) {
+            return;
+        }
+
+        ResourceManager.getInstance().getSound("menuhit").play();
+        stopMusic();
+
+        Execution.async(() -> {
+            BeatmapData beatmapData = new BeatmapParser(selectedTrack.getFilename()).parse(true);
+            if (beatmapData == null) {
+                ToastLogger.showText("Failed to parse beatmap for editing", true);
+                return;
+            }
+
+            Execution.updateThread(() -> {
+                GlobalManager manager = GlobalManager.getInstance();
+                EditorScene editorScene = new EditorScene(manager.getEngine());
+                manager.setEditorScene(editorScene);
+                editorScene.loadBeatmap(beatmapData, beatmapData.getFolder());
+                editorScene.show();
+            });
         });
     }
 
