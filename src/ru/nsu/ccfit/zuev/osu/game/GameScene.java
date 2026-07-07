@@ -170,6 +170,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     private Sprite skipBtn;
     private float skipTime;
     private boolean musicStarted;
+    private boolean musicReady;
     private double distToNextObject;
     private float timeMultiplier = 1.0f;
     private CursorEntity[] cursorSprites;
@@ -1382,6 +1383,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
         leadOut = 0;
         musicStarted = false;
+        musicReady = false;
 
         // Handle input in its own thread
         var touchOptions = new TouchOptions();
@@ -1410,25 +1412,32 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
         float dt = pSecondsElapsed * timeMultiplier;
         if (GlobalManager.getInstance().getSongService().getStatus() == Status.PLAYING) {
-            //处理时间差过于庞大的情况
-            final float offset = totalOffset / 1000f;
-            final float realsecPassed = //Config.isSyncMusic() ?
-                    GlobalManager.getInstance().getSongService().getPosition() / 1000.0f;// : realTime;
-            final float criticalError = Config.isSyncMusic() ? 0.1f : 0.5f;
-            final float normalError = Config.isSyncMusic() ? dt : 0.05f;
+            final float audioPos = GlobalManager.getInstance().getSongService().getPosition() / 1000.0f;
 
-            if (secPassed + offset - realsecPassed > criticalError) {
-                // Instead of freezing, snap to audio position to avoid deadlock after seek/pause
-                secPassed = realsecPassed - offset;
-            } else if (Math.abs(secPassed + offset - realsecPassed) > normalError) {
-                if (secPassed + offset > realsecPassed) {
-                    dt /= 2f;
-                } else {
-                    dt *= 2f;
+            if (!musicReady) {
+                if (audioPos > 0) {
+                    musicReady = true;
                 }
             }
 
-            secPassed += dt;
+            if (musicReady) {
+                final float offset = totalOffset / 1000f;
+                final float realsecPassed = audioPos;
+                final float criticalError = Config.isSyncMusic() ? 0.1f : 0.5f;
+                final float normalError = Config.isSyncMusic() ? dt : 0.05f;
+
+                if (secPassed + offset - realsecPassed > criticalError) {
+                    secPassed = realsecPassed - offset;
+                } else if (Math.abs(secPassed + offset - realsecPassed) > normalError) {
+                    if (secPassed + offset > realsecPassed) {
+                        dt /= 2f;
+                    } else {
+                        dt *= 2f;
+                    }
+                }
+
+                secPassed += dt;
+            }
         }
 
         if (replaying && musicStarted) {
@@ -1752,6 +1761,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             GlobalManager.getInstance().getSongService().setVolume(Config.getBgmVolume());
             totalLength = GlobalManager.getInstance().getSongService().getLength();
             musicStarted = true;
+            musicReady = false;
             secPassed = 0;
 
             if (replaying) {
@@ -2115,6 +2125,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             GlobalManager.getInstance().getSongService().setVolume(Config.getBgmVolume());
             totalLength = GlobalManager.getInstance().getSongService().getLength();
             musicStarted = true;
+            musicReady = false;
         }
         ResourceManager.getInstance().getSound("menuhit").play();
         float difference = skipTime - 0.5f - secPassed;
