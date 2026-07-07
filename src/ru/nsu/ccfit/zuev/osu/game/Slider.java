@@ -258,7 +258,7 @@ public class Slider extends GameObject {
 
         scene.attachChild(startOverlay, 0);
         // Repeat arrow at start
-        if (repeatCount > 2) {
+        if (repeatCount > 2 && path.points.size() >= 2) {
             startArrow.setAlpha(0);
             startArrow.setScale(scale);
             startArrow.setRotation(MathUtils.radToDeg(Utils.direction(
