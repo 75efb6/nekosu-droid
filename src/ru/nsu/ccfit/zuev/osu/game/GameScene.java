@@ -3352,6 +3352,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             replayOverlayFragment = null;
 
             ReplayOverlay.updateTotalLength(totalLength);
+            ReplayOverlay.setOriginalSpeed(timeMultiplier);
             ReplayOverlay.updateSpeed(timeMultiplier);
             ReplayOverlay.show();
 

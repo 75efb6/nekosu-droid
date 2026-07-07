@@ -15,6 +15,9 @@ object ReplayOverlay {
     var currentSpeed = 1.0f
         private set
 
+    var originalSpeed = 1.0f
+        private set
+
     var currentSeekPositionMs = 0
         private set
 
@@ -55,6 +58,11 @@ object ReplayOverlay {
     fun updateSpeed(speed: Float) {
         currentSpeed = speed.coerceIn(MIN_SPEED, MAX_SPEED)
         listener?.onSpeedUpdate(currentSpeed)
+    }
+
+    @JvmStatic
+    fun setOriginalSpeed(speed: Float) {
+        originalSpeed = speed
     }
 
     @JvmStatic

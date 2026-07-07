@@ -121,7 +121,7 @@ class ReplayOverlayFragment : BaseFragment(), ReplayOverlay.Listener {
 
         speedText.setOnClickListener {
             val game = GlobalManager.getInstance().gameScene ?: return@setOnClickListener
-            game.replaySetSpeed(1.0f)
+            game.replaySetSpeed(ReplayOverlay.originalSpeed)
         }
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
