@@ -32,6 +32,19 @@ class ReplayOverlayFragment : BaseFragment(), ReplayOverlay.Listener {
     override fun onLoadView() {
         isDismissOnBackPress = false
 
+        // Don't let the root layout consume touch events — the GLSurfaceView
+        // underneath (AndEngine) needs them for PauseMenu buttons and gameplay.
+        root?.isClickable = false
+        root?.isFocusable = false
+        root?.setOnTouchListener(null)
+        root?.isHorizontalScrollBarEnabled = false
+        root?.isVerticalScrollBarEnabled = false
+        findViewById<View>(R.id.frg_background)?.apply {
+            setOnClickListener(null)
+            setOnTouchListener(null)
+            isClickable = false
+        }
+
         toggleButton = findViewById(R.id.replayToggleButton)!!
         controlPanel = findViewById(R.id.replayControlPanel)!!
         seekBar = findViewById(R.id.replaySeekBar)!!

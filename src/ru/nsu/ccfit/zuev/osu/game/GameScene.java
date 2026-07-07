@@ -3277,6 +3277,9 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             while (!objects.isEmpty() && objects.peek().getTime() + approachRate <= targetSec) {
                 var data = objects.poll();
                 lastObjectId++;
+                if (data.isSlider()) {
+                    sliderIndex++;
+                }
             }
         }
 
@@ -3340,13 +3343,20 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             var activity = GlobalManager.getInstance().getMainActivity();
             if (activity == null || activity.isFinishing()) return;
 
+            // Defensive: remove any stale overlay fragment from a previous replay
+            var fm = activity.getSupportFragmentManager();
+            var existing = fm.findFragmentByTag("replay_overlay");
+            if (existing != null) {
+                fm.beginTransaction().remove(existing).commitAllowingStateLoss();
+            }
+            replayOverlayFragment = null;
+
             ReplayOverlay.updateTotalLength(totalLength);
             ReplayOverlay.updateSpeed(timeMultiplier);
             ReplayOverlay.show();
 
             replayOverlayFragment = new ReplayOverlayFragment();
-            activity.getSupportFragmentManager()
-                .beginTransaction()
+            fm.beginTransaction()
                 .add(android.R.id.content, replayOverlayFragment, "replay_overlay")
                 .commitAllowingStateLoss();
         });
