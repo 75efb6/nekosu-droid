@@ -3232,30 +3232,11 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         float targetSec = positionMs / 1000f;
 
         if (targetSec < secPassed) {
-            // Backward seek: full state reset — tear down everything, rebuild from scratch.
-
-            // 1. Clean up ALL active and passive objects
-            var iter = activeObjects.iterator();
-            while (iter.hasNext()) {
-                iter.next().cleanupFromScene();
-                iter.remove();
-            }
-            iter = passiveObjects.iterator();
-            while (iter.hasNext()) {
-                iter.next().cleanupFromScene();
-                iter.remove();
-            }
-
-            // 2. Reset combo tracking
-            comboNum = -1;
-            currentComboNum = 0;
-            isFirst = true;
-
-            // 3. Recount sliderIndex and lastObjectId for objects before the target
+            // Backward seek: rebuild objects queue
             int excludedCount = 0;
             int excludedSliders = 0;
             for (var data : allObjects) {
-                if (data.getTime() <= targetSec) {
+                if (data.getTime() + approachRate <= targetSec) {
                     excludedCount++;
                     if (data.isSlider()) {
                         excludedSliders++;
@@ -3267,11 +3248,28 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             lastObjectId = excludedCount - 1;
             sliderIndex = excludedSliders;
 
-            // 4. Rebuild objects queue — include objects whose approach window overlaps target
             objects.clear();
             for (var data : allObjects) {
                 if (data.getTime() + approachRate > targetSec) {
                     objects.add(data);
+                }
+            }
+
+            var iter = activeObjects.iterator();
+            while (iter.hasNext()) {
+                var obj = iter.next();
+                if (obj.getHitTime() > targetSec) {
+                    obj.cleanupFromScene();
+                    iter.remove();
+                }
+            }
+
+            iter = passiveObjects.iterator();
+            while (iter.hasNext()) {
+                var obj = iter.next();
+                if (obj.getHitTime() > targetSec) {
+                    obj.cleanupFromScene();
+                    iter.remove();
                 }
             }
         } else {
