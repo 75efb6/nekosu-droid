@@ -117,13 +117,24 @@
                 android:layout_weight="1"/>
 
             <TextView
+                android:id="@+id/replaySpeedDownCoarse"
+                android:layout_width="36dp"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="\u00AB"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+
+            <TextView
                 android:id="@+id/replaySpeedDown"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:gravity="center"
-                android:text="-"
+                android:text="\u2039"
                 android:textColor="#FFFFFF"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackgroundBorderless"/>
 
@@ -138,16 +149,28 @@
                 android:textStyle="bold"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:minWidth="52dp"/>
+                android:minWidth="52dp"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
 
             <TextView
                 android:id="@+id/replaySpeedUp"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:gravity="center"
-                android:text="+"
+                android:text="\u203A"
                 android:textColor="#FFFFFF"
-                android:textSize="18sp"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+
+            <TextView
+                android:id="@+id/replaySpeedUpCoarse"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="\u00BB"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackgroundBorderless"/>
         </LinearLayout>

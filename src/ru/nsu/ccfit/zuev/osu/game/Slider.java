@@ -778,6 +778,15 @@ public class Slider extends GameObject {
         } else {
             startCircle.setAlpha(0);
             startOverlay.setAlpha(0);
+
+            // If the approach phase was skipped (e.g. slider spawned after seek),
+            // ensure the snaking body is fully drawn.
+            if (Config.isSnakingInSliders() && !preStageFinish
+                    && superPath != null && abstractSliderBody != null) {
+                abstractSliderBody.setEndLength(superPath.getMeasurer().maxLength());
+                abstractSliderBody.onUpdate();
+                preStageFinish = true;
+            }
         }
 
         if (maxTime <= 0) {

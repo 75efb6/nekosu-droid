@@ -93,16 +93,35 @@ class ReplayOverlayFragment : BaseFragment(), ReplayOverlay.Listener {
 
         findViewById<View>(R.id.replaySpeedDown)!!.setOnClickListener {
             val game = GlobalManager.getInstance().gameScene ?: return@setOnClickListener
-            val newSpeed = (ReplayOverlay.currentSpeed - ReplayOverlay.SPEED_STEP)
+            val newSpeed = (ReplayOverlay.currentSpeed - ReplayOverlay.SPEED_FINE_STEP)
                 .coerceAtLeast(ReplayOverlay.MIN_SPEED)
             game.replaySetSpeed(newSpeed)
         }
 
         findViewById<View>(R.id.replaySpeedUp)!!.setOnClickListener {
             val game = GlobalManager.getInstance().gameScene ?: return@setOnClickListener
-            val newSpeed = (ReplayOverlay.currentSpeed + ReplayOverlay.SPEED_STEP)
+            val newSpeed = (ReplayOverlay.currentSpeed + ReplayOverlay.SPEED_FINE_STEP)
                 .coerceAtMost(ReplayOverlay.MAX_SPEED)
             game.replaySetSpeed(newSpeed)
+        }
+
+        findViewById<View>(R.id.replaySpeedDownCoarse)!!.setOnClickListener {
+            val game = GlobalManager.getInstance().gameScene ?: return@setOnClickListener
+            val newSpeed = (ReplayOverlay.currentSpeed - ReplayOverlay.SPEED_COARSE_STEP)
+                .coerceAtLeast(ReplayOverlay.MIN_SPEED)
+            game.replaySetSpeed(newSpeed)
+        }
+
+        findViewById<View>(R.id.replaySpeedUpCoarse)!!.setOnClickListener {
+            val game = GlobalManager.getInstance().gameScene ?: return@setOnClickListener
+            val newSpeed = (ReplayOverlay.currentSpeed + ReplayOverlay.SPEED_COARSE_STEP)
+                .coerceAtMost(ReplayOverlay.MAX_SPEED)
+            game.replaySetSpeed(newSpeed)
+        }
+
+        speedText.setOnClickListener {
+            val game = GlobalManager.getInstance().gameScene ?: return@setOnClickListener
+            game.replaySetSpeed(1.0f)
         }
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {

@@ -3,7 +3,8 @@ package com.reco1l.legacy.replay
 object ReplayOverlay {
     const val MIN_SPEED = 0.25f
     const val MAX_SPEED = 3.0f
-    const val SPEED_STEP = 0.25f
+    const val SPEED_FINE_STEP = 0.01f
+    const val SPEED_COARSE_STEP = 0.05f
     const val SEEK_STEP_MS = 5000
 
     var isVisible = false
