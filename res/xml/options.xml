@@ -192,8 +192,6 @@
                 android:summary="Z"/>
             <Preference android:key="kbKey1" android:title="Cursor 2 key"
                 android:summary="X"/>
-            <Preference android:title="Key code reference"
-                android:summary="z=54, x=53, c=46, space=62, v=50, b=45"/>
         </PreferenceScreen>
 
         <PreferenceScreen android:key="kbCursorPos" android:title="Cursor Position" android:summary="Set the position where keyboard taps register">

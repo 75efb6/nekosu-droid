@@ -39,10 +39,14 @@ public class BeatmapEncoder {
      * @return Whether the encoding was successful.
      */
     public static boolean encode(BeatmapData beatmap, File file) {
+        return encode(beatmap, file, null);
+    }
+
+    public static boolean encode(BeatmapData beatmap, File file, java.util.HashMap<Double, Boolean> kiaiFlags) {
         try (BufferedWriter writer = new BufferedWriter(
                 new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
 
-            writer.write(encodeToString(beatmap));
+            writer.write(encodeToString(beatmap, kiaiFlags));
             return true;
 
         } catch (Exception e) {
@@ -58,6 +62,10 @@ public class BeatmapEncoder {
      * @return The .osu file content as a string.
      */
     public static String encodeToString(BeatmapData beatmap) {
+        return encodeToString(beatmap, null);
+    }
+
+    public static String encodeToString(BeatmapData beatmap, java.util.HashMap<Double, Boolean> kiaiFlags) {
         StringBuilder sb = new StringBuilder();
 
         // Header
@@ -111,7 +119,7 @@ public class BeatmapEncoder {
 
         // Timing Points section
         sb.append("\n[TimingPoints]\n");
-        encodeTimingPoints(sb, beatmap);
+        encodeTimingPoints(sb, beatmap, kiaiFlags);
 
         // Colors section
         sb.append("\n[Colours]\n");
@@ -124,18 +132,23 @@ public class BeatmapEncoder {
         return sb.toString();
     }
 
-    private static void encodeTimingPoints(StringBuilder sb, BeatmapData beatmap) {
+    private static void encodeTimingPoints(StringBuilder sb, BeatmapData beatmap, java.util.HashMap<Double, Boolean> kiaiFlags) {
         List<TimingControlPoint> timingPoints = beatmap.timingPoints.timing.getControlPoints();
         List<DifficultyControlPoint> difficultyPoints = beatmap.timingPoints.difficulty.getControlPoints();
 
         for (TimingControlPoint tp : timingPoints) {
+            int effects = 0;
+            if (kiaiFlags != null && Boolean.TRUE.equals(kiaiFlags.get(tp.time))) {
+                effects |= 1; // kiai time bit
+            }
             sb.append(formatDouble(tp.time)).append(",")
                     .append(formatDouble(tp.msPerBeat)).append(",")
                     .append(tp.timeSignature).append(",")
                     .append(beatmap.general.sampleVolume).append(",")
                     .append("1").append(",")
                     .append("0").append(",")
-                    .append("1").append("\n");
+                    .append("1").append(",")
+                    .append(effects).append("\n");
         }
 
         for (DifficultyControlPoint dp : difficultyPoints) {

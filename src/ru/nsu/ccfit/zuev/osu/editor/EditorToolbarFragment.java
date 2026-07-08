@@ -9,20 +9,13 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import androidx.fragment.app.Fragment;
-
 import com.rian.difficultycalculator.beatmap.hitobject.HitObject;
 
 import java.util.Locale;
 
-import ru.nsu.ccfit.zuev.osu.GlobalManager;
 import ru.nsu.ccfit.zuev.osu.beatmap.BeatmapData;
 
-/**
- * Editor toolbar fragment overlay.
- * Provides tools for placing, selecting, and editing hit objects.
- */
-public class EditorToolbarFragment extends Fragment {
+public class EditorToolbarFragment extends EditorFragment {
 
     private EditorScene editorScene;
     private LinearLayout toolbarLayout;
@@ -55,6 +48,16 @@ public class EditorToolbarFragment extends Fragment {
         toolRow.addView(btnDelete);
         toolbarLayout.addView(toolRow);
 
+        // Timing row
+        LinearLayout timingRow = new LinearLayout(getContext());
+        timingRow.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnTimingAdd = createToolButton("Add BPM", EditorScene.EditorTool.TimingAdd);
+        Button btnTimingDel = createToolButton("Del BPM", EditorScene.EditorTool.TimingDelete);
+        timingRow.addView(btnTimingAdd);
+        timingRow.addView(btnTimingDel);
+        toolbarLayout.addView(timingRow);
+
         // Tool label
         toolLabel = new TextView(getContext());
         toolLabel.setText("Tool: Select");
@@ -82,18 +85,16 @@ public class EditorToolbarFragment extends Fragment {
         timelineSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser && editorScene != null) {
-                    float time = (progress / 1000f) * editorScene.getBeatmapData().getDuration();
+                if (fromUser && editorScene != null && editorScene.getBeatmapData() != null) {
+                    float total = (float) editorScene.getBeatmapData().getDuration();
+                    float time = (progress / 1000f) * total;
                     editorScene.seekTo(time);
                     updateTimeDisplay();
                 }
             }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
         toolbarLayout.addView(timelineSeekBar);
 
@@ -101,19 +102,46 @@ public class EditorToolbarFragment extends Fragment {
         LinearLayout actionRow = new LinearLayout(getContext());
         actionRow.setOrientation(LinearLayout.HORIZONTAL);
 
-        Button btnDeleteSelected = createActionButton("Delete Selected");
+        Button btnDeleteSelected = createActionButton("Del Sel");
         btnDeleteSelected.setOnClickListener(v -> {
             if (editorScene != null) {
-                editorScene.deleteSelectedObject();
+                editorScene.deleteSelectedObjects();
                 updateObjectInfo();
             }
         });
         actionRow.addView(btnDeleteSelected);
 
-        Button btnTimingAdd = createToolButton("Add Timing", EditorScene.EditorTool.TimingAdd);
-        actionRow.addView(btnTimingAdd);
+        Button btnCopy = createActionButton("Copy");
+        btnCopy.setOnClickListener(v -> {
+            if (editorScene != null) editorScene.copySelected();
+        });
+        actionRow.addView(btnCopy);
+
+        Button btnPaste = createActionButton("Paste");
+        btnPaste.setOnClickListener(v -> {
+            if (editorScene != null) editorScene.pasteClipboard();
+        });
+        actionRow.addView(btnPaste);
 
         toolbarLayout.addView(actionRow);
+
+        // Property editing row
+        LinearLayout propRow = new LinearLayout(getContext());
+        propRow.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnCombo = createActionButton("Combo");
+        btnCombo.setOnClickListener(v -> {
+            if (editorScene != null) editorScene.openComboEditor();
+        });
+        propRow.addView(btnCombo);
+
+        Button btnSliderProps = createActionButton("Slider");
+        btnSliderProps.setOnClickListener(v -> {
+            if (editorScene != null) editorScene.openSliderEditor();
+        });
+        propRow.addView(btnSliderProps);
+
+        toolbarLayout.addView(propRow);
 
         return toolbarLayout;
     }
@@ -178,7 +206,7 @@ public class EditorToolbarFragment extends Fragment {
         if (editorScene == null) return;
 
         float time = editorScene.getCurrentTime();
-        float total = (float) editorScene.getBeatmapData().getDuration();
+        float total = editorScene.getBeatmapData() != null ? (float) editorScene.getBeatmapData().getDuration() : 0;
 
         timeLabel.setText(formatTime(time) + " / " + formatTime(total));
 

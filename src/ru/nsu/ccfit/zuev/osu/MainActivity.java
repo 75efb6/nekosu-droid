@@ -851,6 +851,12 @@ public class MainActivity extends BaseGameActivity implements
                     return true;
                 }
 
+                if (GlobalManager.getInstance().getEditorScene() != null &&
+                        GlobalManager.getInstance().getEngine().getScene() == GlobalManager.getInstance().getEditorScene().getScene()) {
+                    GlobalManager.getInstance().getEditorScene().back();
+                    return true;
+                }
+
                 if (Multiplayer.isMultiplayer) {
                     if (GlobalManager.getInstance().getEngine().getScene() == LobbyScene.INSTANCE) {
                         LobbyScene.INSTANCE.back();
