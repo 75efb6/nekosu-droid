@@ -109,6 +109,12 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
     private FilterMenuFragment filterMenu = null;
     private GroupType groupType = GroupType.MapSet;
 
+    /**
+     * When true, selecting a track opens the beatmap editor instead of starting the game.
+     * Set by MainMenu when entering editor mode.
+     */
+    public boolean isEditorMode = false;
+
     private Timer previousSelectionTimer;
     private final long previousSelectionInterval = 1000;
     private boolean previousSelectionPerformed;
@@ -667,8 +673,55 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
         }
         frontLayer.attachChild(optionSelection);
         scene.registerTouchArea(optionSelection);
-        frontLayer.attachChild(randomMap);
-        scene.registerTouchArea(randomMap);
+
+        if (isEditorMode) {
+            // Hide random and mods in editor mode, show Create button instead
+            if (modSelection != null) {
+                modSelection.setVisible(false);
+                modSelection.setIgnoreUpdate(true);
+            }
+            randomMap.setVisible(false);
+            randomMap.setIgnoreUpdate(true);
+
+            Sprite createButton = new Sprite(0, 0, ResourceManager.getInstance().getTexture("menu-back")) {
+                boolean moved = false;
+                private float dx = 0, dy = 0;
+
+                @Override
+                public boolean onAreaTouched(final TouchEvent pSceneTouchEvent,
+                                             final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
+                    if (pSceneTouchEvent.isActionDown()) {
+                        setColor(0.7f, 0.7f, 0.7f);
+                        moved = false;
+                        dx = pTouchAreaLocalX;
+                        dy = pTouchAreaLocalY;
+                        return true;
+                    }
+                    if (pSceneTouchEvent.isActionUp()) {
+                        setColor(1f, 1f, 1f);
+                        if (!moved) {
+                            createNewBeatmap();
+                        }
+                        return true;
+                    }
+                    if (pSceneTouchEvent.isActionOutside()
+                            || pSceneTouchEvent.isActionMove()
+                            && (MathUtils.distance(dx, dy, pTouchAreaLocalX,
+                            pTouchAreaLocalY) > 50)) {
+                        setColor(1f, 1f, 1f);
+                        moved = true;
+                    }
+                    return false;
+                }
+            };
+            createButton.setColor(0.4f, 0.8f, 0.4f);
+            createButton.setPosition(optionSelection.getX() + optionSelection.getWidthScaled(), Config.getRES_HEIGHT() - createButton.getHeight());
+            frontLayer.attachChild(createButton);
+            scene.registerTouchArea(createButton);
+        } else {
+            frontLayer.attachChild(randomMap);
+            scene.registerTouchArea(randomMap);
+        }
 
         // Edit button - launches beatmap editor
         Sprite editButton = new Sprite(0, 0, ResourceManager.getInstance().getTexture("menu-back")) {
@@ -1180,6 +1233,14 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
             }
             stopMusic();
 
+            // Editor mode: open editor instead of starting game
+            if (isEditorMode) {
+                openEditorForTrack(track);
+                isEditorMode = false;
+                unload();
+                return;
+            }
+
             Replay.oldMod = ModMenu.getInstance().getMod();
             Replay.oldChangeSpeed = ModMenu.getInstance().getChangeSpeed();
 
@@ -1320,6 +1381,29 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
     }
 
     public void unload() {
+    }
+
+    private void openEditorForTrack(TrackInfo track) {
+        if (track == null) return;
+
+        ResourceManager.getInstance().getSound("menuhit").play();
+        stopMusic();
+
+        Execution.async(() -> {
+            BeatmapData beatmapData = new BeatmapParser(track.getFilename()).parse(true);
+            if (beatmapData == null) {
+                ToastLogger.showText("Failed to parse beatmap for editing", true);
+                return;
+            }
+
+            Execution.updateThread(() -> {
+                GlobalManager manager = GlobalManager.getInstance();
+                EditorScene editorScene = new EditorScene(manager.getEngine());
+                manager.setEditorScene(editorScene);
+                editorScene.loadBeatmap(beatmapData, beatmapData.getFolder());
+                editorScene.show();
+            });
+        });
     }
 
     public void back() {
@@ -1658,6 +1742,26 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
                 ToastLogger.showText("Failed to parse beatmap for editing", true);
                 return;
             }
+
+            Execution.updateThread(() -> {
+                GlobalManager manager = GlobalManager.getInstance();
+                EditorScene editorScene = new EditorScene(manager.getEngine());
+                manager.setEditorScene(editorScene);
+                editorScene.loadBeatmap(beatmapData, beatmapData.getFolder());
+                editorScene.show();
+            });
+        });
+    }
+
+    private void createNewBeatmap() {
+        ResourceManager.getInstance().getSound("menuhit").play();
+        stopMusic();
+
+        Execution.async(() -> {
+            BeatmapData beatmapData = new BeatmapData();
+            beatmapData.metadata.artist = "Unknown";
+            beatmapData.metadata.title = "New Beatmap";
+            beatmapData.metadata.creator = "Unknown";
 
             Execution.updateThread(() -> {
                 GlobalManager manager = GlobalManager.getInstance();

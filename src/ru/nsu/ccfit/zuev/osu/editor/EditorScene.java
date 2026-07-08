@@ -867,7 +867,7 @@ public class EditorScene implements IUpdateHandler {
     }
 
     /**
-     * Navigates back to the song menu.
+     * Navigates back to the song menu in editor mode.
      */
     public void back() {
         scene.unregisterUpdateHandler(this);
@@ -875,7 +875,10 @@ public class EditorScene implements IUpdateHandler {
 
         GlobalManager manager = GlobalManager.getInstance();
         if (manager.getSongMenu() != null) {
+            manager.getSongMenu().setEditorMode(true);
             manager.getSongMenu().show();
+        } else {
+            manager.getMainScene().show();
         }
     }
 }
