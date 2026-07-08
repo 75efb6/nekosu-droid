@@ -1169,7 +1169,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
         beatmapInfo2.setText(binfoStr2);
         changeDimensionInfo(track);
         Execution.async(() -> {
-            BeatmapData beatmapData = new BeatmapParser(track.getFilename()).parse(true);
+            BeatmapData beatmapData = new BeatmapParser(track.getFilename()).setCalculator(true).parse(true);
 
             if (beatmapData == null) {
                 setStarsDisplay(0);

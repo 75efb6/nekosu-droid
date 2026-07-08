@@ -265,7 +265,7 @@ public enum LibraryManager {
             return;
         }
         for (final File file : filelist) {
-            final BeatmapParser parser = new BeatmapParser(file);
+            final BeatmapParser parser = new BeatmapParser(file).setCalculator(true);
             if (!parser.openFile()) {
                 if (Config.isDeleteUnimportedBeatmaps()) {
                     file.delete();

@@ -686,10 +686,11 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                 parameters.customOD = modMenu.getCustomOD();
             }
 
-            timedDifficultyAttributes = BeatmapDifficultyCalculator.calculateTimedDifficulty(
-                    beatmapData,
+            var calcData = new BeatmapParser(track.getFilename()).setCalculator(true).parse(true);
+            timedDifficultyAttributes = calcData != null ? BeatmapDifficultyCalculator.calculateTimedDifficulty(
+                    calcData,
                     parameters
-            );
+            ) : null;
         } else {
             timedDifficultyAttributes.clear();
         }
