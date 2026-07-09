@@ -3176,13 +3176,18 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
     private void calculateAllSliderPaths(){
         if (!objects.isEmpty()){
-            if (lastTrack.getSliderCount() <= 0){
+            int sliderCount = 0;
+            for (GameObjectData data : objects){
+                final String[] params = data.getData();
+                final int objDefine = Integer.parseInt(params[3]);
+                if ((objDefine & 2) > 0) {
+                    sliderCount++;
+                }
+            }
+            if (sliderCount <= 0){
                 return;
             }
-            sliderPaths = new SliderPath[lastTrack.getSliderCount()];
-            for (SliderPath path : sliderPaths){
-                path = null;
-            }
+            sliderPaths = new SliderPath[sliderCount];
             int i = 0;
             sliderIndex = 0;
             for (GameObjectData data : objects){
