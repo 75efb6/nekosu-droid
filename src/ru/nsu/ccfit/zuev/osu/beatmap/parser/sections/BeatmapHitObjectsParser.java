@@ -20,6 +20,9 @@ import ru.nsu.ccfit.zuev.osu.beatmap.constants.HitObjectType;
  * A parser for parsing a beatmap's hit objects section.
  */
 public class BeatmapHitObjectsParser extends BeatmapSectionParser {
+    private static final int MAX_GAMEPLAY_CONTROL_POINTS = 24;
+    private static final int MAX_CALCULATOR_CONTROL_POINTS = 1000;
+
     @Override
     public void parse(BeatmapData data, String line) {
         final String[] pars = line.split(",");
@@ -67,31 +70,15 @@ public class BeatmapHitObjectsParser extends BeatmapSectionParser {
             throw new UnsupportedOperationException("Repeat count is way too high");
         }
 
-        final int maxCurvePoints = data.isCalculator ? Integer.MAX_VALUE : 24;
-        String sliderData = pars[5];
+        ArrayList<Vector2> curvePoints;
 
-        SliderPathType sliderType = SliderPathType.parse(sliderData.charAt(0));
-        ArrayList<Vector2> curvePoints = new ArrayList<>();
-        curvePoints.add(new Vector2(0));
-
-        int start = 2;
-        int pointCount = 0;
-        while (start < sliderData.length() && pointCount < maxCurvePoints) {
-            int pipe = sliderData.indexOf('|', start);
-            if (pipe == -1) pipe = sliderData.length();
-
-            int colon = sliderData.indexOf(':', start);
-            if (colon > 0 && colon < pipe) {
-                Vector2 curvePointPosition = new Vector2(
-                        (int) parseFloat(sliderData.substring(start, colon)),
-                        (int) parseFloat(sliderData.substring(colon + 1, pipe))
-                );
-                curvePoints.add(curvePointPosition.subtract(position));
-                pointCount++;
-            }
-
-            start = pipe + 1;
+        if (data.isCalculator) {
+            curvePoints = parseCurvePointsCalculator(pars[5], position);
+        } else {
+            curvePoints = parseCurvePointsGameplay(pars[5], position);
         }
+
+        SliderPathType sliderType = SliderPathType.parse(pars[5].charAt(0));
 
         // A special case for old beatmaps where the first
         // control point is in the position of the slider.
@@ -133,6 +120,56 @@ public class BeatmapHitObjectsParser extends BeatmapSectionParser {
                 data.getFormatVersion() < 8 ? 1 / difficultyControlPoint.speedMultiplier : 1,
                 difficultyControlPoint.generateTicks
         );
+    }
+
+    /**
+     * Parses slider curve points for gameplay rendering (capped for performance).
+     */
+    private ArrayList<Vector2> parseCurvePointsGameplay(String sliderData, Vector2 position) {
+        ArrayList<Vector2> curvePoints = new ArrayList<>();
+        curvePoints.add(new Vector2(0));
+
+        int start = 2;
+        int pointCount = 0;
+        while (start < sliderData.length() && pointCount < MAX_GAMEPLAY_CONTROL_POINTS) {
+            int pipe = sliderData.indexOf('|', start);
+            if (pipe == -1) pipe = sliderData.length();
+
+            int colon = sliderData.indexOf(':', start);
+            if (colon > 0 && colon < pipe) {
+                Vector2 curvePointPosition = new Vector2(
+                        (int) parseFloat(sliderData.substring(start, colon)),
+                        (int) parseFloat(sliderData.substring(colon + 1, pipe))
+                );
+                curvePoints.add(curvePointPosition.subtract(position));
+                pointCount++;
+            }
+
+            start = pipe + 1;
+        }
+
+        return curvePoints;
+    }
+
+    /**
+     * Parses slider curve points for difficulty calculation (higher accuracy, capped to prevent OOM).
+     */
+    private ArrayList<Vector2> parseCurvePointsCalculator(String sliderData, Vector2 position) {
+        String[] curvePointsData = sliderData.split("\\|");
+        ArrayList<Vector2> curvePoints = new ArrayList<>();
+        curvePoints.add(new Vector2(0));
+
+        int limit = Math.min(curvePointsData.length, MAX_CALCULATOR_CONTROL_POINTS + 1);
+        for (int i = 1; i < limit; i++) {
+            String[] curvePointData = curvePointsData[i].split(":");
+            Vector2 curvePointPosition = new Vector2(
+                    (int) parseFloat(curvePointData[0], maxCoordinateValue),
+                    (int) parseFloat(curvePointData[1], maxCoordinateValue)
+            );
+            curvePoints.add(curvePointPosition.subtract(position));
+        }
+
+        return curvePoints;
     }
 
     private Spinner createSpinner(BeatmapData data, double time, String[] pars) {
