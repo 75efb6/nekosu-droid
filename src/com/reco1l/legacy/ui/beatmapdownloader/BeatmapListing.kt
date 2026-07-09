@@ -224,28 +224,36 @@ class BeatmapListing : BaseFragment(),
                     if (selectedStatus != StatusFilter.ALL) {
                         put("status", selectedStatus.apiValue)
                     }
-
-                    val filterParts = mutableListOf<String>()
-
-                    if (selectedMinStars > 0) {
-                        filterParts.add("stars >= $selectedMinStars")
-                    }
-                    if (selectedMaxStars > 0) {
-                        filterParts.add("stars <= $selectedMaxStars")
-                    }
-                    if (selectedMinBpm > 0) {
-                        filterParts.add("bpm >= $selectedMinBpm")
-                    }
-                    if (selectedMaxBpm > 0) {
-                        filterParts.add("bpm <= $selectedMaxBpm")
-                    }
-
-                    if (filterParts.isNotEmpty()) {
-                        put("filter", filterParts.joinToString(" AND "))
-                    }
                 }
 
-                val beatmapSets = mirror.search.mapResponse(request.executeAndGetJson().toArray()!!)
+                var beatmapSets = mirror.search.mapResponse(request.executeAndGetJson().toArray()!!)
+
+                val hasStarFilter = selectedMinStars > 0 || selectedMaxStars > 0
+                val hasBpmFilter = selectedMinBpm > 0 || selectedMaxBpm > 0
+
+                if (hasStarFilter || hasBpmFilter) {
+                    beatmapSets = beatmapSets.filter { set ->
+                        val beatmaps = set.beatmaps
+
+                        if (hasStarFilter) {
+                            val minStar = beatmaps.minOfOrNull { it.starRating } ?: 0.0
+                            val maxStar = beatmaps.maxOfOrNull { it.starRating } ?: 0.0
+
+                            if (selectedMinStars > 0 && maxStar < selectedMinStars) return@filter false
+                            if (selectedMaxStars > 0 && minStar > selectedMaxStars) return@filter false
+                        }
+
+                        if (hasBpmFilter) {
+                            val bpm = beatmaps.firstOrNull()?.bpm ?: 0.0
+
+                            if (selectedMinBpm > 0 && bpm < selectedMinBpm) return@filter false
+                            if (selectedMaxBpm > 0 && bpm > selectedMaxBpm) return@filter false
+                        }
+
+                        true
+                    }.toMutableList()
+                }
+
                 adapter.data.addAll(beatmapSets)
 
                 mainThread {
