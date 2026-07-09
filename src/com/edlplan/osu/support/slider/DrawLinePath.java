@@ -37,6 +37,15 @@ public class DrawLinePath {
     private TriangleBuilder triangles;
     private AbstractPath path;
 
+    // Theta cache — avoids recomputing segTheta/segNorm when the same path is passed again.
+    // Matches upstream ensureThetaCache: identity + size + first/last point check.
+    private AbstractPath cachedThetaPath;
+    private int cachedThetaPathSize;
+    private float cachedFirstX;
+    private float cachedFirstY;
+    private float cachedLastX;
+    private float cachedLastY;
+
     public DrawLinePath(AbstractPath p, float width) {
         alpha = 1;
         prepareForPath(p);
@@ -54,35 +63,58 @@ public class DrawLinePath {
     /**
      * Precomputes per-segment angles and normals for the given path.
      * Call this ONCE per onUpdate() frame before calling buildForWidth for each layer.
+     * Skips recomputation if the same path is passed (identity + size + endpoints check).
      */
     public DrawLinePath prepareForPath(AbstractPath p) {
         this.path = p;
         int n = p.size();
-        if (n >= 2) {
-            int segs = n - 1;
-            if (segTheta == null || segTheta.length < segs) {
-                segTheta = new float[segs];
-                segNormX = new float[segs];
-                segNormY = new float[segs];
-                segQuadStartOffset = new int[segs];
-            }
-            Vec2 a = p.get(0);
-            for (int i = 0; i < segs; i++) {
-                Vec2 b = p.get(i + 1);
-                segTheta[i] = Vec2.calTheta(a, b);
-                float dx = b.x - a.x;
-                float dy = b.y - a.y;
-                float len = (float) Math.sqrt(dx * dx + dy * dy);
-                if (len > 1e-6f) {
-                    segNormX[i] = -dy / len;
-                    segNormY[i] = dx / len;
-                } else {
-                    segNormX[i] = 0f;
-                    segNormY[i] = 0f;
-                }
-                a = b;
-            }
+
+        if (n < 2) {
+            structureSize = n;
+            cachedThetaPath = p;
+            cachedThetaPathSize = n;
+            return this;
         }
+
+        // Check if we can reuse the cached theta/normals
+        Vec2 first = p.get(0);
+        Vec2 last = p.get(n - 1);
+        if (cachedThetaPath == p && cachedThetaPathSize == n &&
+            cachedFirstX == first.x && cachedFirstY == first.y &&
+            cachedLastX == last.x && cachedLastY == last.y) {
+            return this;
+        }
+
+        int segs = n - 1;
+        if (segTheta == null || segTheta.length < segs) {
+            segTheta = new float[segs];
+            segNormX = new float[segs];
+            segNormY = new float[segs];
+            segQuadStartOffset = new int[segs];
+        }
+        Vec2 a = p.get(0);
+        for (int i = 0; i < segs; i++) {
+            Vec2 b = p.get(i + 1);
+            segTheta[i] = Vec2.calTheta(a, b);
+            float dx = b.x - a.x;
+            float dy = b.y - a.y;
+            float len = (float) Math.sqrt(dx * dx + dy * dy);
+            if (len > 1e-6f) {
+                segNormX[i] = -dy / len;
+                segNormY[i] = dx / len;
+            } else {
+                segNormX[i] = 0f;
+                segNormY[i] = 0f;
+            }
+            a = b;
+        }
+
+        cachedThetaPath = p;
+        cachedThetaPathSize = n;
+        cachedFirstX = first.x;
+        cachedFirstY = first.y;
+        cachedLastX = last.x;
+        cachedLastY = last.y;
         structureSize = n;
         return this;
     }
@@ -137,6 +169,50 @@ public class DrawLinePath {
         // End cap at boundary point, perpendicular to segment direction
         float theta = segTheta[boundarySegIdx];
         addLineCap(boundaryPoint, theta - FMath.PiHalf, FMath.Pi);
+    }
+
+    /**
+     * Builds start cap + partial quad + joint cap for snake-out rendering.
+     * The suffix vertices (remaining segments + end cap) should be copied from
+     * a cached full-path build, then this method prepends the boundary geometry.
+     *
+     * @param width           the body/border/hint width
+     * @param builder         the TriangleBuilder to append to (suffix will be appended after)
+     * @param boundarySegIdx  the segment index where the boundary falls
+     * @param boundaryPoint   the interpolated boundary point on that segment
+     * @param segEndPoint     the end of the boundary segment (path.get(boundarySegIdx + 1))
+     * @return the offset into the cached suffix where the copy should start (segQuadStartOffset[boundarySegIdx + 1])
+     */
+    public int buildBoundaryPrefix(float width, TriangleBuilder builder,
+                                    int boundarySegIdx, Vec2 boundaryPoint,
+                                    Vec2 segEndPoint) {
+        this.width = width;
+        this.triangles = builder;
+
+        float theta = segTheta[boundarySegIdx];
+
+        // Start cap at boundary point
+        addLineCap(boundaryPoint, theta + FMath.PiHalf, FMath.Pi);
+
+        // Partial quad from boundary point to segment end
+        if (Vec2.length(boundaryPoint, segEndPoint) > 1e-3f) {
+            addLineQuads(boundarySegIdx, boundaryPoint, segEndPoint);
+        }
+
+        // Joint cap at segment end (connects boundary segment direction to next segment)
+        if (boundarySegIdx + 1 < structureSize - 1) {
+            float nextTheta = segTheta[boundarySegIdx + 1];
+            addLineCap(segEndPoint, theta - FMath.PiHalf, nextTheta - theta);
+        } else {
+            // Last segment — end cap
+            addLineCap(segEndPoint, theta - FMath.PiHalf, FMath.Pi);
+        }
+
+        // Return the suffix offset: the vertex index where the next segment's quads start
+        if (boundarySegIdx + 1 < segQuadStartOffset.length) {
+            return segQuadStartOffset[boundarySegIdx + 1];
+        }
+        return 0;
     }
 
     // -------------------------------------------------------------------------

@@ -34,6 +34,7 @@ public class SliderBody2D extends AbstractSliderBody {
     private RGBColor bodyColor = new RGBColor(), borderColor = new RGBColor(), hintColor = new RGBColor();
     private float bodyWidth, borderWidth, hintWidth;
     private float startLength = 0, endLength = 0;
+    private float maxPathLength = 0;
     private boolean enableHint = false;
     private boolean dirty = true;
 
@@ -49,6 +50,7 @@ public class SliderBody2D extends AbstractSliderBody {
 
     public SliderBody2D(LinePath path) {
         super(path);
+        maxPathLength = path.getMeasurer().maxLength();
     }
 
     public boolean isEnableHint() {
@@ -160,20 +162,26 @@ public class SliderBody2D extends AbstractSliderBody {
                 cacheHintVertices(hint.getVertices());
             }
             cache.cachedMaxLength = maxLength;
+            cache.cachedStartLength = 0;
             cache.cachedEndLength = maxLength;
             return;
         }
 
         // Snake-in prefix reuse: startLength ≈ 0, endLength increasing.
-        // Copy cached prefix vertices up to the boundary segment, rebuild only boundary + cap.
         if (startLength <= 0.001f && cachedBodyVertices != null
                 && endLength > cache.cachedEndLength) {
-            // Boundary is moving forward — reuse prefix
             buildSnakingPrefix(cache, maxLength);
             return;
         }
 
-        // Fallback: full rebuild for other cases (snake-out, or cache miss)
+        // Snake-out suffix reuse: endLength ≈ maxLength, startLength increasing.
+        if (endLength >= maxLength - 0.001f && cachedBodyVertices != null
+                && startLength > cache.cachedStartLength) {
+            buildSnakingSuffix(cache, maxLength);
+            return;
+        }
+
+        // Fallback: full rebuild for other cases
         AbstractPath sub = path.cutPathView(startLength, endLength);
         cache.drawLinePath.prepareForPath(sub);
 
@@ -261,6 +269,82 @@ public class SliderBody2D extends AbstractSliderBody {
         cache.cachedEndLength = endLength;
     }
 
+    /**
+     * Builds the snaking-out body by copying cached suffix vertices and rebuilding
+     * only the start cap + boundary segment + joint cap. The inverse of buildSnakingPrefix.
+     * The end cap of the full path is already included in the suffix copy.
+     */
+    private void buildSnakingSuffix(BuildCache cache, float maxLength) {
+        // Find boundary segment using the full path's measurer
+        PathMeasurer measurer = path.getMeasurer();
+        int boundarySeg = measurer.binarySearch(startLength);
+        if (boundarySeg >= structureSize() - 1) {
+            boundarySeg = structureSize() - 2;
+        }
+
+        // Interpolate boundary point along the segment
+        float segStartLen = measurer.getLengthAt(boundarySeg);
+        float segEndLen = measurer.getLengthAt(boundarySeg + 1);
+        float segLen = segEndLen - segStartLen;
+        float t = segLen > 0.001f ? (startLength - segStartLen) / segLen : 0f;
+        t = Math.min(1f, Math.max(0f, t));
+
+        Vec2 segStart = path.get(boundarySeg);
+        Vec2 segEnd = path.get(boundarySeg + 1);
+        Vec2 boundaryPoint = new Vec2(
+                segStart.x + (segEnd.x - segStart.x) * t,
+                segStart.y + (segEnd.y - segStart.y) * t
+        );
+
+        // Rebuild DrawLinePath structure for the full path (normals are the same)
+        cache.drawLinePath.prepareForPath(path);
+
+        // Build start cap + partial quad + joint cap, get suffix offset
+        // --- Body ---
+        body.getVertices().length = 0;
+        cache.drawLinePath.buildBoundaryPrefix(bodyWidth, cache.triangleBuilder,
+                boundarySeg, boundaryPoint, segEnd);
+        int suffixOffset = cache.drawLinePath.getSegmentQuadStartOffset(boundarySeg + 1);
+        // Copy suffix from cached full-path vertices
+        if (suffixOffset > 0 && suffixOffset <= cachedBodyLength) {
+            int suffixLength = cachedBodyLength - suffixOffset;
+            System.arraycopy(cachedBodyVertices, suffixOffset,
+                    cache.triangleBuilder.ary, cache.triangleBuilder.length, suffixLength);
+            cache.triangleBuilder.length += suffixLength;
+        }
+        cache.triangleBuilder.getVertex(body.getVertices());
+
+        // --- Border ---
+        border.getVertices().length = 0;
+        cache.drawLinePath.buildBoundaryPrefix(borderWidth, cache.triangleBuilder,
+                boundarySeg, boundaryPoint, segEnd);
+        suffixOffset = cache.drawLinePath.getSegmentQuadStartOffset(boundarySeg + 1);
+        if (suffixOffset > 0 && suffixOffset <= cachedBorderLength) {
+            int suffixLength = cachedBorderLength - suffixOffset;
+            System.arraycopy(cachedBorderVertices, suffixOffset,
+                    cache.triangleBuilder.ary, cache.triangleBuilder.length, suffixLength);
+            cache.triangleBuilder.length += suffixLength;
+        }
+        cache.triangleBuilder.getVertex(border.getVertices());
+
+        // --- Hint ---
+        if (hint != null && cachedHintVertices != null) {
+            hint.getVertices().length = 0;
+            cache.drawLinePath.buildBoundaryPrefix(hintWidth, cache.triangleBuilder,
+                    boundarySeg, boundaryPoint, segEnd);
+            suffixOffset = cache.drawLinePath.getSegmentQuadStartOffset(boundarySeg + 1);
+            if (suffixOffset > 0 && suffixOffset <= cachedHintLength) {
+                int suffixLength = cachedHintLength - suffixOffset;
+                System.arraycopy(cachedHintVertices, suffixOffset,
+                        cache.triangleBuilder.ary, cache.triangleBuilder.length, suffixLength);
+                cache.triangleBuilder.length += suffixLength;
+            }
+            cache.triangleBuilder.getVertex(hint.getVertices());
+        }
+
+        cache.cachedStartLength = startLength;
+    }
+
     private int structureSize() {
         return path.size();
     }
@@ -317,16 +401,18 @@ public class SliderBody2D extends AbstractSliderBody {
 
     @Override
     public void setStartLength(float length) {
-        if (Math.abs(startLength - length) >= SNAKE_LENGTH_THRESHOLD) {
-            startLength = length;
+        float clamped = Math.max(0, Math.min(length, maxPathLength));
+        if (Math.abs(startLength - clamped) >= SNAKE_LENGTH_THRESHOLD) {
+            startLength = clamped;
             dirty = true;
         }
     }
 
     @Override
     public void setEndLength(float length) {
-        if (Math.abs(endLength - length) >= SNAKE_LENGTH_THRESHOLD) {
-            endLength = length;
+        float clamped = Math.max(0, Math.min(length, maxPathLength));
+        if (Math.abs(endLength - clamped) >= SNAKE_LENGTH_THRESHOLD) {
+            endLength = clamped;
             dirty = true;
         }
     }
@@ -426,6 +512,7 @@ public class SliderBody2D extends AbstractSliderBody {
         public TriangleBuilder triangleBuilder = new TriangleBuilder();
         public DrawLinePath drawLinePath = new DrawLinePath();
         public float cachedMaxLength;
+        public float cachedStartLength;
         public float cachedEndLength;
         public int bodyBuilderLength;
         public int borderBuilderLength;
