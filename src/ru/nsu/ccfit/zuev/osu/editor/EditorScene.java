@@ -15,7 +15,12 @@ import com.rian.difficultycalculator.math.Vector2;
 import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.engine.camera.Camera;
 import org.anddev.andengine.engine.handler.IUpdateHandler;
+import android.graphics.PointF;
+
+import org.anddev.andengine.entity.Entity;
 import org.anddev.andengine.entity.primitive.Rectangle;
+import org.anddev.andengine.entity.shape.Shape;
+import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.text.ChangeableText;
 import org.anddev.andengine.entity.text.Text;
@@ -875,6 +880,7 @@ public class EditorScene implements IUpdateHandler {
             @Override
             public void run() {
                 try {
+                    if (self != GlobalManager.getInstance().getEditorScene()) return;
                     currentToolbar = new EditorToolbarFragment();
                     currentToolbar.setEditorScene(self);
                     currentToolbar.show();
@@ -887,7 +893,7 @@ public class EditorScene implements IUpdateHandler {
     }
 
     private void hideToolbar() {
-        if (currentToolbar != null && currentToolbar.isAdded()) {
+        if (currentToolbar != null) {
             currentToolbar.dismiss();
             currentToolbar = null;
         }
@@ -908,14 +914,14 @@ public class EditorScene implements IUpdateHandler {
         for (EditorObjectSprite spr : objectSprites) {
             if (spr.sprite != null) mgScene.detachChild(spr.sprite);
             if (spr.endSprite != null) mgScene.detachChild(spr.endSprite);
-            for (Rectangle seg : spr.bodySegments) mgScene.detachChild(seg);
+            for (Entity seg : spr.bodySegments) mgScene.detachChild(seg);
         }
         objectSprites.clear();
 
         if (beatmapData == null) return;
 
         List<HitObject> objects = beatmapData.hitObjects.getObjects();
-        Log.i("EditorScene", "Rendering " + objects.size() + " objects, radius=" + getCircleRadius());
+        Log.i("EditorScene", "Rendering " + objects.size() + " objects, scale=" + getObjectScale());
         float scaleX = playfieldWidth / Constants.MAP_WIDTH;
         float scaleY = playfieldHeight / Constants.MAP_HEIGHT;
 
@@ -944,10 +950,10 @@ public class EditorScene implements IUpdateHandler {
                 renderSpinner(color, i, (float) obj.getStartTime());
             }
 
-            // Draw new combo indicator (small triangle)
+            // Draw new combo indicator
             if (isNewCombo != null && isNewCombo) {
                 float size = 8;
-                Rectangle indicator = new Rectangle(screenX - size / 2, screenY - getCircleRadius() - size - 4, size, size);
+                Rectangle indicator = new Rectangle(screenX - size / 2, screenY - getObjectScale() * 64 - size - 4, size, size);
                 indicator.setColor(1f, 1f, 0.3f);
                 mgScene.attachChild(indicator);
             }
@@ -963,103 +969,133 @@ public class EditorScene implements IUpdateHandler {
         for (EditorObjectSprite spr : objectSprites) {
             float diff = Math.abs(spr.startTime - currentTime);
             boolean visible = diff <= halfWindow;
-            for (Rectangle entity : spr.allEntities) {
+            for (Entity entity : spr.allEntities) {
                 if (entity != null) entity.setVisible(visible);
             }
         }
     }
 
+    private float getObjectScale() {
+        float cs = beatmapData != null ? beatmapData.difficulty.cs : 5;
+        float csScale = (1f - 0.7f * (cs - 5f) / 5f) / 2f;
+        float editorScale = playfieldHeight / 384f;
+        return editorScale * csScale;
+    }
+
     private void renderHitCircle(float x, float y, RGBColor color, int index, float startTime) {
-        float radius = getCircleRadius();
-
-        // White outline
-        float outlineRadius = radius + 2f;
-        Rectangle outline = new Rectangle(x - outlineRadius, y - outlineRadius, outlineRadius * 2, outlineRadius * 2);
-        outline.setColor(1f, 1f, 1f);
-        mgScene.attachChild(outline);
-
-        // Colored body
-        Rectangle circle = new Rectangle(x - radius, y - radius, radius * 2, radius * 2);
-        circle.setColor(color.r(), color.g(), color.b());
-        mgScene.attachChild(circle);
-
-        // Inner approach circle
-        float innerRadius = radius * 0.6f;
-        Rectangle inner = new Rectangle(x - innerRadius, y - innerRadius, innerRadius * 2, innerRadius * 2);
-        inner.setColor(1f, 1f, 1f, 0.5f);
-        mgScene.attachChild(inner);
+        float scale = getObjectScale();
 
         EditorObjectSprite spr = new EditorObjectSprite();
-        spr.sprite = circle;
         spr.objectIndex = index;
         spr.startTime = startTime;
-        spr.allEntities.add(outline);
+
+        // Approach circle
+        Sprite approach = new Sprite(0, 0, ResourceManager.getInstance().getTexture("approachcircle"));
+        approach.setScale(scale * 2);
+        approach.setColor(color.r(), color.g(), color.b());
+        Utils.putSpriteAnchorCenter(x, y, approach);
+        mgScene.attachChild(approach);
+        spr.allEntities.add(approach);
+
+        // Hit circle body
+        Sprite circle = new Sprite(0, 0, ResourceManager.getInstance().getTexture("hitcircle"));
+        circle.setScale(scale);
+        circle.setColor(color.r(), color.g(), color.b());
+        Utils.putSpriteAnchorCenter(x, y, circle);
+        mgScene.attachChild(circle);
+        spr.sprite = circle;
         spr.allEntities.add(circle);
-        spr.allEntities.add(inner);
+
+        // Overlay
+        Sprite overlay = new Sprite(0, 0, ResourceManager.getInstance().getTexture("hitcircleoverlay"));
+        overlay.setScale(scale);
+        Utils.putSpriteAnchorCenter(x, y, overlay);
+        mgScene.attachChild(overlay);
+        spr.allEntities.add(overlay);
+
         objectSprites.add(spr);
     }
 
     private void renderSlider(float x, float y, Slider slider, RGBColor color, int index,
                               float scaleX, float scaleY) {
         SliderPath path = slider.getPath();
+        float scale = getObjectScale();
+
         EditorObjectSprite spr = new EditorObjectSprite();
         spr.objectIndex = index;
         spr.startTime = (float) slider.getStartTime();
 
         ArrayList<Vector2> calculatedPath = path.calculatedPath;
-        float bodyRadius = getCircleRadius() * 0.35f;
-        float outlineRadius = bodyRadius + 2f;
 
-        // Render slider body as overlapping circles along the path
+        // Slider body as overlapping circles along the path
         for (int i = 0; i < calculatedPath.size(); i++) {
             Vector2 p = calculatedPath.get(i);
             float sx = playfieldOffsetX + (float) p.x * scaleX;
             float sy = playfieldOffsetY + (float) p.y * scaleY;
 
-            // White outline circle
-            Rectangle outlineDot = new Rectangle(sx - outlineRadius, sy - outlineRadius,
-                    outlineRadius * 2, outlineRadius * 2);
-            outlineDot.setColor(1f, 1f, 1f, 0.8f);
-            mgScene.attachChild(outlineDot);
-            spr.allEntities.add(outlineDot);
-
-            // Colored body circle
-            Rectangle bodyDot = new Rectangle(sx - bodyRadius, sy - bodyRadius,
-                    bodyRadius * 2, bodyRadius * 2);
-            bodyDot.setColor(color.r(), color.g(), color.b(), 0.85f);
-            mgScene.attachChild(bodyDot);
-            spr.bodySegments.add(bodyDot);
-            spr.allEntities.add(bodyDot);
+            Sprite dot = new Sprite(0, 0, ResourceManager.getInstance().getTexture("hitcircle"));
+            dot.setScale(scale * 0.35f);
+            dot.setColor(color.r(), color.g(), color.b());
+            dot.setAlpha(0.85f);
+            Utils.putSpriteAnchorCenter(sx, sy, dot);
+            mgScene.attachChild(dot);
+            spr.bodySegments.add(dot);
+            spr.allEntities.add(dot);
         }
 
-        // Head circle with outline
-        float radius = getCircleRadius() * 0.6f;
-        float headOutlineRadius = radius + 2f;
-        Rectangle headOutline = new Rectangle(x - headOutlineRadius, y - headOutlineRadius, headOutlineRadius * 2, headOutlineRadius * 2);
-        headOutline.setColor(1f, 1f, 1f);
-        mgScene.attachChild(headOutline);
-        spr.allEntities.add(headOutline);
-
-        Rectangle startCircle = new Rectangle(x - radius, y - radius, radius * 2, radius * 2);
+        // Head circle
+        Sprite startCircle = new Sprite(0, 0, ResourceManager.getInstance().getTexture("sliderstartcircle"));
+        startCircle.setScale(scale);
         startCircle.setColor(color.r(), color.g(), color.b());
+        Utils.putSpriteAnchorCenter(x, y, startCircle);
         mgScene.attachChild(startCircle);
         spr.sprite = startCircle;
         spr.allEntities.add(startCircle);
 
-        // End circle with outline
+        Sprite startOverlay = new Sprite(0, 0, ResourceManager.getInstance().getTexture("sliderstartcircleoverlay"));
+        startOverlay.setScale(scale);
+        Utils.putSpriteAnchorCenter(x, y, startOverlay);
+        mgScene.attachChild(startOverlay);
+        spr.allEntities.add(startOverlay);
+
+        // End circle
         Vector2 endPos = slider.getStackedEndPosition();
         float endX = playfieldOffsetX + (float) endPos.x * scaleX;
         float endY = playfieldOffsetY + (float) endPos.y * scaleY;
-        Rectangle endOutline = new Rectangle(endX - headOutlineRadius, endY - headOutlineRadius, headOutlineRadius * 2, headOutlineRadius * 2);
-        endOutline.setColor(1f, 1f, 1f, 0.7f);
-        mgScene.attachChild(endOutline);
-        spr.allEntities.add(endOutline);
 
-        Rectangle endCircle = new Rectangle(endX - radius, endY - radius, radius * 2, radius * 2);
-        endCircle.setColor(color.r(), color.g(), color.b(), 0.7f);
+        Sprite endCircle = new Sprite(0, 0, ResourceManager.getInstance().getTexture("sliderendcircle"));
+        endCircle.setScale(scale);
+        endCircle.setColor(color.r(), color.g(), color.b());
+        Utils.putSpriteAnchorCenter(endX, endY, endCircle);
         mgScene.attachChild(endCircle);
         spr.endSprite = endCircle;
         spr.allEntities.add(endCircle);
+
+        Sprite endOverlay = new Sprite(0, 0, ResourceManager.getInstance().getTexture("sliderendcircleoverlay"));
+        endOverlay.setScale(scale);
+        Utils.putSpriteAnchorCenter(endX, endY, endOverlay);
+        mgScene.attachChild(endOverlay);
+        spr.allEntities.add(endOverlay);
+
+        // Repeat arrows
+        int repeatCount = slider.getRepeatCount();
+        if (repeatCount > 1 && calculatedPath.size() >= 2) {
+            for (int r = 1; r < repeatCount; r++) {
+                float t = (float) r / repeatCount;
+                int pathIdx = (int) (t * (calculatedPath.size() - 1));
+                pathIdx = Math.max(0, Math.min(pathIdx, calculatedPath.size() - 1));
+                Vector2 rp = calculatedPath.get(pathIdx);
+                float rsx = playfieldOffsetX + (float) rp.x * scaleX;
+                float rsy = playfieldOffsetY + (float) rp.y * scaleY;
+
+                Sprite arrow = new Sprite(0, 0, ResourceManager.getInstance().getTexture("reversearrow"));
+                arrow.setScale(scale);
+                arrow.setColor(color.r(), color.g(), color.b());
+                Utils.putSpriteAnchorCenter(rsx, rsy, arrow);
+                mgScene.attachChild(arrow);
+                spr.allEntities.add(arrow);
+            }
+        }
 
         objectSprites.add(spr);
     }
@@ -1067,23 +1103,42 @@ public class EditorScene implements IUpdateHandler {
     private void renderSpinner(RGBColor color, int index, float startTime) {
         float cx = playfieldOffsetX + playfieldWidth / 2f;
         float cy = playfieldOffsetY + playfieldHeight / 2f;
-        float radius = Math.min(playfieldWidth, playfieldHeight) * 0.3f;
-
-        // Outline
-        Rectangle outlineCircle = new Rectangle(cx - radius - 2, cy - radius - 2, (radius + 2) * 2, (radius + 2) * 2);
-        outlineCircle.setColor(1f, 1f, 1f, 0.6f);
-        mgScene.attachChild(outlineCircle);
-
-        Rectangle spinnerCircle = new Rectangle(cx - radius, cy - radius, radius * 2, radius * 2);
-        spinnerCircle.setColor(color.r(), color.g(), color.b(), 0.4f);
-        mgScene.attachChild(spinnerCircle);
+        float scale = getObjectScale();
 
         EditorObjectSprite spr = new EditorObjectSprite();
-        spr.sprite = spinnerCircle;
         spr.objectIndex = index;
         spr.startTime = startTime;
-        spr.allEntities.add(outlineCircle);
-        spr.allEntities.add(spinnerCircle);
+
+        // Spinner background
+        Sprite bg = new Sprite(0, 0, ResourceManager.getInstance().getTexture("spinner-background"));
+        bg.setScale(playfieldHeight / bg.getHeight());
+        Utils.putSpriteAnchorCenter(cx, cy, bg);
+        mgScene.attachChild(bg);
+        spr.allEntities.add(bg);
+
+        // Spinner approach circle
+        Sprite approach = new Sprite(0, 0, ResourceManager.getInstance().getTexture("spinner-approachcircle"));
+        approach.setScale(scale * 3);
+        approach.setColor(color.r(), color.g(), color.b());
+        Utils.putSpriteAnchorCenter(cx, cy, approach);
+        mgScene.attachChild(approach);
+        spr.allEntities.add(approach);
+
+        // Spinner circle
+        Sprite circle = new Sprite(0, 0, ResourceManager.getInstance().getTexture("spinner-circle"));
+        circle.setScale(scale);
+        Utils.putSpriteAnchorCenter(cx, cy, circle);
+        mgScene.attachChild(circle);
+        spr.sprite = circle;
+        spr.allEntities.add(circle);
+
+        // Spin text
+        Sprite spinText = new Sprite(0, 0, ResourceManager.getInstance().getTexture("spinner-spin"));
+        spinText.setScale(scale * 0.8f);
+        Utils.putSpriteAnchorCenter(cx, cy * 1.5f, spinText);
+        mgScene.attachChild(spinText);
+        spr.allEntities.add(spinText);
+
         objectSprites.add(spr);
     }
 
@@ -1410,13 +1465,9 @@ public class EditorScene implements IUpdateHandler {
     private void highlightObject(int index) {
         for (EditorObjectSprite spr : objectSprites) {
             if (spr.sprite != null) {
-                if (selectedObjects.contains(spr.objectIndex)) {
-                    spr.sprite.setAlpha(1.0f);
-                    spr.sprite.setColor(1f, 1f, 0.5f);
-                } else if (spr.objectIndex == index) {
-                    spr.sprite.setAlpha(1.0f);
-                } else {
-                    spr.sprite.setAlpha(1.0f);
+                spr.sprite.setAlpha(1.0f);
+                if (spr.sprite instanceof Shape && selectedObjects.contains(spr.objectIndex)) {
+                    ((Shape) spr.sprite).setColor(1f, 1f, 0.5f);
                 }
             }
         }
@@ -1489,11 +1540,6 @@ public class EditorScene implements IUpdateHandler {
     private String formatTime(float ms) {
         int totalSec = (int) (ms / 1000);
         return String.format("%02d:%02d.%03d", totalSec / 60, totalSec % 60, (int) (ms % 1000));
-    }
-
-    private float getCircleRadius() {
-        float cs = beatmapData != null ? beatmapData.difficulty.cs : 5;
-        return playfieldWidth / 16f * (5f / cs);
     }
 
     private ArrayList<RGBColor> getDefaultCombos() {
@@ -1589,10 +1635,10 @@ public class EditorScene implements IUpdateHandler {
     }
 
     private static class EditorObjectSprite {
-        Rectangle sprite;
-        Rectangle endSprite;
-        ArrayList<Rectangle> bodySegments = new ArrayList<>();
-        ArrayList<Rectangle> allEntities = new ArrayList<>();
+        Entity sprite;
+        Entity endSprite;
+        ArrayList<Entity> bodySegments = new ArrayList<>();
+        ArrayList<Entity> allEntities = new ArrayList<>();
         int objectIndex;
         float startTime;
     }
@@ -1847,6 +1893,15 @@ public class EditorScene implements IUpdateHandler {
         stop();
         GlobalManager manager = GlobalManager.getInstance();
         hideToolbar();
+        // Dismiss any open editor overlays (settings, metadata, etc.)
+        androidx.fragment.app.Fragment topOverlay;
+        while ((topOverlay = com.edlplan.ui.ActivityOverlay.getTopOverlay()) != null) {
+            if (topOverlay instanceof com.edlplan.ui.fragment.BackPressListener) {
+                ((com.edlplan.ui.fragment.BackPressListener) topOverlay).callDismissOnBackPress();
+            } else {
+                break;
+            }
+        }
         manager.setEditorScene(null);
         if (manager.getSongMenu() != null) {
             manager.getSongMenu().isEditorMode = true;

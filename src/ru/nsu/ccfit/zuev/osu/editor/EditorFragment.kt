@@ -6,8 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.edlplan.ui.ActivityOverlay
+import com.edlplan.ui.fragment.BackPressListener
 
-open class EditorFragment : Fragment() {
+open class EditorFragment : Fragment(), BackPressListener {
 
     var editorScene: EditorScene? = null
         private set
@@ -23,11 +24,11 @@ open class EditorFragment : Fragment() {
         ActivityOverlay.addOverlay(this, tag)
     }
 
+    override fun callDismissOnBackPress() {
+        dismiss()
+    }
+
     open fun dismiss() {
-        if (isAdded) {
-            activity?.supportFragmentManager?.let { fm ->
-                fm.beginTransaction().remove(this).commitAllowingStateLoss()
-            }
-        }
+        ActivityOverlay.dismissOverlay(this)
     }
 }
