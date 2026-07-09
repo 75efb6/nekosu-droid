@@ -58,7 +58,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginRight="12dp"
-            android:layout_toLeftOf="@id/refresh"
+            android:layout_toLeftOf="@id/sort_button"
             android:indeterminate="true"
             app:indicatorColor="#FFF"
             app:indicatorSize="20dp"
@@ -81,6 +81,42 @@
             android:text="Retry"
             android:textAllCaps="false"
             android:textColor="#FFF" />
+
+        <Button
+            android:id="@+id/sort_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="8dp"
+            android:layout_toLeftOf="@id/refresh"
+            android:background="@drawable/rounded_rect"
+            android:backgroundTint="#363653"
+            android:drawableLeft="@drawable/sort_24px"
+            android:drawablePadding="6dp"
+            android:drawableTint="#FFF"
+            android:paddingHorizontal="12dp"
+            android:text="Relevance"
+            android:textAllCaps="false"
+            android:textColor="#FFF"
+            android:textSize="12dp" />
+
+        <Button
+            android:id="@+id/filter_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="8dp"
+            android:layout_toLeftOf="@id/sort_button"
+            android:background="@drawable/rounded_rect"
+            android:backgroundTint="#363653"
+            android:drawableLeft="@drawable/filter_list_24px"
+            android:drawablePadding="6dp"
+            android:drawableTint="#FFF"
+            android:paddingHorizontal="12dp"
+            android:text="Filter"
+            android:textAllCaps="false"
+            android:textColor="#FFF"
+            android:textSize="12dp" />
 
     </RelativeLayout>
 

@@ -21,6 +21,8 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.NumberPicker
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
 import androidx.core.text.buildSpannedString
@@ -88,6 +90,13 @@ class BeatmapListing : BaseFragment(),
 
     private var offset = 0
 
+    private var selectedSort = SortOption.RELEVANCE
+    private var selectedStatus = StatusFilter.ALL
+    private var selectedMinStars = 0.0
+    private var selectedMaxStars = 0.0
+    private var selectedMinBpm = 0.0
+    private var selectedMaxBpm = 0.0
+
 
     private lateinit var indicator: CircularProgressIndicator
 
@@ -96,6 +105,10 @@ class BeatmapListing : BaseFragment(),
     private lateinit var retryButton: Button
 
     private lateinit var searchBox: EditText
+
+    private lateinit var sortButton: Button
+
+    private lateinit var filterButton: Button
 
 
     init {
@@ -127,6 +140,12 @@ class BeatmapListing : BaseFragment(),
         searchBox.setOnKeyListener(this)
 
         indicator = findViewById(R.id.indicator)!!
+
+        sortButton = findViewById(R.id.sort_button)!!
+        sortButton.setOnClickListener { showSortMenu(it) }
+
+        filterButton = findViewById(R.id.filter_button)!!
+        filterButton.setOnClickListener { showFilterDialog() }
 
         val imageView = findViewById<ImageView>(R.id.logo)
         imageView?.setOnClickListener {
@@ -196,6 +215,34 @@ class BeatmapListing : BaseFragment(),
                     put("mode", 0)
                     put("query", searchBox.text)
                     put("offset", offset)
+                    put("amount", 50)
+
+                    if (selectedSort != SortOption.RELEVANCE) {
+                        put("sort", selectedSort.apiValue)
+                    }
+
+                    if (selectedStatus != StatusFilter.ALL) {
+                        put("status", selectedStatus.apiValue)
+                    }
+
+                    val filterParts = mutableListOf<String>()
+
+                    if (selectedMinStars > 0) {
+                        filterParts.add("stars >= $selectedMinStars")
+                    }
+                    if (selectedMaxStars > 0) {
+                        filterParts.add("stars <= $selectedMaxStars")
+                    }
+                    if (selectedMinBpm > 0) {
+                        filterParts.add("bpm >= $selectedMinBpm")
+                    }
+                    if (selectedMaxBpm > 0) {
+                        filterParts.add("bpm <= $selectedMaxBpm")
+                    }
+
+                    if (filterParts.isNotEmpty()) {
+                        put("filter", filterParts.joinToString(" AND "))
+                    }
                 }
 
                 val beatmapSets = mirror.search.mapResponse(request.executeAndGetJson().toArray()!!)
@@ -209,6 +256,143 @@ class BeatmapListing : BaseFragment(),
 
             pendingRequest = null
         }
+    }
+
+    private fun showSortMenu(anchor: View) {
+        val popup = PopupMenu(requireContext(), anchor)
+        SortOption.entries.forEachIndexed { index, option ->
+            popup.menu.add(0, index, 0, option.displayName)
+        }
+        popup.setOnMenuItemClickListener { item ->
+            selectedSort = SortOption.entries[item.itemId]
+            sortButton.text = selectedSort.displayName
+            search(false)
+            true
+        }
+        popup.show()
+    }
+
+    private fun showFilterDialog() {
+        val context = requireContext()
+        val builder = android.app.AlertDialog.Builder(context)
+        builder.setTitle("Filters")
+
+        val layout = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val pad = (16 * resources.displayMetrics.density).toInt()
+            setPadding(pad, pad, pad, pad)
+        }
+
+        // Status filter
+        layout.addView(TextView(context).apply {
+            text = "Status"
+            setTextColor(0xFFFFFFFF.toInt())
+            textSize = 14f
+        })
+
+        val statusNames = StatusFilter.entries.map { it.displayName }.toTypedArray()
+        val statusChecked = StatusFilter.entries.indexOf(selectedStatus)
+        var tempStatus = selectedStatus
+        val statusSpinner = android.widget.Spinner(context).apply {
+            adapter = android.widget.ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, statusNames)
+            setSelection(statusChecked)
+            onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, pos: Int, id: Long) {
+                    tempStatus = StatusFilter.entries[pos]
+                }
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+            }
+        }
+        layout.addView(statusSpinner)
+
+        // Star rating range
+        layout.addView(TextView(context).apply {
+            text = "\nStar Rating (min - max)"
+            setTextColor(0xFFFFFFFF.toInt())
+            textSize = 14f
+        })
+
+        val starsLayout = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+
+        var tempMinStars = selectedMinStars
+        var tempMaxStars = selectedMaxStars
+
+        val minStarsPicker = NumberPicker(context).apply {
+            minValue = 0
+            maxValue = 100
+            value = (selectedMinStars * 10).toInt()
+            setOnValueChangedListener { _, _, newVal -> tempMinStars = newVal / 10.0 }
+        }
+        val maxStarsPicker = NumberPicker(context).apply {
+            minValue = 0
+            maxValue = 100
+            value = if (selectedMaxStars == 0.0) 100 else (selectedMaxStars * 10).toInt()
+            setOnValueChangedListener { _, _, newVal -> tempMaxStars = if (newVal >= 100) 0.0 else newVal / 10.0 }
+        }
+
+        starsLayout.addView(minStarsPicker, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        starsLayout.addView(TextView(context).apply { text = " - "; setTextColor(0xFFFFFFFF.toInt()) })
+        starsLayout.addView(maxStarsPicker, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        layout.addView(starsLayout)
+
+        // BPM range
+        layout.addView(TextView(context).apply {
+            text = "\nBPM (min - max)"
+            setTextColor(0xFFFFFFFF.toInt())
+            textSize = 14f
+        })
+
+        val bpmLayout = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+
+        var tempMinBpm = selectedMinBpm
+        var tempMaxBpm = selectedMaxBpm
+
+        val minBpmPicker = NumberPicker(context).apply {
+            minValue = 0
+            maxValue = 500
+            value = selectedMinBpm.toInt()
+            setOnValueChangedListener { _, _, newVal -> tempMinBpm = newVal.toDouble() }
+        }
+        val maxBpmPicker = NumberPicker(context).apply {
+            minValue = 0
+            maxValue = 500
+            value = if (selectedMaxBpm == 0.0) 500 else selectedMaxBpm.toInt()
+            setOnValueChangedListener { _, _, newVal -> tempMaxBpm = if (newVal >= 500) 0.0 else newVal.toDouble() }
+        }
+
+        bpmLayout.addView(minBpmPicker, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        bpmLayout.addView(TextView(context).apply { text = " - "; setTextColor(0xFFFFFFFF.toInt()) })
+        bpmLayout.addView(maxBpmPicker, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        layout.addView(bpmLayout)
+
+        builder.setView(layout)
+
+        builder.setPositiveButton("Apply") { _, _ ->
+            selectedStatus = tempStatus
+            selectedMinStars = tempMinStars
+            selectedMaxStars = tempMaxStars
+            selectedMinBpm = tempMinBpm
+            selectedMaxBpm = tempMaxBpm
+            search(false)
+        }
+
+        builder.setNegativeButton("Cancel", null)
+        builder.setNeutralButton("Reset") { _, _ ->
+            selectedStatus = StatusFilter.ALL
+            selectedMinStars = 0.0
+            selectedMaxStars = 0.0
+            selectedMinBpm = 0.0
+            selectedMaxBpm = 0.0
+            search(false)
+        }
+
+        builder.show()
     }
 
     fun stopPreviews(shouldResumeMusic: Boolean) {
@@ -603,7 +787,9 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
 
             try {
 
-                previewStream = URLBassStream(BeatmapListing.mirror.previewEndpoint(beatmapSet.beatmaps[0].id)) {
+                val previewUrl = BeatmapListing.mirror.previewEndpoint(beatmapSet.beatmaps[0].id)
+
+                previewStream = URLBassStream(previewUrl) {
                     stopPreview(true)
 
                     if (BeatmapListing.isPlayingMusic) {
@@ -624,8 +810,16 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
                     detailsFragment?.previewButton?.setCompoundDrawablesWithIntrinsicBounds(R.drawable.pause_24px, 0, 0, 0)
                 }
 
+            } catch (e: IllegalStateException) {
+                Log.e("BeatmapListing", "BASS stream creation failed (error code: ${com.un4seen.bass.BASS.BASS_ErrorGetCode()})", e)
+                mainThread {
+                    ToastLogger.showText("Failed to load preview: audio stream unavailable", true)
+                }
             } catch (e: Exception) {
                 Log.e("BeatmapListing", "Failed to load preview", e)
+                mainThread {
+                    ToastLogger.showText("Failed to load preview", true)
+                }
             }
 
             previewJob = null
