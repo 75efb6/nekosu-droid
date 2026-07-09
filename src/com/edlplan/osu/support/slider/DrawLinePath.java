@@ -4,6 +4,7 @@ import com.edlplan.andengine.TriangleBuilder;
 import com.edlplan.framework.math.FMath;
 import com.edlplan.framework.math.Vec2;
 import com.edlplan.framework.math.line.AbstractPath;
+import com.edlplan.framework.math.line.LinePath;
 
 public class DrawLinePath {
     private static final int MAXRES = 24;
@@ -27,6 +28,11 @@ public class DrawLinePath {
     private float[] segNormX;
     private float[] segNormY;
     private int structureSize;
+
+    // Per-segment vertex offsets — records TriangleBuilder.length before each segment's quads.
+    // Used by prefix reuse: during snake-in, copy vertices[0..segQuadStartOffset[boundary]]
+    // then rebuild only the boundary segment + end cap.
+    private int[] segQuadStartOffset;
 
     private TriangleBuilder triangles;
     private AbstractPath path;
@@ -58,6 +64,7 @@ public class DrawLinePath {
                 segTheta = new float[segs];
                 segNormX = new float[segs];
                 segNormY = new float[segs];
+                segQuadStartOffset = new int[segs];
             }
             Vec2 a = p.get(0);
             for (int i = 0; i < segs; i++) {
@@ -90,6 +97,46 @@ public class DrawLinePath {
         triangles = builder;
         init();
         return builder;
+    }
+
+    // -------------------------------------------------------------------------
+    // Prefix reuse API — for snaking optimization
+    // -------------------------------------------------------------------------
+
+    /**
+     * Gets the vertex offset where segment segIdx's quads start in the TriangleBuilder.
+     * This is the TriangleBuilder.length recorded just before addLineQuads(segIdx, ...) is called.
+     * Use this to copy prefix vertices during snake-in: vertices[0..segQuadStartOffset[boundary]]
+     * includes start cap + all segments before boundary + all joint caps before boundary.
+     */
+    public int getSegmentQuadStartOffset(int segIdx) {
+        return segQuadStartOffset != null && segIdx < segQuadStartOffset.length
+                ? segQuadStartOffset[segIdx] : 0;
+    }
+
+    /**
+     * Builds only the boundary segment's partial quad + end cap for snake-in rendering.
+     * The prefix vertices (start cap + segments before boundary + joint caps) should be
+     * copied from a cached full-path build, then this method appends the boundary geometry.
+     *
+     * @param width         the body/border/hint width
+     * @param builder       the TriangleBuilder to append to (prefix already copied)
+     * @param boundarySegIdx  the segment index where the boundary falls
+     * @param boundaryPoint   the interpolated boundary point on that segment
+     * @param segStartPoint   the start of the boundary segment (path.get(boundarySegIdx))
+     */
+    public void buildBoundarySuffix(float width, TriangleBuilder builder,
+                                     int boundarySegIdx, Vec2 boundaryPoint,
+                                     Vec2 segStartPoint) {
+        this.width = width;
+        this.triangles = builder;
+
+        // Partial quad from segment start to boundary point
+        addLineQuads(boundarySegIdx, segStartPoint, boundaryPoint);
+
+        // End cap at boundary point, perpendicular to segment direction
+        float theta = segTheta[boundarySegIdx];
+        addLineCap(boundaryPoint, theta - FMath.PiHalf, FMath.Pi);
     }
 
     // -------------------------------------------------------------------------
@@ -127,7 +174,7 @@ public class DrawLinePath {
         builder.length = 0;
         triangles = builder;
         init();
-        return builder;
+        return triangles;
     }
 
     // -------------------------------------------------------------------------
@@ -187,7 +234,14 @@ public class DrawLinePath {
      * Adds a rectangular quad strip for segment segIdx using precomputed normals.
      * Avoids calling lineOthNormal (which involves a sqrt) on every width pass.
      */
+    private static final float DEGENERATE_LENGTH_SQ = 1e-6f;
+
     private void addLineQuads(int segIdx, Vec2 ps, Vec2 pe) {
+        float dx = pe.x - ps.x;
+        float dy = pe.y - ps.y;
+        if (dx * dx + dy * dy < DEGENERATE_LENGTH_SQ) {
+            return;
+        }
         float nx = segNormX[segIdx] * width;
         float ny = segNormY[segIdx] * width;
 
@@ -217,6 +271,7 @@ public class DrawLinePath {
         Vec2 next = path.get(1);
         float theta = segTheta[0];
         addLineCap(prev, theta + FMath.PiHalf, FMath.Pi);
+        segQuadStartOffset[0] = triangles.length;
         addLineQuads(0, prev, next);
 
         if (n == 2) {
@@ -230,6 +285,7 @@ public class DrawLinePath {
             next = path.get(i + 1);
             float nextTheta = segTheta[i];
             addLineCap(prev, preTheta - FMath.PiHalf, nextTheta - preTheta);
+            segQuadStartOffset[i] = triangles.length;
             addLineQuads(i, prev, next);
             preTheta = nextTheta;
         }

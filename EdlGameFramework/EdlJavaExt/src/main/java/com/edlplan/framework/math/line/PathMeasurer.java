@@ -94,6 +94,15 @@ public class PathMeasurer {
     }
 
     /**
+     * Gets the cumulative length at point index i.
+     */
+    public float getLengthAt(int index) {
+        if (index < 0) return 0;
+        if (index >= lengthes.size()) return maxLength();
+        return lengthes.get(index).value;
+    }
+
+    /**
      *
      */
     public Vec2 atLength(float l) {

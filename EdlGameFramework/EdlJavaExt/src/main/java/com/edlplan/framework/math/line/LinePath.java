@@ -93,6 +93,20 @@ public class LinePath implements AbstractPath {
         return new SubLinePathLR(startPoint, endPoint, s, e).fitToLinePath();
     }
 
+    /**
+     * Returns a lightweight virtual view of the path between start and end lengths
+     * without copying to a new LinePath. The returned view references this path's
+     * points directly, so it is only valid while this LinePath is not modified.
+     * Use this with DrawLinePath.prepareForPath() to avoid intermediate allocation.
+     */
+    public AbstractPath cutPathView(float start, float end) {
+        int s = measurer.binarySearch(start) + 1;
+        int e = measurer.binarySearch(end);
+        Vec2 startPoint = measurer.atLength(start);
+        Vec2 endPoint = measurer.atLength(end);
+        return new SubLinePathLR(startPoint, endPoint, s, e);
+    }
+
     public class SubLinePath implements AbstractPath {
 
         private int startIndex;
