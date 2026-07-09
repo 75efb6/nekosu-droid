@@ -82,15 +82,12 @@ public class BeatmapHitObjectsParser extends BeatmapSectionParser {
 
             int colon = sliderData.indexOf(':', start);
             if (colon > 0 && colon < pipe) {
-                int colon2 = sliderData.indexOf(':', colon + 1);
-                if (colon2 > 0 && colon2 < pipe) {
-                    Vector2 curvePointPosition = new Vector2(
-                            (int) parseFloat(sliderData.substring(start, colon)),
-                            (int) parseFloat(sliderData.substring(colon + 1, pipe))
-                    );
-                    curvePoints.add(curvePointPosition.subtract(position));
-                    pointCount++;
-                }
+                Vector2 curvePointPosition = new Vector2(
+                        (int) parseFloat(sliderData.substring(start, colon)),
+                        (int) parseFloat(sliderData.substring(colon + 1, pipe))
+                );
+                curvePoints.add(curvePointPosition.subtract(position));
+                pointCount++;
             }
 
             start = pipe + 1;
