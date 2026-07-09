@@ -354,22 +354,36 @@ public class Slider extends GameObject {
         if (!path.points.isEmpty()) {
             superPath = new LinePath();
 
-            // Distance threshold: skip points that are too close together
+            // Distance threshold: skip points that are too close together.
             // Reduces triangulation cost without visible quality loss.
-            // 6px threshold for curved paths (bezier/catmull), 32px for linear.
-            float distThreshold = (path.points.size() > 2) ? 6f : 32f;
+            // Adaptively increase threshold for extreme slider point counts to
+            // prevent OOM (aspire maps with 100K+ interpolated points).
+            int sourceSize = path.points.size();
+            float distThreshold;
+            if (sourceSize > 10000) {
+                distThreshold = 32f;
+            } else if (sourceSize > 2000) {
+                distThreshold = 12f;
+            } else if (sourceSize > 2) {
+                distThreshold = 6f;
+            } else {
+                distThreshold = 32f;
+            }
+            float distThresholdSq = distThreshold * distThreshold;
+
             Vec2 lastAdded = null;
             for (PointF p : path.points) {
                 Vec2 v = new Vec2(p.x, p.y);
-                if (lastAdded == null || Vec2.lengthSquared(lastAdded, v) >= distThreshold * distThreshold) {
+                if (lastAdded == null || Vec2.lengthSquared(lastAdded, v) >= distThresholdSq) {
                     superPath.add(v);
                     lastAdded = v;
                 }
             }
+
             // Ensure last point is always included
             Vec2 lastPoint = new Vec2(
-                    path.points.get(path.points.size() - 1).x,
-                    path.points.get(path.points.size() - 1).y);
+                    path.points.get(sourceSize - 1).x,
+                    path.points.get(sourceSize - 1).y);
             if (lastAdded == null || Vec2.lengthSquared(lastAdded, lastPoint) > 0.01f) {
                 superPath.add(lastPoint);
             }

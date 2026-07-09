@@ -40,6 +40,10 @@ public class SliderBody2D extends AbstractSliderBody {
 
     private static final float SNAKE_LENGTH_THRESHOLD = 0.75f;
 
+    // Maximum vertex count per cached layer (~2MB). Prevents OOM on extreme sliders
+    // (e.g. aspire maps with 100K+ control points) while still caching normal sliders.
+    private static final int MAX_CACHED_VERTICES = 512 * 1024;
+
     // Prefix reuse cache — stores full-path vertex data to avoid per-frame rebuild during snaking.
     private float[] cachedBodyVertices;
     private float[] cachedBorderVertices;
@@ -350,6 +354,11 @@ public class SliderBody2D extends AbstractSliderBody {
     }
 
     private void cacheBodyVertices(FloatArraySlice vertices) {
+        if (vertices.length > MAX_CACHED_VERTICES) {
+            cachedBodyVertices = null;
+            cachedBodyLength = 0;
+            return;
+        }
         if (cachedBodyVertices == null || cachedBodyVertices.length < vertices.length) {
             cachedBodyVertices = new float[vertices.length];
         }
@@ -358,6 +367,11 @@ public class SliderBody2D extends AbstractSliderBody {
     }
 
     private void cacheBorderVertices(FloatArraySlice vertices) {
+        if (vertices.length > MAX_CACHED_VERTICES) {
+            cachedBorderVertices = null;
+            cachedBorderLength = 0;
+            return;
+        }
         if (cachedBorderVertices == null || cachedBorderVertices.length < vertices.length) {
             cachedBorderVertices = new float[vertices.length];
         }
@@ -366,6 +380,11 @@ public class SliderBody2D extends AbstractSliderBody {
     }
 
     private void cacheHintVertices(FloatArraySlice vertices) {
+        if (vertices.length > MAX_CACHED_VERTICES) {
+            cachedHintVertices = null;
+            cachedHintLength = 0;
+            return;
+        }
         if (cachedHintVertices == null || cachedHintVertices.length < vertices.length) {
             cachedHintVertices = new float[vertices.length];
         }
