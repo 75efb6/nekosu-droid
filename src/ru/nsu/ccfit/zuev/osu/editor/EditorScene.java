@@ -248,17 +248,34 @@ public class EditorScene implements IUpdateHandler {
         showToolbar();
     }
 
+    private static final float TOOLBAR_HEIGHT = 320f;
+
     private void calculatePlayfield() {
         Camera camera = engine.getCamera();
+        float camWidth = camera.getWidth();
+        float camHeight = camera.getHeight();
         float resH = Config.getRES_HEIGHT();
-        playfieldHeight = resH > 0 ? resH * 0.85f : Constants.MAP_ACTUAL_HEIGHT;
+
+        // Reserve space: top for timeline (~90) + toolbar overlay (~250), bottom for playback controls (~60)
+        float topMargin = WAVEFORM_HEIGHT + 30 + TOOLBAR_HEIGHT;
+        float bottomMargin = 70f;
+        float availableHeight = camHeight - topMargin - bottomMargin;
+
+        playfieldHeight = resH > 0 ? Math.min(resH * 0.85f, availableHeight) : availableHeight;
         playfieldWidth = playfieldHeight / 3f * 4f;
-        if (playfieldWidth <= 0 || playfieldHeight <= 0) {
-            playfieldWidth = camera.getWidth() * 0.8f;
+
+        if (playfieldWidth > camWidth * 0.95f) {
+            playfieldWidth = camWidth * 0.95f;
             playfieldHeight = playfieldWidth * 3f / 4f;
         }
-        playfieldOffsetX = (camera.getWidth() - playfieldWidth) / 2f;
-        playfieldOffsetY = (camera.getHeight() - playfieldHeight) / 2f;
+
+        if (playfieldWidth <= 0 || playfieldHeight <= 0) {
+            playfieldWidth = camWidth * 0.8f;
+            playfieldHeight = playfieldWidth * 3f / 4f;
+        }
+
+        playfieldOffsetX = (camWidth - playfieldWidth) / 2f;
+        playfieldOffsetY = topMargin + (availableHeight - playfieldHeight) / 2f;
     }
 
     private void createPlayfield() {
@@ -403,14 +420,15 @@ public class EditorScene implements IUpdateHandler {
     private void createPlaybackControls() {
         float camWidth = engine.getCamera().getWidth();
         float controlsY = WAVEFORM_HEIGHT + 35;
-        float btnSize = 40;
-        float spacing = 8;
+        float btnSize = 50;
+        float btnHeight = btnSize * 0.6f;
+        float spacing = 10;
         float totalWidth = btnSize * 8 + spacing * 7;
         float startX = (camWidth - totalWidth) / 2f;
         Font font = getFont();
 
         // Back
-        Rectangle backBtn = new Rectangle(startX, controlsY, btnSize, btnSize * 0.6f) {
+        Rectangle backBtn = new Rectangle(startX, controlsY, btnSize, btnHeight) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.8f, 0.3f, 0.3f); return true; }
                 if (t.isActionUp()) { setColor(0.6f, 0.2f, 0.2f); back(); return true; }
@@ -421,7 +439,7 @@ public class EditorScene implements IUpdateHandler {
         fgScene.attachChild(backBtn); scene.registerTouchArea(backBtn);
 
         // Play
-        Rectangle playBtn = new Rectangle(startX + (btnSize + spacing), controlsY, btnSize, btnSize * 0.6f) {
+        Rectangle playBtn = new Rectangle(startX + (btnSize + spacing), controlsY, btnSize, btnHeight) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.4f, 0.7f, 0.4f); return true; }
                 if (t.isActionUp()) { setColor(0.3f, 0.5f, 0.3f); play(); return true; }
@@ -432,7 +450,7 @@ public class EditorScene implements IUpdateHandler {
         fgScene.attachChild(playBtn); scene.registerTouchArea(playBtn);
 
         // Pause
-        Rectangle pauseBtn = new Rectangle(startX + (btnSize + spacing) * 2, controlsY, btnSize, btnSize * 0.6f) {
+        Rectangle pauseBtn = new Rectangle(startX + (btnSize + spacing) * 2, controlsY, btnSize, btnHeight) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.7f, 0.7f, 0.3f); return true; }
                 if (t.isActionUp()) { setColor(0.5f, 0.5f, 0.2f); pause(); return true; }
@@ -443,7 +461,7 @@ public class EditorScene implements IUpdateHandler {
         fgScene.attachChild(pauseBtn); scene.registerTouchArea(pauseBtn);
 
         // Stop
-        Rectangle stopBtn = new Rectangle(startX + (btnSize + spacing) * 3, controlsY, btnSize, btnSize * 0.6f) {
+        Rectangle stopBtn = new Rectangle(startX + (btnSize + spacing) * 3, controlsY, btnSize, btnHeight) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.7f, 0.3f, 0.3f); return true; }
                 if (t.isActionUp()) { setColor(0.5f, 0.2f, 0.2f); stop(); return true; }
@@ -454,7 +472,7 @@ public class EditorScene implements IUpdateHandler {
         fgScene.attachChild(stopBtn); scene.registerTouchArea(stopBtn);
 
         // Rewind
-        Rectangle rwBtn = new Rectangle(startX + (btnSize + spacing) * 4, controlsY, btnSize, btnSize * 0.6f) {
+        Rectangle rwBtn = new Rectangle(startX + (btnSize + spacing) * 4, controlsY, btnSize, btnHeight) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.5f, 0.5f, 0.7f); return true; }
                 if (t.isActionUp()) { setColor(0.3f, 0.3f, 0.5f); seekTo(currentTime - 5000); return true; }
@@ -465,7 +483,7 @@ public class EditorScene implements IUpdateHandler {
         fgScene.attachChild(rwBtn); scene.registerTouchArea(rwBtn);
 
         // Forward
-        Rectangle fwBtn = new Rectangle(startX + (btnSize + spacing) * 5, controlsY, btnSize, btnSize * 0.6f) {
+        Rectangle fwBtn = new Rectangle(startX + (btnSize + spacing) * 5, controlsY, btnSize, btnHeight) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.5f, 0.5f, 0.7f); return true; }
                 if (t.isActionUp()) { setColor(0.3f, 0.3f, 0.5f); seekTo(currentTime + 5000); return true; }
@@ -476,7 +494,7 @@ public class EditorScene implements IUpdateHandler {
         fgScene.attachChild(fwBtn); scene.registerTouchArea(fwBtn);
 
         // Undo
-        Rectangle undoBtn = new Rectangle(startX + (btnSize + spacing) * 6, controlsY, btnSize, btnSize * 0.6f) {
+        Rectangle undoBtn = new Rectangle(startX + (btnSize + spacing) * 6, controlsY, btnSize, btnHeight) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.6f, 0.6f, 0.6f); return true; }
                 if (t.isActionUp()) { setColor(0.4f, 0.4f, 0.4f); undo(); return true; }
@@ -487,7 +505,7 @@ public class EditorScene implements IUpdateHandler {
         fgScene.attachChild(undoBtn); scene.registerTouchArea(undoBtn);
 
         // Redo
-        redoBtn = new Rectangle(startX + (btnSize + spacing) * 7, controlsY, btnSize, btnSize * 0.6f) {
+        redoBtn = new Rectangle(startX + (btnSize + spacing) * 7, controlsY, btnSize, btnHeight) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.6f, 0.6f, 0.6f); return true; }
                 if (t.isActionUp()) { setColor(0.4f, 0.4f, 0.4f); redo(); return true; }
@@ -501,14 +519,14 @@ public class EditorScene implements IUpdateHandler {
     private void addLabel(Rectangle btn, String label, Font font, float controlsY, float btnX, float btnSize) {
         if (font == null) return;
         Text text = new Text(0, 0, font, label);
-        text.setPosition(btnX + (btnSize - text.getWidth()) / 2f, controlsY + (btnSize * 0.6f - text.getHeight()) / 2f);
+        text.setPosition((btn.getWidth() - text.getWidth()) / 2f, (btn.getHeight() - text.getHeight()) / 2f);
         text.setColor(1f, 1f, 1f);
-        fgScene.attachChild(text);
+        btn.attachChild(text);
     }
 
     private void createSettingsButton() {
         float camWidth = engine.getCamera().getWidth();
-        float btnSize = 50;
+        float btnSize = 55;
         Font font = getFont();
 
         // Toolbar toggle button
@@ -527,11 +545,7 @@ public class EditorScene implements IUpdateHandler {
         scene.registerTouchArea(toolbarToggleBtn);
 
         if (font != null) {
-            Text toolText = new Text(0, 0, font, "TOOL");
-            toolText.setPosition(camWidth - btnSize * 2 - 20 + (btnSize - toolText.getWidth()) / 2f,
-                    10 + (btnSize * 0.6f - toolText.getHeight()) / 2f);
-            toolText.setColor(1f, 1f, 1f);
-            fgScene.attachChild(toolText);
+            addLabel(toolbarToggleBtn, "TOOL", font, 10, camWidth - btnSize * 2 - 20, btnSize);
         }
 
         // Settings button
@@ -551,10 +565,7 @@ public class EditorScene implements IUpdateHandler {
         scene.registerTouchArea(settingsBtn);
 
         if (font != null) {
-            Text text = new Text(0, 0, font, "MENU");
-            text.setPosition(camWidth - btnSize - 10 + (btnSize - text.getWidth()) / 2f, 10 + (btnSize * 0.6f - text.getHeight()) / 2f);
-            text.setColor(1f, 1f, 1f);
-            fgScene.attachChild(text);
+            addLabel(settingsBtn, "MENU", font, 10, camWidth - btnSize - 10, btnSize);
         }
     }
 
@@ -573,7 +584,7 @@ public class EditorScene implements IUpdateHandler {
     private void createGridSnapButton() {
         Font font = getFont();
 
-        gridSnapBtn = new Rectangle(10, 10, 60, 30) {
+        gridSnapBtn = new Rectangle(10, 10, 80, 30) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.3f, 0.5f, 0.3f); return true; }
                 if (t.isActionUp()) {
@@ -590,9 +601,11 @@ public class EditorScene implements IUpdateHandler {
         scene.registerTouchArea(gridSnapBtn);
 
         if (font != null) {
-            gridSnapLabel = new Text(15, 15, font, "SNAP: ON");
+            gridSnapLabel = new Text(0, 0, font, "SNAP: ON");
+            gridSnapLabel.setPosition((gridSnapBtn.getWidth() - gridSnapLabel.getWidth()) / 2f,
+                    (gridSnapBtn.getHeight() - gridSnapLabel.getHeight()) / 2f);
             gridSnapLabel.setColor(1f, 1f, 1f);
-            fgScene.attachChild(gridSnapLabel);
+            gridSnapBtn.attachChild(gridSnapLabel);
         }
     }
 
@@ -603,12 +616,14 @@ public class EditorScene implements IUpdateHandler {
                     gridSnapEnabled ? 0.3f : 0.3f);
         }
         if (gridSnapLabel != null) {
-            fgScene.detachChild(gridSnapLabel);
+            gridSnapBtn.detachChild(gridSnapLabel);
             Font font = getFont();
             if (font != null) {
-                gridSnapLabel = new Text(15, 15, font, "SNAP: " + (gridSnapEnabled ? "ON" : "OFF"));
+                gridSnapLabel = new Text(0, 0, font, "SNAP: " + (gridSnapEnabled ? "ON" : "OFF"));
+                gridSnapLabel.setPosition((gridSnapBtn.getWidth() - gridSnapLabel.getWidth()) / 2f,
+                        (gridSnapBtn.getHeight() - gridSnapLabel.getHeight()) / 2f);
                 gridSnapLabel.setColor(1f, 1f, 1f);
-                fgScene.attachChild(gridSnapLabel);
+                gridSnapBtn.attachChild(gridSnapLabel);
             }
         }
     }
@@ -617,7 +632,7 @@ public class EditorScene implements IUpdateHandler {
         float camWidth = engine.getCamera().getWidth();
         Font font = getFont();
 
-        beatSnapBtn = new Rectangle(camWidth - 75, 48, 65, 28) {
+        beatSnapBtn = new Rectangle(camWidth - 80, 10, 70, 28) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.3f, 0.4f, 0.6f); return true; }
                 if (t.isActionUp()) {
@@ -632,9 +647,11 @@ public class EditorScene implements IUpdateHandler {
         scene.registerTouchArea(beatSnapBtn);
 
         if (font != null) {
-            beatSnapLabel = new Text(camWidth - 72, 52, font, "1/1");
+            beatSnapLabel = new Text(0, 0, font, "1/1");
+            beatSnapLabel.setPosition((beatSnapBtn.getWidth() - beatSnapLabel.getWidth()) / 2f,
+                    (beatSnapBtn.getHeight() - beatSnapLabel.getHeight()) / 2f);
             beatSnapLabel.setColor(1f, 1f, 1f);
-            fgScene.attachChild(beatSnapLabel);
+            beatSnapBtn.attachChild(beatSnapLabel);
         }
     }
 
@@ -643,13 +660,14 @@ public class EditorScene implements IUpdateHandler {
         beatSnap = BEAT_SNAPS[beatSnapIndex];
         renderBeatSnapLines();
         if (beatSnapLabel != null) {
-            fgScene.detachChild(beatSnapLabel);
+            beatSnapBtn.detachChild(beatSnapLabel);
             Font font = getFont();
             if (font != null) {
-                float camWidth = engine.getCamera().getWidth();
-                beatSnapLabel = new Text(camWidth - 72, 52, font, BEAT_SNAP_LABELS[beatSnapIndex]);
+                beatSnapLabel = new Text(0, 0, font, BEAT_SNAP_LABELS[beatSnapIndex]);
+                beatSnapLabel.setPosition((beatSnapBtn.getWidth() - beatSnapLabel.getWidth()) / 2f,
+                        (beatSnapBtn.getHeight() - beatSnapLabel.getHeight()) / 2f);
                 beatSnapLabel.setColor(1f, 1f, 1f);
-                fgScene.attachChild(beatSnapLabel);
+                beatSnapBtn.attachChild(beatSnapLabel);
             }
         }
     }
@@ -658,7 +676,7 @@ public class EditorScene implements IUpdateHandler {
         float camWidth = engine.getCamera().getWidth();
         Font font = getFont();
 
-        prevBeatBtn = new Rectangle(80, 10, 40, 28) {
+        prevBeatBtn = new Rectangle(80, 10, 50, 30) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.5f, 0.5f, 0.3f); return true; }
                 if (t.isActionUp()) { setColor(0.3f, 0.3f, 0.2f); skipToPrevBeat(); return true; }
@@ -668,9 +686,9 @@ public class EditorScene implements IUpdateHandler {
         prevBeatBtn.setColor(0.3f, 0.3f, 0.2f);
         fgScene.attachChild(prevBeatBtn);
         scene.registerTouchArea(prevBeatBtn);
-        if (font != null) addLabel(prevBeatBtn, "|<", font, 10, 80, 40);
+        if (font != null) addLabel(prevBeatBtn, "|<", font, 10, 80, 50);
 
-        nextBeatBtn = new Rectangle(125, 10, 40, 28) {
+        nextBeatBtn = new Rectangle(135, 10, 50, 30) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.5f, 0.5f, 0.3f); return true; }
                 if (t.isActionUp()) { setColor(0.3f, 0.3f, 0.2f); skipToNextBeat(); return true; }
@@ -680,13 +698,13 @@ public class EditorScene implements IUpdateHandler {
         nextBeatBtn.setColor(0.3f, 0.3f, 0.2f);
         fgScene.attachChild(nextBeatBtn);
         scene.registerTouchArea(nextBeatBtn);
-        if (font != null) addLabel(nextBeatBtn, ">|", font, 10, 125, 40);
+        if (font != null) addLabel(nextBeatBtn, ">|", font, 10, 135, 50);
     }
 
     private void createNudgeButtons() {
         Font font = getFont();
 
-        nudgeBackBtn = new Rectangle(170, 10, 40, 28) {
+        nudgeBackBtn = new Rectangle(190, 10, 50, 30) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.4f, 0.3f, 0.5f); return true; }
                 if (t.isActionUp()) { setColor(0.2f, 0.2f, 0.3f); nudgeSelected(-1); return true; }
@@ -696,9 +714,9 @@ public class EditorScene implements IUpdateHandler {
         nudgeBackBtn.setColor(0.2f, 0.2f, 0.3f);
         fgScene.attachChild(nudgeBackBtn);
         scene.registerTouchArea(nudgeBackBtn);
-        if (font != null) addLabel(nudgeBackBtn, "-T", font, 10, 170, 40);
+        if (font != null) addLabel(nudgeBackBtn, "-T", font, 10, 190, 50);
 
-        nudgeFwdBtn = new Rectangle(215, 10, 40, 28) {
+        nudgeFwdBtn = new Rectangle(245, 10, 50, 30) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.4f, 0.3f, 0.5f); return true; }
                 if (t.isActionUp()) { setColor(0.2f, 0.2f, 0.3f); nudgeSelected(1); return true; }
@@ -708,7 +726,7 @@ public class EditorScene implements IUpdateHandler {
         nudgeFwdBtn.setColor(0.2f, 0.2f, 0.3f);
         fgScene.attachChild(nudgeFwdBtn);
         scene.registerTouchArea(nudgeFwdBtn);
-        if (font != null) addLabel(nudgeFwdBtn, "+T", font, 10, 215, 40);
+        if (font != null) addLabel(nudgeFwdBtn, "+T", font, 10, 245, 50);
     }
 
     private void skipToPrevBeat() {
@@ -814,7 +832,7 @@ public class EditorScene implements IUpdateHandler {
     private void createZoomButtons() {
         Font font = getFont();
 
-        zoomInBtn = new Rectangle(260, 10, 30, 28) {
+        zoomInBtn = new Rectangle(300, 10, 40, 30) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.3f, 0.6f, 0.3f); return true; }
                 if (t.isActionUp()) {
@@ -829,9 +847,9 @@ public class EditorScene implements IUpdateHandler {
         zoomInBtn.setColor(0.2f, 0.4f, 0.2f);
         fgScene.attachChild(zoomInBtn);
         scene.registerTouchArea(zoomInBtn);
-        if (font != null) addLabel(zoomInBtn, "Z+", font, 10, 260, 30);
+        if (font != null) addLabel(zoomInBtn, "Z+", font, 10, 300, 40);
 
-        zoomOutBtn = new Rectangle(295, 10, 30, 28) {
+        zoomOutBtn = new Rectangle(345, 10, 40, 30) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.6f, 0.3f, 0.3f); return true; }
                 if (t.isActionUp()) {
@@ -846,9 +864,9 @@ public class EditorScene implements IUpdateHandler {
         zoomOutBtn.setColor(0.4f, 0.2f, 0.2f);
         fgScene.attachChild(zoomOutBtn);
         scene.registerTouchArea(zoomOutBtn);
-        if (font != null) addLabel(zoomOutBtn, "Z-", font, 10, 295, 30);
+        if (font != null) addLabel(zoomOutBtn, "Z-", font, 10, 345, 40);
 
-        zoomResetBtn = new Rectangle(330, 10, 30, 28) {
+        zoomResetBtn = new Rectangle(390, 10, 40, 30) {
             public boolean onAreaTouched(TouchEvent t, float lx, float ly) {
                 if (t.isActionDown()) { setColor(0.5f, 0.5f, 0.5f); return true; }
                 if (t.isActionUp()) {
@@ -864,7 +882,7 @@ public class EditorScene implements IUpdateHandler {
         zoomResetBtn.setColor(0.3f, 0.3f, 0.3f);
         fgScene.attachChild(zoomResetBtn);
         scene.registerTouchArea(zoomResetBtn);
-        if (font != null) addLabel(zoomResetBtn, "Z=", font, 10, 330, 30);
+        if (font != null) addLabel(zoomResetBtn, "Z=", font, 10, 390, 40);
     }
 
     private void updateWaveformZoom() {
