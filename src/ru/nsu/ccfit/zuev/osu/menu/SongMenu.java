@@ -1362,11 +1362,13 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
                 return;
             }
 
+            final String osuPath = track.getFilename();
+
             Execution.updateThread(() -> {
                 GlobalManager manager = GlobalManager.getInstance();
                 EditorScene editorScene = new EditorScene(manager.getEngine());
                 manager.setEditorScene(editorScene);
-                editorScene.loadBeatmap(beatmapData, beatmapData.getFolder());
+                editorScene.loadBeatmap(beatmapData, osuPath);
                 editorScene.show();
             });
         });

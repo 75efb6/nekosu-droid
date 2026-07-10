@@ -94,7 +94,6 @@ public class EditorScene implements IUpdateHandler {
     // Drag state
     private boolean isDragging = false;
     private float dragStartX, dragStartY;
-    private float dragObjStartX, dragObjStartY;
 
     // Undo/Redo
     private final Stack<EditorAction> undoStack = new Stack<>();
@@ -112,6 +111,9 @@ public class EditorScene implements IUpdateHandler {
     // Multi-select
     private final HashSet<Integer> selectedObjects = new HashSet<>();
     private boolean isMultiSelecting = false;
+
+    // Drag start positions for all selected objects
+    private final HashMap<Integer, float[]> dragStartPositions = new HashMap<>();
 
     // Copy/Paste clipboard
     private ArrayList<HitObject> clipboard = new ArrayList<>();
@@ -248,16 +250,15 @@ public class EditorScene implements IUpdateHandler {
         showToolbar();
     }
 
-    private static final float TOOLBAR_HEIGHT = 320f;
-
     private void calculatePlayfield() {
         Camera camera = engine.getCamera();
         float camWidth = camera.getWidth();
         float camHeight = camera.getHeight();
         float resH = Config.getRES_HEIGHT();
 
-        // Reserve space: top for timeline (~90) + toolbar overlay (~250), bottom for playback controls (~60)
-        float topMargin = WAVEFORM_HEIGHT + 30 + TOOLBAR_HEIGHT;
+        // Reserve space: top for timeline/waveform, bottom for playback controls
+        // Toolbar is an overlay fragment that sits on top, no scene space needed
+        float topMargin = WAVEFORM_HEIGHT + 10;
         float bottomMargin = 70f;
         float availableHeight = camHeight - topMargin - bottomMargin;
 
@@ -1263,9 +1264,14 @@ public class EditorScene implements IUpdateHandler {
                 isDragging = true;
                 dragStartX = x;
                 dragStartY = y;
-                HitObject obj = beatmapData.hitObjects.getObjects().get(idx);
-                dragObjStartX = (float) obj.getPosition().x;
-                dragObjStartY = (float) obj.getPosition().y;
+
+                // Store start positions for all selected objects
+                dragStartPositions.clear();
+                for (int selIdx : selectedObjects) {
+                    HitObject selObj = beatmapData.hitObjects.getObjects().get(selIdx);
+                    dragStartPositions.put(selIdx, new float[]{(float) selObj.getPosition().x, (float) selObj.getPosition().y});
+                }
+
                 highlightObject(idx);
             } else {
                 selectedObjects.clear();
@@ -1281,14 +1287,13 @@ public class EditorScene implements IUpdateHandler {
             float dx = (x - dragStartX) / scaleX;
             float dy = (y - dragStartY) / scaleY;
 
-            // Move all selected objects
+            // Move all selected objects using their stored start positions
             for (int idx : selectedObjects) {
                 HitObject obj = beatmapData.hitObjects.getObjects().get(idx);
-                float startX = (float) obj.getPosition().x;
-                float startY = (float) obj.getPosition().y;
-                if (idx == selectedObjectIndex) {
-                    obj.getPosition().x = Math.max(0, Math.min(dragObjStartX + dx, Constants.MAP_WIDTH));
-                    obj.getPosition().y = Math.max(0, Math.min(dragObjStartY + dy, Constants.MAP_HEIGHT));
+                float[] startPos = dragStartPositions.get(idx);
+                if (startPos != null) {
+                    obj.getPosition().x = Math.max(0, Math.min(startPos[0] + dx, Constants.MAP_WIDTH));
+                    obj.getPosition().y = Math.max(0, Math.min(startPos[1] + dy, Constants.MAP_HEIGHT));
                 }
             }
             renderHitObjects();
@@ -1314,8 +1319,9 @@ public class EditorScene implements IUpdateHandler {
 
             HitCircle circle = new HitCircle(currentTime, trackX, trackY);
             beatmapData.hitObjects.add(circle);
-            pushUndo(new EditorAction(EditorAction.Type.Add, -1, circle));
-            selectedObjectIndex = beatmapData.hitObjects.getObjects().size() - 1;
+            int idx = beatmapData.hitObjects.getObjects().size() - 1;
+            pushUndo(new EditorAction(EditorAction.Type.Add, idx, circle));
+            selectedObjectIndex = idx;
             renderHitObjects();
             return true;
         }
@@ -1361,8 +1367,9 @@ public class EditorScene implements IUpdateHandler {
                     timing, difficulty, 1, path, sliderVelocity, tickRate, 1.0, true);
 
             beatmapData.hitObjects.add(slider);
-            pushUndo(new EditorAction(EditorAction.Type.Add, -1, slider));
-            selectedObjectIndex = beatmapData.hitObjects.getObjects().size() - 1;
+            int sIdx = beatmapData.hitObjects.getObjects().size() - 1;
+            pushUndo(new EditorAction(EditorAction.Type.Add, sIdx, slider));
+            selectedObjectIndex = sIdx;
             renderHitObjects();
             return true;
         }
@@ -1373,8 +1380,9 @@ public class EditorScene implements IUpdateHandler {
         if (event.isActionUp()) {
             Spinner spinner = new Spinner(currentTime, currentTime + 5000);
             beatmapData.hitObjects.add(spinner);
-            pushUndo(new EditorAction(EditorAction.Type.Add, -1, spinner));
-            selectedObjectIndex = beatmapData.hitObjects.getObjects().size() - 1;
+            int spIdx = beatmapData.hitObjects.getObjects().size() - 1;
+            pushUndo(new EditorAction(EditorAction.Type.Add, spIdx, spinner));
+            selectedObjectIndex = spIdx;
             renderHitObjects();
             return true;
         }
@@ -1483,9 +1491,12 @@ public class EditorScene implements IUpdateHandler {
     private void highlightObject(int index) {
         for (EditorObjectSprite spr : objectSprites) {
             if (spr.sprite != null) {
-                spr.sprite.setAlpha(1.0f);
-                if (spr.sprite instanceof Shape && selectedObjects.contains(spr.objectIndex)) {
-                    ((Shape) spr.sprite).setColor(1f, 1f, 0.5f);
+                boolean isSelected = selectedObjects.contains(spr.objectIndex);
+                spr.sprite.setAlpha(isSelected ? 1.0f : 0.6f);
+                for (Entity e : spr.allEntities) {
+                    if (e != null && e != spr.sprite) {
+                        e.setAlpha(isSelected ? 1.0f : 0.6f);
+                    }
                 }
             }
         }
@@ -1506,9 +1517,9 @@ public class EditorScene implements IUpdateHandler {
 
         switch (action.type) {
             case Add:
-                if (!objects.isEmpty()) {
-                    HitObject removed = beatmapData.hitObjects.remove(objects.size() - 1);
-                    redoStack.push(new EditorAction(EditorAction.Type.Add, -1, removed));
+                if (action.index >= 0 && action.index < objects.size()) {
+                    HitObject removed = beatmapData.hitObjects.remove(action.index);
+                    redoStack.push(new EditorAction(EditorAction.Type.Add, action.index, removed));
                 }
                 break;
             case Delete:
