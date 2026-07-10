@@ -93,6 +93,7 @@ import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem;
 import ru.nsu.ccfit.zuev.osu.online.OnlineFileOperator;
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager;
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring;
+import ru.nsu.ccfit.zuev.osu.online.SeasonalBackgroundManager;
 import ru.nsu.ccfit.zuev.osu.scoring.Replay;
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoreLibrary;
@@ -1381,6 +1382,9 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
         if (skipTime <= 1)
             RoomScene.INSTANCE.getChat().dismiss();
+
+        // Stop seasonal bg refresh when entering gameplay
+        SeasonalBackgroundManager.INSTANCE.stopPeriodicRefresh();
 
         leadOut = 0;
         musicStarted = false;

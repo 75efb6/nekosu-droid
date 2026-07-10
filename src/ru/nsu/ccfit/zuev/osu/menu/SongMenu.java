@@ -62,6 +62,7 @@ import ru.nsu.ccfit.zuev.osu.online.OnlineManager;
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager.OnlineManagerException;
 import ru.nsu.ccfit.zuev.osu.online.OnlinePanel;
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring;
+import ru.nsu.ccfit.zuev.osu.online.SeasonalBackgroundManager;
 import ru.nsu.ccfit.zuev.osu.scoring.Replay;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoreLibrary;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene;
@@ -781,6 +782,8 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
     public void show() {
         engine.setScene(scene);
         DiscordRPC.updateForSongSelection();
+        // Stop seasonal bg periodic refresh when leaving main menu
+        SeasonalBackgroundManager.INSTANCE.stopPeriodicRefresh();
         if (GlobalManager.getInstance().getSongService() == null) return;
         TrackInfo track = selectedTrack != null ? selectedTrack : GlobalManager.getInstance().getSelectedTrack();
         if (track != null && GlobalManager.getInstance().getSongService().getStatus() == Status.STOPPED) {
