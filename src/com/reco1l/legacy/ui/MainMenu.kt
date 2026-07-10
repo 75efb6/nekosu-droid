@@ -6,6 +6,7 @@ import com.reco1l.legacy.Multiplayer
 import com.reco1l.legacy.ui.beatmapdownloader.BeatmapListing
 import com.reco1l.legacy.ui.multiplayer.RoomScene
 import org.anddev.andengine.input.touch.TouchEvent
+import ru.nsu.ccfit.zuev.osu.BuildType
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.osu.MainScene
 import ru.nsu.ccfit.zuev.osu.MainScene.MusicOption
@@ -141,6 +142,11 @@ class MainMenu(val main: MainScene)
                     // Editor (level 3)
                     2 -> {
                         if (main.isOnExitAnim) return true
+
+                        if (!BuildType.isDebugEditor()) {
+                            ToastLogger.showText("Editor is not available in this build", false)
+                            return true
+                        }
 
                         getGlobal().songService.isGaming = true
 
