@@ -409,9 +409,10 @@ class BeatmapListing : BaseFragment(),
         }
 
         recyclerView.forEach { view ->
-
-            val holder = recyclerView.getChildViewHolder(view) as BeatmapSetViewHolder
-            holder.stopPreview(shouldResumeMusic)
+            val holder = recyclerView.getChildViewHolder(view)
+            if (holder is BeatmapSetViewHolder) {
+                holder.stopPreview(shouldResumeMusic)
+            }
         }
     }
 
