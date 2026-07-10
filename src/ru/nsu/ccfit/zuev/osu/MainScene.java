@@ -933,9 +933,8 @@ public class MainScene implements IUpdateHandler {
                     Debug.e(e.toString());
                     lastBackground.setAlpha(0);
                 }
-            } else {
-                lastBackground.setAlpha(0);
             }
+            // If seasonal active, keep current background unchanged
 
             if (reloadMusic) {
                 if (GlobalManager.getInstance().getSongService() != null) {
