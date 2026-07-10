@@ -16,9 +16,9 @@
             <CheckBoxPreference android:key="stayOnline" android:defaultValue="false"
                 android:summary="@string/opt_stayonline_summary"
                 android:title="@string/opt_stayonline_title"/>
-            <CheckBoxPreference android:key="loadAvatar" android:defaultValue="false"
-                android:summary="@string/opt_loadavatar_summary"
-                android:title="@string/opt_loadavatar_title"/>
+            <CheckBoxPreference android:key="seasonalBg" android:defaultValue="true"
+                android:summary="@string/opt_seasonalbg_summary"
+                android:title="@string/opt_seasonalbg_title"/>
         </PreferenceCategory>
 
         <PreferenceCategory android:key="onlineOption_user" android:title="@string/opt_onlineOpt_user">
