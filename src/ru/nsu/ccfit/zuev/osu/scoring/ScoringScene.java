@@ -473,7 +473,7 @@ public class ScoringScene {
         //calculatePP
         if (Config.isDisplayScoreStatistics()){
             StringBuilder ppinfo = new StringBuilder();
-            BeatmapData beatmapData = new BeatmapParser(this.track.getFilename()).parse(true);
+            BeatmapData beatmapData = new BeatmapParser(this.track.getFilename()).setCalculator(true).parse(true);
 
             if (beatmapData != null) {
                 DifficultyAttributes difficultyAttributes = BeatmapDifficultyCalculator.calculateDifficulty(

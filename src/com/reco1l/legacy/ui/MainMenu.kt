@@ -6,6 +6,7 @@ import com.reco1l.legacy.Multiplayer
 import com.reco1l.legacy.ui.beatmapdownloader.BeatmapListing
 import com.reco1l.legacy.ui.multiplayer.RoomScene
 import org.anddev.andengine.input.touch.TouchEvent
+import ru.nsu.ccfit.zuev.osu.BuildType
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.osu.MainScene
 import ru.nsu.ccfit.zuev.osu.MainScene.MusicOption
@@ -25,30 +26,12 @@ class MainMenu(val main: MainScene)
     private val sound = getResources().loadSound("menuhit", "sfx/menuhit.ogg", false)
 
     /**
-     * This button will switch between `Play` and `Solo`.
+     * Level 1: Play / Level 2: Solo / Level 3: Solo Play
      */
-    val first = object : AnimSprite(0f, 0f, 0f, "play", "solo")
+    val first = object : AnimSprite(0f, 0f, 0f, "play", "solo", "play")
     {
         override fun onAreaTouched(touchEvent: TouchEvent, localX: Float, localY: Float): Boolean
         {
-            if (frame == 0)
-            {
-                if (touchEvent.isActionDown)
-                {
-                    setColor(0.7f, 0.7f, 0.7f)
-                    sound?.play()
-                    return true
-                }
-
-                if (touchEvent.isActionUp)
-                {
-                    setColor(1f, 1f, 1f)
-                    showSecondMenu()
-                    return true
-                }
-                return false
-            }
-
             if (touchEvent.isActionDown)
             {
                 setColor(0.7f, 0.7f, 0.7f)
@@ -63,27 +46,38 @@ class MainMenu(val main: MainScene)
                 if (main.isOnExitAnim)
                     return true
 
-                getGlobal().songService.isGaming = true
+                when (frame) {
+                    // Play (level 1) -> show level 2
+                    0 -> showLevel(1)
 
-                async {
-                    LoadingScreen().show()
+                    // Solo (level 2) -> show level 3
+                    1 -> showLevel(2)
 
-                    getGlobal().mainActivity.checkNewSkins()
-                    getGlobal().mainActivity.checkNewBeatmaps()
-                    LibraryManager.INSTANCE.updateLibrary(true)
+                    // Solo Play (level 3) -> open song selection
+                    2 -> {
+                        getGlobal().songService.isGaming = true
 
-                    if (LibraryManager.INSTANCE.library.isEmpty())
-                    {
-                        getGlobal().songService.isGaming = false
-                        getGlobal().engine.scene = main.scene
+                        async {
+                            LoadingScreen().show()
 
-                        BeatmapListing().show()
-                    } else {
-                        main.musicControl(MusicOption.PLAY)
+                            getGlobal().mainActivity.checkNewSkins()
+                            getGlobal().mainActivity.checkNewBeatmaps()
+                            LibraryManager.INSTANCE.updateLibrary(true)
 
-                        getGlobal().songMenu.reload()
-                        getGlobal().songMenu.show()
-                        getGlobal().songMenu.select()
+                            if (LibraryManager.INSTANCE.library.isEmpty())
+                            {
+                                getGlobal().songService.isGaming = false
+                                getGlobal().engine.scene = main.scene
+
+                                BeatmapListing().show()
+                            } else {
+                                main.musicControl(MusicOption.PLAY)
+
+                                getGlobal().songMenu.reload()
+                                getGlobal().songMenu.show()
+                                getGlobal().songMenu.select()
+                            }
+                        }
                     }
                 }
                 return true
@@ -93,33 +87,12 @@ class MainMenu(val main: MainScene)
     }
 
     /**
-     * This button will switch between `Settings` and `Multiplayer`
+     * Level 1: Settings / Level 2: Multi / Level 3: Editor
      */
-    val second = object : AnimSprite(0f, 0f, 0f, "options", "multi")
+    val second = object : AnimSprite(0f, 0f, 0f, "options", "multi", "editor")
     {
         override fun onAreaTouched(touchEvent: TouchEvent, localX: Float, localY: Float): Boolean
         {
-
-            if (frame == 0)
-            {
-                if (touchEvent.isActionDown)
-                {
-                    setColor(0.7f, 0.7f, 0.7f)
-                    sound?.play()
-                    return true
-                }
-
-                if (touchEvent.isActionUp)
-                {
-                    setColor(1f, 1f, 1f)
-                    if (main.isOnExitAnim) return true
-                    getGlobal().songService.isGaming = true
-                    getGlobal().mainActivity.runOnUiThread { SettingsMenu().show() }
-                    return true
-                }
-                return false
-            }
-
             if (touchEvent.isActionDown)
             {
                 setColor(0.7f, 0.7f, 0.7f)
@@ -131,28 +104,75 @@ class MainMenu(val main: MainScene)
             {
                 setColor(1f, 1f, 1f)
 
-                if (!getOnline().isStayOnline) {
-                    ToastLogger.showText(StringTable.format(R.string.multiplayer_not_online), true)
-                    return true
-                }
+                when (frame) {
+                    // Settings (level 1)
+                    0 -> {
+                        if (main.isOnExitAnim) return true
+                        getGlobal().songService.isGaming = true
+                        getGlobal().mainActivity.runOnUiThread { SettingsMenu().show() }
+                    }
 
-                if (main.isOnExitAnim) return true
+                    // Multi (level 2)
+                    1 -> {
+                        if (!getOnline().isStayOnline) {
+                            ToastLogger.showText(StringTable.format(R.string.multiplayer_not_online), true)
+                            return true
+                        }
 
-                getGlobal().songService.isGaming = true
-                Multiplayer.isMultiplayer = true
+                        if (main.isOnExitAnim) return true
 
-                async {
-                    LoadingScreen().show()
+                        getGlobal().songService.isGaming = true
+                        Multiplayer.isMultiplayer = true
 
-                    getGlobal().mainActivity.checkNewSkins()
-                    getGlobal().mainActivity.checkNewBeatmaps()
-                    LibraryManager.INSTANCE.updateLibrary(true)
+                        async {
+                            LoadingScreen().show()
 
-                    getGlobal().songMenu.reload()
+                            getGlobal().mainActivity.checkNewSkins()
+                            getGlobal().mainActivity.checkNewBeatmaps()
+                            LibraryManager.INSTANCE.updateLibrary(true)
 
-                    RoomScene.load()
-                    LobbyScene.load()
-                    LobbyScene.show()
+                            getGlobal().songMenu.reload()
+
+                            RoomScene.load()
+                            LobbyScene.load()
+                            LobbyScene.show()
+                        }
+                    }
+
+                    // Editor (level 3)
+                    2 -> {
+                        if (main.isOnExitAnim) return true
+
+                        if (!BuildType.isDebugEditor()) {
+                            ToastLogger.showText("Editor is not available in this build", false)
+                            return true
+                        }
+
+                        getGlobal().songService.isGaming = true
+
+                        async {
+                            LoadingScreen().show()
+
+                            getGlobal().mainActivity.checkNewSkins()
+                            getGlobal().mainActivity.checkNewBeatmaps()
+                            LibraryManager.INSTANCE.updateLibrary(true)
+
+                            if (LibraryManager.INSTANCE.library.isEmpty())
+                            {
+                                getGlobal().songService.isGaming = false
+                                getGlobal().engine.scene = main.scene
+
+                                BeatmapListing().show()
+                            } else {
+                                main.musicControl(MusicOption.PLAY)
+
+                                getGlobal().songMenu.isEditorMode = true
+                                getGlobal().songMenu.reload()
+                                getGlobal().songMenu.show()
+                                getGlobal().songMenu.select()
+                            }
+                        }
+                    }
                 }
                 return true
             }
@@ -161,30 +181,12 @@ class MainMenu(val main: MainScene)
     }
 
     /**
-     * This button will switch between `Exit` and `Back`
+     * Level 1: Exit / Level 2: Back / Level 3: Back
      */
-    val third = object : AnimSprite(0f, 0f, 0f, "exit", "back")
+    val third = object : AnimSprite(0f, 0f, 0f, "exit", "back", "back")
     {
         override fun onAreaTouched(touchEvent: TouchEvent, localX: Float, localY: Float): Boolean
         {
-            if (frame == 0)
-            {
-                if (touchEvent.isActionDown)
-                {
-                    setColor(0.7f, 0.7f, 0.7f)
-                    sound?.play()
-                    return true
-                }
-
-                if (touchEvent.isActionUp)
-                {
-                    setColor(1f, 1f, 1f)
-                    main.showExitDialog()
-                    return true
-                }
-                return false
-            }
-
             if (touchEvent.isActionDown)
             {
                 setColor(0.7f, 0.7f, 0.7f)
@@ -195,7 +197,14 @@ class MainMenu(val main: MainScene)
             if (touchEvent.isActionUp)
             {
                 setColor(1f, 1f, 1f)
-                showFirstMenu()
+
+                when (frame) {
+                    // Exit (level 1)
+                    0 -> main.showExitDialog()
+
+                    // Back (level 2 or 3) -> go back one level
+                    1, 2 -> showLevel(menuLevel - 1)
+                }
                 return true
             }
             return false
@@ -203,10 +212,10 @@ class MainMenu(val main: MainScene)
     }
 
     /**
-     * Indicates if the player has tapped on `Play`.
+     * Current menu level: 0 = first, 1 = second, 2 = third (solo submenu)
      */
-    private var isSecondMenu = false
-
+    var menuLevel = 0
+        private set
 
     fun attachButtons()
     {
@@ -215,23 +224,16 @@ class MainMenu(val main: MainScene)
         main.scene.attachChild(third)
     }
 
-    private fun showSecondMenu()
+    private fun showLevel(level: Int)
     {
-        if (isSecondMenu) return
-        isSecondMenu = true
-
-        first.frame = 1
-        second.frame = 1
-        third.frame = 1
+        menuLevel = level
+        first.frame = level
+        second.frame = level
+        third.frame = level
     }
 
     fun showFirstMenu()
     {
-        if (!isSecondMenu) return
-        isSecondMenu = false
-
-        first.frame = 0
-        second.frame = 0
-        third.frame = 0
+        showLevel(0)
     }
 }

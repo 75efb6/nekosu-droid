@@ -93,6 +93,12 @@ public class BeatmapData {
      */
     private int formatVersion = 14;
 
+    /**
+     * When true, the parser skips performance patches (e.g. control point capping)
+     * so the star rating calculator gets the full unmodified data.
+     */
+    public boolean isCalculator = false;
+
     public BeatmapData() {
         general = new BeatmapGeneral();
         metadata = new BeatmapMetadata();

@@ -353,8 +353,39 @@ public class Slider extends GameObject {
         // Slider track
         if (!path.points.isEmpty()) {
             superPath = new LinePath();
+
+            // Distance threshold: skip points that are too close together.
+            // Reduces triangulation cost without visible quality loss.
+            // Adaptively increase threshold for extreme slider point counts to
+            // prevent OOM (aspire maps with 100K+ interpolated points).
+            int sourceSize = path.points.size();
+            float distThreshold;
+            if (sourceSize > 10000) {
+                distThreshold = 32f;
+            } else if (sourceSize > 2000) {
+                distThreshold = 12f;
+            } else if (sourceSize > 2) {
+                distThreshold = 6f;
+            } else {
+                distThreshold = 32f;
+            }
+            float distThresholdSq = distThreshold * distThreshold;
+
+            Vec2 lastAdded = null;
             for (PointF p : path.points) {
-                superPath.add(new Vec2(p.x, p.y));
+                Vec2 v = new Vec2(p.x, p.y);
+                if (lastAdded == null || Vec2.lengthSquared(lastAdded, v) >= distThresholdSq) {
+                    superPath.add(v);
+                    lastAdded = v;
+                }
+            }
+
+            // Ensure last point is always included
+            Vec2 lastPoint = new Vec2(
+                    path.points.get(sourceSize - 1).x,
+                    path.points.get(sourceSize - 1).y);
+            if (lastAdded == null || Vec2.lengthSquared(lastAdded, lastPoint) > 0.01f) {
+                superPath.add(lastPoint);
             }
             superPath.measure();
             superPath.bufferLength(path.length.get(path.length.size() - 1));

@@ -12,7 +12,6 @@ data class MirrorAction<R, M>(
     /**
      * The action API endpoint.
      */
-    // TODO replace with a request creation function, some APIs have different query arguments.
     val endpoint: String,
 
     /**
@@ -21,6 +20,54 @@ data class MirrorAction<R, M>(
     val mapResponse: (R) -> M
 
 )
+
+/**
+ * Sort options for beatmap search.
+ */
+enum class SortOption(val apiValue: String, val displayName: String) {
+    RELEVANCE("relevance", "Relevance"),
+    TITLE_ASC("title:asc", "Title (A-Z)"),
+    TITLE_DESC("title:desc", "Title (Z-A)"),
+    ARTIST_ASC("artist:asc", "Artist (A-Z)"),
+    ARTIST_DESC("artist:desc", "Artist (Z-A)"),
+    DIFFICULTY_ASC("beatmaps.difficulty_rating:asc", "Difficulty (Low)"),
+    DIFFICULTY_DESC("beatmaps.difficulty_rating:desc", "Difficulty (High)"),
+    FAVOURITES_ASC("favourite_count:asc", "Favourites (Low)"),
+    FAVOURITES_DESC("favourite_count:desc", "Favourites (High)"),
+    PLAY_COUNT_ASC("play_count:asc", "Plays (Low)"),
+    PLAY_COUNT_DESC("play_count:desc", "Plays (High)"),
+    BPM_ASC("bpm:asc", "BPM (Low)"),
+    BPM_DESC("bpm:desc", "BPM (High)"),
+    LAST_UPDATE_ASC("last_update:asc", "Oldest"),
+    LAST_UPDATE_DESC("last_update:desc", "Newest"),
+    RANKED_DATE_ASC("ranked_date:asc", "Ranked (Oldest)"),
+    RANKED_DATE_DESC("ranked_date:desc", "Ranked (Newest)"),
+}
+
+/**
+ * Ranked status filter options.
+ */
+enum class StatusFilter(val apiValue: String, val displayName: String) {
+    ALL("", "All"),
+    GRAVEYARD("-2", "Graveyard"),
+    WIP("-1", "WIP"),
+    PENDING("0", "Pending"),
+    RANKED("1", "Ranked"),
+    APPROVED("2", "Approved"),
+    QUALIFIED("3", "Qualified"),
+    LOVED("4", "Loved"),
+}
+
+/**
+ * Game mode filter options.
+ */
+enum class ModeFilter(val apiValue: String, val displayName: String) {
+    ALL("", "All"),
+    OSU("0", "osu!"),
+    TAIKO("1", "osu!taiko"),
+    CTB("2", "osu!catch"),
+    MANIA("3", "osu!mania"),
+}
 
 /**
  * Defines a beatmap mirror API and its actions.

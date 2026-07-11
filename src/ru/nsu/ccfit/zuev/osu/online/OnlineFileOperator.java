@@ -87,11 +87,15 @@ public class OnlineFileOperator {
             Request request = builder.build();
             Response response = OnlineManager.client.newCall(request).execute();
 
-            if (response.isSuccessful()) {
-                BufferedSink sink = Okio.buffer(Okio.sink(file));
-                sink.writeAll(response.body().source());
-                sink.close();
+            if (!response.isSuccessful()) {
+                Debug.e("downloadFile failed: HTTP " + response.code() + " " + response.message() + " for " + urlstr);
+                response.close();
+                return false;
             }
+
+            BufferedSink sink = Okio.buffer(Okio.sink(file));
+            sink.writeAll(response.body().source());
+            sink.close();
 
             response.close();
             return true;

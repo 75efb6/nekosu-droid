@@ -60,6 +60,15 @@ public class BeatmapParser {
         file = new File(path);
     }
 
+    /**
+     * Enables calculator mode: disables performance patches (e.g. control point capping)
+     * so the star rating calculator gets full unmodified data.
+     */
+    public BeatmapParser setCalculator(boolean calculator) {
+        this.calculatorMode = calculator;
+        return this;
+    }
+
     private static final Pattern FORMAT_PATTERN = Pattern.compile("osu file format v(\\d+)");
 
     private static final BeatmapGeneralParser generalParser = new BeatmapGeneralParser();
@@ -69,6 +78,8 @@ public class BeatmapParser {
     private static final BeatmapControlPointsParser controlPointsParser = new BeatmapControlPointsParser();
     private static final BeatmapColorParser colorParser = new BeatmapColorParser();
     private static final BeatmapHitObjectsParser hitObjectsParser = new BeatmapHitObjectsParser();
+
+    private boolean calculatorMode = false;
 
     /**
      * Attempts to open the beatmap file.
@@ -126,6 +137,7 @@ public class BeatmapParser {
 
         BeatmapSection currentSection = null;
         BeatmapData data = new BeatmapData();
+        data.isCalculator = calculatorMode;
 
         data.setMD5(FileUtils.getMD5Checksum(file));
         data.setFolder(file.getParent());

@@ -16,9 +16,9 @@
             <CheckBoxPreference android:key="stayOnline" android:defaultValue="false"
                 android:summary="@string/opt_stayonline_summary"
                 android:title="@string/opt_stayonline_title"/>
-            <CheckBoxPreference android:key="loadAvatar" android:defaultValue="false"
-                android:summary="@string/opt_loadavatar_summary"
-                android:title="@string/opt_loadavatar_title"/>
+            <CheckBoxPreference android:key="seasonalBg" android:defaultValue="true"
+                android:summary="@string/opt_seasonalbg_summary"
+                android:title="@string/opt_seasonalbg_title"/>
         </PreferenceCategory>
 
         <PreferenceCategory android:key="onlineOption_user" android:title="@string/opt_onlineOpt_user">
@@ -192,8 +192,6 @@
                 android:summary="Z"/>
             <Preference android:key="kbKey1" android:title="Cursor 2 key"
                 android:summary="X"/>
-            <Preference android:title="Key code reference"
-                android:summary="z=54, x=53, c=46, space=62, v=50, b=45"/>
         </PreferenceScreen>
 
         <PreferenceScreen android:key="kbCursorPos" android:title="Cursor Position" android:summary="Set the position where keyboard taps register">

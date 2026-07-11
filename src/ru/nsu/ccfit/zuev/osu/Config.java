@@ -57,7 +57,7 @@ public class Config {
         showScoreboard,
         enablePP,
         enableExtension,
-        loadAvatar,
+        seasonalBg,
         stayOnline,
         syncMusic,
         burstEffects,
@@ -246,7 +246,7 @@ public class Config {
         onlineUsername = prefs.getString("onlineUsername", "");
         onlinePassword = prefs.getString("onlinePassword", null);
         stayOnline = prefs.getBoolean("stayOnline", false);
-        loadAvatar = prefs.getBoolean("loadAvatar",false);
+        seasonalBg = prefs.getBoolean("seasonalBg",true);
     }
 
     public static void setSize() {
@@ -503,12 +503,12 @@ public class Config {
         Config.stayOnline = stayOnline;
     }
 
-    public static boolean getLoadAvatar() {
-        return loadAvatar;
+    public static boolean isSeasonalBg() {
+        return seasonalBg;
     }
 
-    public static void setLoadAvatar(boolean loadAvatar) {
-        Config.loadAvatar = loadAvatar;
+    public static void setSeasonalBg(boolean seasonalBg) {
+        Config.seasonalBg = seasonalBg;
     }
 
     public static String getOnlineDeviceID() {

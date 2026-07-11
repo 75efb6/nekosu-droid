@@ -238,6 +238,15 @@ public class SettingsMenu extends SettingsFragment {
             return true;
         });
 
+        final Preference seasonalBg = findPreference("seasonalBg");
+        seasonalBg.setOnPreferenceChangeListener((preference, newValue) -> {
+            if (Config.isSeasonalBg() != (boolean) newValue) {
+                Config.setSeasonalBg((boolean) newValue);
+                GlobalManager.getInstance().getMainScene().reloadSeasonalBackground();
+            }
+            return true;
+        });
+
         final Preference discordLogin = findPreference("discordLogin");
         discordLogin.setSummary(DiscordRPC.isConnected
                 ? R.string.opt_discord_login_summary_logged

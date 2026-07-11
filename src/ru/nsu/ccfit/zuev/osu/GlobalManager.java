@@ -9,6 +9,7 @@ import org.anddev.andengine.engine.camera.Camera;
 
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService;
+import ru.nsu.ccfit.zuev.osu.editor.EditorScene;
 import ru.nsu.ccfit.zuev.osu.game.GameScene;
 import ru.nsu.ccfit.zuev.osu.game.GlobalFPSOverlay;
 import ru.nsu.ccfit.zuev.osu.menu.SongMenu;
@@ -26,6 +27,7 @@ public class GlobalManager {
     private MainScene mainScene;
     private ScoringScene scoring;
     private SongMenu songMenu;
+    private EditorScene editorScene;
     private WeakReference<MainActivity> mainActivityRef;
     private int loadingProgress;
     private String info;
@@ -135,6 +137,14 @@ public class GlobalManager {
 
     public void setSongMenu(SongMenu songMenu) {
         this.songMenu = songMenu;
+    }
+
+    public EditorScene getEditorScene() {
+        return editorScene;
+    }
+
+    public void setEditorScene(EditorScene editorScene) {
+        this.editorScene = editorScene;
     }
 
     public MainActivity getMainActivity() {

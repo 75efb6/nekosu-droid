@@ -67,6 +67,7 @@ import ru.nsu.ccfit.zuev.osu.helper.ModifierFactory;
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager;
 import ru.nsu.ccfit.zuev.osu.online.OnlinePanel;
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring;
+import ru.nsu.ccfit.zuev.osu.online.SeasonalBackgroundManager;
 import ru.nsu.ccfit.zuev.osu.scoring.Replay;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene;
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2;
@@ -128,7 +129,19 @@ public class MainScene implements IUpdateHandler {
         Debug.i("Load: mainMenuLoaded()");
         scene = new Scene();
 
-        final TextureRegion tex = ResourceManager.getInstance().getTexture("menu-background");
+        TextureRegion tex = null;
+
+        // Seasonal background: only on main menu, only when online
+        if (SeasonalBackgroundManager.INSTANCE.isSeasonalActive()) {
+            SeasonalBackgroundManager.INSTANCE.initAndLoadFirst();
+            var seasonalFile = SeasonalBackgroundManager.INSTANCE.getCurrentCacheFile();
+            if (seasonalFile != null) {
+                tex = ResourceManager.getInstance().loadBackground(seasonalFile.getAbsolutePath());
+            }
+        }
+        if (tex == null) {
+            tex = ResourceManager.getInstance().getTexture("menu-background");
+        }
 
         if (tex != null) {
             float height = tex.getHeight();
@@ -510,6 +523,38 @@ public class MainScene implements IUpdateHandler {
         scene.registerUpdateHandler(this);
 
         hitsound = ResourceManager.getInstance().loadSound("menuhit", "sfx/menuhit.ogg", false);
+
+        // Start seasonal bg periodic refresh
+        if (SeasonalBackgroundManager.INSTANCE.isSeasonalActive()) {
+            SeasonalBackgroundManager.INSTANCE.startPeriodicRefresh(() -> {
+                var file = SeasonalBackgroundManager.INSTANCE.getCurrentCacheFile();
+                if (file != null) {
+                    GlobalManager.getInstance().getMainActivity().runOnUpdateThread(() -> {
+                        try {
+                            var seasonalTex = ResourceManager.getInstance().loadBackground(file.getAbsolutePath());
+                            if (seasonalTex != null) {
+                                float height = seasonalTex.getHeight();
+                                height *= Config.getRES_WIDTH() / (float) seasonalTex.getWidth();
+                                var newBg = new Sprite(0, (Config.getRES_HEIGHT() - height) / 2, Config.getRES_WIDTH(), height, seasonalTex);
+                                lastBackground.registerEntityModifier(new org.anddev.andengine.entity.modifier.AlphaModifier(1.5f, 1, 0, new IEntityModifier.IEntityModifierListener() {
+                                    @Override
+                                    public void onModifierStarted(IModifier<IEntity> pModifier, IEntity pItem) {
+                                        scene.attachChild(newBg, 0);
+                                    }
+                                    @Override
+                                    public void onModifierFinished(IModifier<IEntity> pModifier, final IEntity pItem) {
+                                        GlobalManager.getInstance().getMainActivity().runOnUpdateThread(pItem::detachSelf);
+                                    }
+                                }));
+                                lastBackground = newBg;
+                            }
+                        } catch (Exception e) {
+                            Debug.e(e.toString());
+                        }
+                    });
+                }
+            });
+        }
     }
 
     private void createOnlinePanel(Scene scene) {
@@ -858,7 +903,7 @@ public class MainScene implements IUpdateHandler {
             TrackInfo selectedTrack = trackInfos.get(trackIndex);
             GlobalManager.getInstance().setSelectedTrack(selectedTrack);
 
-            if (selectedTrack.getBackground() != null) {
+            if (selectedTrack.getBackground() != null && !SeasonalBackgroundManager.INSTANCE.isSeasonalActive()) {
                 try {
                     final TextureRegion tex = Config.isSafeBeatmapBg() ?
                             ResourceManager.getInstance().getTexture("menu-background") :
@@ -888,9 +933,8 @@ public class MainScene implements IUpdateHandler {
                     Debug.e(e.toString());
                     lastBackground.setAlpha(0);
                 }
-            } else {
-                lastBackground.setAlpha(0);
             }
+            // If seasonal active, keep current background unchanged
 
             if (reloadMusic) {
                 if (GlobalManager.getInstance().getSongService() != null) {
@@ -1051,9 +1095,112 @@ public class MainScene implements IUpdateHandler {
         GlobalManager.getInstance().getSongService().setGaming(false);
         GlobalManager.getInstance().getEngine().setScene(getScene());
         DiscordRPC.updateForMainMenu();
+
+        // Restart seasonal bg periodic refresh
+        if (SeasonalBackgroundManager.INSTANCE.isSeasonalActive()) {
+            SeasonalBackgroundManager.INSTANCE.startPeriodicRefresh(() -> {
+                var file = SeasonalBackgroundManager.INSTANCE.getCurrentCacheFile();
+                if (file != null) {
+                    GlobalManager.getInstance().getMainActivity().runOnUpdateThread(() -> {
+                        try {
+                            var seasonalTex = ResourceManager.getInstance().loadBackground(file.getAbsolutePath());
+                            if (seasonalTex != null) {
+                                float height = seasonalTex.getHeight();
+                                height *= Config.getRES_WIDTH() / (float) seasonalTex.getWidth();
+                                var newBg = new Sprite(0, (Config.getRES_HEIGHT() - height) / 2, Config.getRES_WIDTH(), height, seasonalTex);
+                                lastBackground.registerEntityModifier(new org.anddev.andengine.entity.modifier.AlphaModifier(1.5f, 1, 0, new IEntityModifier.IEntityModifierListener() {
+                                    @Override
+                                    public void onModifierStarted(IModifier<IEntity> pModifier, IEntity pItem) {
+                                        scene.attachChild(newBg, 0);
+                                    }
+                                    @Override
+                                    public void onModifierFinished(IModifier<IEntity> pModifier, final IEntity pItem) {
+                                        GlobalManager.getInstance().getMainActivity().runOnUpdateThread(pItem::detachSelf);
+                                    }
+                                }));
+                                lastBackground = newBg;
+                            }
+                        } catch (Exception e) {
+                            Debug.e(e.toString());
+                        }
+                    });
+                }
+            });
+        }
+
+        // Refresh seasonal bg on menu re-entry if needed
+        if (SeasonalBackgroundManager.INSTANCE.isSeasonalActive() && SeasonalBackgroundManager.INSTANCE.shouldRefresh()) {
+            Execution.async(() -> {
+                SeasonalBackgroundManager.INSTANCE.refreshSeasonalBg();
+                var file = SeasonalBackgroundManager.INSTANCE.getCurrentCacheFile();
+                if (file != null) {
+                    GlobalManager.getInstance().getMainActivity().runOnUpdateThread(() -> {
+                        try {
+                            var seasonalTex = ResourceManager.getInstance().loadBackground(file.getAbsolutePath());
+                            if (seasonalTex != null) {
+                                float height = seasonalTex.getHeight();
+                                height *= Config.getRES_WIDTH() / (float) seasonalTex.getWidth();
+                                var newBg = new Sprite(0, (Config.getRES_HEIGHT() - height) / 2, Config.getRES_WIDTH(), height, seasonalTex);
+                                lastBackground.registerEntityModifier(new org.anddev.andengine.entity.modifier.AlphaModifier(1.5f, 1, 0, new IEntityModifier.IEntityModifierListener() {
+                                    @Override
+                                    public void onModifierStarted(IModifier<IEntity> pModifier, IEntity pItem) {
+                                        scene.attachChild(newBg, 0);
+                                    }
+                                    @Override
+                                    public void onModifierFinished(IModifier<IEntity> pModifier, final IEntity pItem) {
+                                        GlobalManager.getInstance().getMainActivity().runOnUpdateThread(pItem::detachSelf);
+                                    }
+                                }));
+                                lastBackground = newBg;
+                            }
+                        } catch (Exception e) {
+                            Debug.e(e.toString());
+                        }
+                    });
+                }
+            });
+        }
+
         if (GlobalManager.getInstance().getSelectedTrack() != null) {
             setBeatmap(GlobalManager.getInstance().getSelectedTrack().getBeatmap());
         }
+    }
+
+    public void reloadSeasonalBackground() {
+        if (!SeasonalBackgroundManager.INSTANCE.isSeasonalActive()) {
+            // Load beatmap background instead
+            loadTimingPoints(false);
+            return;
+        }
+        Execution.async(() -> {
+            SeasonalBackgroundManager.INSTANCE.refreshSeasonalBg();
+            var file = SeasonalBackgroundManager.INSTANCE.getCurrentCacheFile();
+            if (file != null) {
+                GlobalManager.getInstance().getMainActivity().runOnUpdateThread(() -> {
+                    try {
+                        var seasonalTex = ResourceManager.getInstance().loadBackground(file.getAbsolutePath());
+                        if (seasonalTex != null) {
+                            float height = seasonalTex.getHeight();
+                            height *= Config.getRES_WIDTH() / (float) seasonalTex.getWidth();
+                            var newBg = new Sprite(0, (Config.getRES_HEIGHT() - height) / 2, Config.getRES_WIDTH(), height, seasonalTex);
+                            lastBackground.registerEntityModifier(new org.anddev.andengine.entity.modifier.AlphaModifier(1.5f, 1, 0, new IEntityModifier.IEntityModifierListener() {
+                                @Override
+                                public void onModifierStarted(IModifier<IEntity> pModifier, IEntity pItem) {
+                                    scene.attachChild(newBg, 0);
+                                }
+                                @Override
+                                public void onModifierFinished(IModifier<IEntity> pModifier, final IEntity pItem) {
+                                    GlobalManager.getInstance().getMainActivity().runOnUpdateThread(pItem::detachSelf);
+                                }
+                            }));
+                            lastBackground = newBg;
+                        }
+                    } catch (Exception e) {
+                        Debug.e(e.toString());
+                    }
+                });
+            }
+        });
     }
 
     public enum MusicOption {PREV, PLAY, PAUSE, STOP, NEXT, SYNC}

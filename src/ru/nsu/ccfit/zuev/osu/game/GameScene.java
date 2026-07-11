@@ -93,6 +93,7 @@ import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem;
 import ru.nsu.ccfit.zuev.osu.online.OnlineFileOperator;
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager;
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring;
+import ru.nsu.ccfit.zuev.osu.online.SeasonalBackgroundManager;
 import ru.nsu.ccfit.zuev.osu.scoring.Replay;
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoreLibrary;
@@ -686,10 +687,11 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
                 parameters.customOD = modMenu.getCustomOD();
             }
 
-            timedDifficultyAttributes = BeatmapDifficultyCalculator.calculateTimedDifficulty(
-                    beatmapData,
+            var calcData = new BeatmapParser(track.getFilename()).setCalculator(true).parse(true);
+            timedDifficultyAttributes = calcData != null ? BeatmapDifficultyCalculator.calculateTimedDifficulty(
+                    calcData,
                     parameters
-            );
+            ) : null;
         } else {
             timedDifficultyAttributes.clear();
         }
@@ -1380,6 +1382,9 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
         if (skipTime <= 1)
             RoomScene.INSTANCE.getChat().dismiss();
+
+        // Stop seasonal bg refresh when entering gameplay
+        SeasonalBackgroundManager.INSTANCE.stopPeriodicRefresh();
 
         leadOut = 0;
         musicStarted = false;
@@ -3175,13 +3180,18 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
     private void calculateAllSliderPaths(){
         if (!objects.isEmpty()){
-            if (lastTrack.getSliderCount() <= 0){
+            int sliderCount = 0;
+            for (GameObjectData data : objects){
+                final String[] params = data.getData();
+                final int objDefine = Integer.parseInt(params[3]);
+                if ((objDefine & 2) > 0) {
+                    sliderCount++;
+                }
+            }
+            if (sliderCount <= 0){
                 return;
             }
-            sliderPaths = new SliderPath[lastTrack.getSliderCount()];
-            for (SliderPath path : sliderPaths){
-                path = null;
-            }
+            sliderPaths = new SliderPath[sliderCount];
             int i = 0;
             sliderIndex = 0;
             for (GameObjectData data : objects){

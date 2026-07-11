@@ -275,6 +275,7 @@ public class MainActivity extends BaseGameActivity implements
         ResourceManager.getInstance().loadHighQualityAsset("exit", "exit.png");
         ResourceManager.getInstance().loadHighQualityAsset("beatmap_downloader", "beatmap_downloader.png");
         ResourceManager.getInstance().loadHighQualityAsset("options", "options.png");
+        ResourceManager.getInstance().loadHighQualityAsset("editor", "editor.png");
         ResourceManager.getInstance().loadHighQualityAsset("offline-avatar", "offline-avatar.png");
         ResourceManager.getInstance().loadHighQualityAsset("star", "gfx/star.png");
         ResourceManager.getInstance().loadHighQualityAsset("chat", "chat.png");
@@ -847,6 +848,12 @@ public class MainActivity extends BaseGameActivity implements
             } else {
 
                 if (GlobalManager.getInstance().getEngine().getScene() instanceof LoadingScreen.LoadingScene) {
+                    return true;
+                }
+
+                if (GlobalManager.getInstance().getEditorScene() != null &&
+                        GlobalManager.getInstance().getEngine().getScene() == GlobalManager.getInstance().getEditorScene().getScene()) {
+                    GlobalManager.getInstance().getEditorScene().back();
                     return true;
                 }
 
