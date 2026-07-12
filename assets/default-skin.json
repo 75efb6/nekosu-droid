@@ -1,0 +1,159 @@
+{
+    "ComboColor": {
+        "forceOverride": true,
+        "colors": [
+            "#f48fb1",
+            "#4fc2f7",
+            "#ff8965"
+        ]
+    },
+    "Slider": {
+        "sliderFollowComboColor": false,
+        "sliderBorderColor": "#adadad",
+        "sliderBodyColor": "#000000",
+        "sliderBodyBaseAlpha": 0.6,
+        "sliderHintEnable": true,
+        "sliderHintAlpha": 0.2,
+        "sliderHintWidth": 3,
+        "sliderHintShowMinLength": 150
+    },
+    "Utils": {
+        "limitComboTextLength": true,
+        "disableKiai": true,
+        "animationFramerate": 0
+    },
+    "Layout": {
+        "BackButton": {
+            "scaleWhenHold": false
+        },
+        "ModsButton": {
+            "scale": 0.7
+        },
+        "OptionsButton": {
+            "scale": 0.7
+        },
+        "RandomButton": {
+            "scale": 0.7
+        }
+    },
+    "Color": {
+        "MenuItemDefaultColor": "#fff3e0",
+        "MenuItemVersionsDefaultColor": "#fff3e0",
+        "MenuItemSelectedTextColor": "#fff3e0",
+        "MenuItemDefaultTextColor": "#fff3e0"
+    },
+    "HUD": [
+        {
+            "type": "combo_counter",
+            "x": 10,
+            "y": -10,
+            "anchor": "BottomLeft",
+            "origin": "BottomLeft",
+            "scale": 1.28
+        },
+        {
+            "type": "ur_counter",
+            "x": -10,
+            "y": -32,
+            "anchor": "BottomRight",
+            "origin": "BottomRight",
+            "scale": 1
+        },
+        {
+            "type": "avg_offset_counter",
+            "x": -10,
+            "y": -59,
+            "anchor": "BottomRight",
+            "origin": "BottomRight",
+            "scale": 1
+        },
+        {
+            "type": "score_counter",
+            "x": -10.800049,
+            "y": 0,
+            "anchor": "TopRight",
+            "origin": "TopRight",
+            "scale": 1.0432115
+        },
+        {
+            "type": "accuracy_counter",
+            "x": 692.9905,
+            "y": 43.80005,
+            "anchor": "TopRight",
+            "origin": "TopRight",
+            "scale": 0.65751255
+        },
+        {
+            "type": "notes_per_second_counter",
+            "x": -0.60009766,
+            "y": -83.47336,
+            "anchor": "BottomRight",
+            "origin": "BottomRight",
+            "scale": 0.73004985
+        },
+        {
+            "type": "taps_per_second_counter",
+            "x": -1.8310547E-4,
+            "y": 128.79996,
+            "anchor": "CenterRight",
+            "origin": "CenterRight",
+            "scale": 0.76251715
+        },
+        {
+            "type": "bpm_counter",
+            "x": -4.6044006,
+            "y": 83.725426,
+            "anchor": "TopRight",
+            "origin": "TopRight",
+            "scale": 0.6976799
+        },
+        {
+            "type": "hit_error_meter",
+            "x": -3.586914,
+            "y": -1.9795685,
+            "anchor": "BottomCenter",
+            "origin": "BottomCenter",
+            "scale": 1.2341211
+        },
+        {
+            "type": "accuracy_counter",
+            "x": -7.1000366,
+            "y": 50.20064,
+            "anchor": "TopRight",
+            "origin": "TopRight",
+            "scale": 0.6121032
+        },
+        {
+            "type": "pie_song_progress",
+            "x": -160.3761,
+            "y": 54.62799,
+            "anchor": "TopRight",
+            "origin": "TopRight",
+            "scale": 0.7980975
+        },
+        {
+            "type": "health_bar",
+            "x": -392.60168,
+            "y": 6.4000053,
+            "anchor": "TopCenter",
+            "origin": "TopCenter",
+            "scale": 0.89123696
+        },
+        {
+            "type": "leaderboard",
+            "x": -2.399971,
+            "y": 42.200012,
+            "anchor": "TopLeft",
+            "origin": "TopLeft",
+            "scale": 1
+        },
+        {
+            "type": "back_button",
+            "x": -5.5999756,
+            "y": 2.399994,
+            "anchor": "CenterRight",
+            "origin": "CenterRight",
+            "scale": 1.0689307
+        }
+    ]
+}
