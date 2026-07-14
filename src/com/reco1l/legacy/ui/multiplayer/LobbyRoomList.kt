@@ -28,9 +28,9 @@ import org.anddev.andengine.util.MathUtils
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.menu.LoadingScreen
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
-import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
-import ru.nsu.ccfit.zuev.osu.online.OnlineManager.getInstance as getOnline
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.ResourceManager
+import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
 
 class RoomPasswordDialog(
@@ -128,7 +128,7 @@ class LobbyRoomList : ScrollableList()
         LobbyScene.search.dismiss()
         LoadingScreen().show();
 
-        { RoomAPI.connectToRoom(room.id, getOnline().userId, getOnline().username, password) }.orAsyncCatch {
+        { RoomAPI.connectToRoom(room.id, OnlineManager.getInstance().userId, OnlineManager.getInstance().username, password) }.orAsyncCatch {
 
             ToastLogger.showText("Failed to connect to the room: ${it.className} - ${it.message}", true)
             Multiplayer.log(it)
@@ -138,11 +138,11 @@ class LobbyRoomList : ScrollableList()
 
     private fun addItem(room: Room)
     {
-        val texture = getResources().getTexture("menu-button-background")
+        val texture = ResourceManager.getInstance().getTexture("menu-button-background")
 
         camY = -146f
 
-        val sprite = object : Sprite(Config.getRES_WIDTH() - texture.width - 20f, 0f, texture)
+        val sprite = object : Sprite(Config.getRES_WIDTH() - texture!!.width - 20f, 0f, texture)
         {
             private var moved = false
             private var dx = 0f
@@ -170,7 +170,7 @@ class LobbyRoomList : ScrollableList()
                     if (moved || isScroll)
                         return false
 
-                    getResources().getSound("menuclick")?.play()
+                    ResourceManager.getInstance().getSound("menuclick")?.play()
 
                     if (room.isLocked)
                         showPasswordPrompt(room)
@@ -198,7 +198,7 @@ class LobbyRoomList : ScrollableList()
             TEAM_VS_TEAM -> "team_vs"
         }
 
-        val icon = Sprite(10f, 0f, getResources().getTexture(texName)).also {
+        val icon = Sprite(10f, 0f, ResourceManager.getInstance().getTexture(texName)).also {
 
             it.setScale(0.5f)
             it.setPosition(10f, (sprite.height - it.height) / 2f)
@@ -206,7 +206,7 @@ class LobbyRoomList : ScrollableList()
         }
 
         // Title
-        val name = Text(0f, 0f, getResources().getFont("smallFont"), room.name).also {
+        val name = Text(0f, 0f, ResourceManager.getInstance().getFont("smallFont"), room.name).also {
 
             it.setPosition(icon.x + icon.width, 24f)
             sprite.attachChild(it)
@@ -234,7 +234,7 @@ class LobbyRoomList : ScrollableList()
             $status - $winCondition - ${room.modsToReadableString()}
         """.trimIndent()
 
-        Text(0f, 0f, getResources().getFont("smallFont"), infoText).also {
+        Text(0f, 0f, ResourceManager.getInstance().getFont("smallFont"), infoText).also {
 
             it.setPosition(icon.x + icon.width, name.y + name.height)
             it.setColor(0.8f, 0.8f, 0.8f)
@@ -244,7 +244,7 @@ class LobbyRoomList : ScrollableList()
         // Lock indicator
         if (room.isLocked)
         {
-            Sprite(0f, 0f, getResources().getTexture("lock")).also {
+            Sprite(0f, 0f, ResourceManager.getInstance().getTexture("lock")).also {
 
                 it.setPosition(sprite.width - it.width - 5f, sprite.height - it.height - 5f)
                 sprite.attachChild(it)

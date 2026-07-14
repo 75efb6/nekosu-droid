@@ -28,7 +28,7 @@ class EditorDifficultyFragment : EditorFragment() {
         title.gravity = Gravity.CENTER
         layout.addView(title)
 
-        val data = editorScene?.getBeatmapData()
+        val data = editorScene?.beatmapData
 
         val csEdit = addField(layout, "Circle Size (CS)", data?.difficulty?.cs?.toString() ?: "4")
         val arEdit = addField(layout, "Approach Rate (AR)", data?.difficulty?.ar?.toString() ?: "9")
@@ -49,12 +49,14 @@ class EditorDifficultyFragment : EditorFragment() {
         params.setMargins(0, 24, 0, 12)
         saveBtn.layoutParams = params
         saveBtn.setOnClickListener {
-            data?.difficulty?.cs = parseFloatSafe(csEdit.text.toString(), data?.difficulty?.cs ?: 4f)
-            data?.difficulty?.ar = parseFloatSafe(arEdit.text.toString(), data?.difficulty?.ar ?: 9f)
-            data?.difficulty?.od = parseFloatSafe(odEdit.text.toString(), data?.difficulty?.od ?: 8f)
-            data?.difficulty?.hp = parseFloatSafe(hpEdit.text.toString(), data?.difficulty?.hp ?: 7f)
-            data?.difficulty?.sliderMultiplier = parseDoubleSafe(smEdit.text.toString(), data?.difficulty?.sliderMultiplier ?: 1.4)
-            data?.difficulty?.sliderTickRate = parseDoubleSafe(trEdit.text.toString(), data?.difficulty?.sliderTickRate ?: 1.0)
+            data?.difficulty?.apply {
+                cs = parseFloatSafe(csEdit.text.toString(), cs ?: 4f)
+                ar = parseFloatSafe(arEdit.text.toString(), ar ?: 9f)
+                od = parseFloatSafe(odEdit.text.toString(), od ?: 8f)
+                hp = parseFloatSafe(hpEdit.text.toString(), hp ?: 7f)
+                sliderMultiplier = parseDoubleSafe(smEdit.text.toString(), sliderMultiplier ?: 1.4)
+                sliderTickRate = parseDoubleSafe(trEdit.text.toString(), sliderTickRate ?: 1.0)
+            }
             dismiss()
         }
         layout.addView(saveBtn)

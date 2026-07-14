@@ -44,11 +44,11 @@ import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import java.text.SimpleDateFormat
 import java.util.*
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
-import ru.nsu.ccfit.zuev.osu.LibraryManager.INSTANCE as library
-import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
-import ru.nsu.ccfit.zuev.osu.menu.ModMenu.getInstance as getModMenu
-import ru.nsu.ccfit.zuev.osu.online.OnlineManager.getInstance as getOnline
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.LibraryManager
+import ru.nsu.ccfit.zuev.osu.ResourceManager
+import ru.nsu.ccfit.zuev.osu.menu.ModMenu
+import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
 object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 {
@@ -76,7 +76,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
     val chat = RoomChat()
 
-    val chatPreview = ComposedText(0f, 0f, getResources().getFont("smallFont"), 100)
+    val chatPreview = ComposedText(0f, 0f, ResourceManager.getInstance().getFont("smallFont"), 100)
 
     val leaveDialog = ConfirmDialogFragment().setMessage("Leave room?\nAre you sure?")
 
@@ -98,14 +98,14 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
     private val onlinePanel = OnlinePanel()
 
-    private val titleText = ChangeableText(20f, 20f, getResources().getFont("bigFont"), "", 100)
+    private val titleText = ChangeableText(20f, 20f, ResourceManager.getInstance().getFont("bigFont"), "", 100)
 
-    private val stateText = ChangeableText(0f, 0f, getResources().getFont("smallFont"), "", 250)
+    private val stateText = ChangeableText(0f, 0f, ResourceManager.getInstance().getFont("smallFont"), "", 250)
 
-    private val infoText = ChangeableText(0f, 0f, getResources().getFont("smallFont"), "", 200)
+    private val infoText = ChangeableText(0f, 0f, ResourceManager.getInstance().getFont("smallFont"), "", 200)
 
 
-    private val beatmapInfoText = ChangeableText(10f, 10f, getResources().getFont("smallFont"), "", 150)
+    private val beatmapInfoText = ChangeableText(10f, 10f, ResourceManager.getInstance().getFont("smallFont"), "", 150)
 
     private var beatmapInfoRectangle: Rectangle? = null
 
@@ -172,14 +172,14 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         OsuSkin.get().getColor("MenuItemDefaultTextColor", BeatmapButton.DEFAULT_TEXT_COLOR).apply(beatmapInfoText)
 
         // Ready button, this button will switch player status
-        readyButton = object : TextButton(getResources().getFont("CaptionFont"), "Ready")
+        readyButton = object : TextButton(ResourceManager.getInstance().getFont("CaptionFont"), "Ready")
         {
             override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean
             {
                 if (!event.isActionUp || awaitStatusChange)
                     return false
 
-                getResources().getSound("menuclick")?.play()
+                ResourceManager.getInstance().getSound("menuclick")?.play()
                 awaitStatusChange = true
 
                 // Switching status
@@ -226,7 +226,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
         // It'll only be shown if the player is the room host, if host status is set to READY, this button will start
         // the game otherwise it'll the options button.
-        secondaryButton = object : TextButton(getResources().getFont("CaptionFont"), "Options")
+        secondaryButton = object : TextButton(ResourceManager.getInstance().getFont("CaptionFont"), "Options")
         {
             override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean
             {
@@ -274,7 +274,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
                         return true
                     }
 
-                    getResources().getSound("menuhit")?.play()
+                    ResourceManager.getInstance().getSound("menuhit")?.play()
                     RoomAPI.notifyMatchPlay()
                     return true
                 }
@@ -301,10 +301,10 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
         val loadedBackTextures = mutableListOf<String>()
 
-        if (getResources().isTextureLoaded("menu-back-0"))
+        if (ResourceManager.getInstance().isTextureLoaded("menu-back-0"))
         {
             for (i in 0..59)
-                if (getResources().isTextureLoaded("menu-back-$i")) loadedBackTextures.add("menu-back-$i")
+                if (ResourceManager.getInstance().isTextureLoaded("menu-back-$i")) loadedBackTextures.add("menu-back-$i")
         }
         else loadedBackTextures.add("menu-back")
 
@@ -326,7 +326,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
                     dx = localX
                     dy = localY
 
-                    getResources().getSound("menuback")?.play()
+                    ResourceManager.getInstance().getSound("menuback")?.play()
                     return true
                 }
                 if (event.isActionUp)
@@ -346,7 +346,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
             }
         }.also {
 
-            if (OsuSkin.get().isUseNewLayout)
+            if (OsuSkin.get().isUseNewLayout())
             {
                 layoutBackButton?.baseApply(it)
                 it.setPosition(0f, Config.getRES_HEIGHT() - it.heightScaled)
@@ -375,19 +375,19 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
                     dx = localX
                     dy = localY
 
-                    frame = 1
+                    setFrame(1)
                     return true
                 }
                 if (event.isActionUp)
                 {
-                    frame = 0
+                    setFrame(0)
                     if (!moved)
-                        getModMenu().show(this@RoomScene, getGlobal().selectedTrack)
+                        ModMenu.getInstance().show(this@RoomScene, GlobalManager.getInstance().selectedTrack)
                     return true
                 }
                 if (event.isActionOutside || event.isActionMove && MathUtils.distance(dx, dy, localX, localY) > 50)
                 {
-                    frame = 0
+                    setFrame(0)
                     moved = true
                 }
                 return false
@@ -400,7 +400,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
             registerTouchArea(it)
             attachChild(it)
 
-            if (OsuSkin.get().isUseNewLayout)
+            if (OsuSkin.get().isUseNewLayout())
             {
                 layoutMods?.baseApply(it)
                 it.setPosition(backButton!!.x + backButton!!.width, Config.getRES_HEIGHT() - it.heightScaled)
@@ -418,7 +418,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
     override fun onSceneTouchEvent(event: TouchEvent): Boolean {
         trackButton?.also {
             beatmapInfoRectangle?.isVisible =
-                getGlobal().selectedTrack != null &&
+                GlobalManager.getInstance().selectedTrack != null &&
                 !event.isActionUp &&
                 event.x in it.x..(it.x + it.width) &&
                 event.y in it.y..(it.y + it.height)
@@ -440,9 +440,9 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
     private fun updateBackground(path: String?)
     {
         val texture = if (path != null && !Config.isSafeBeatmapBg())
-            getResources().loadBackground(path) else getResources().getTexture("menu-background")
+            ResourceManager.getInstance().loadBackground(path) else ResourceManager.getInstance().getTexture("menu-background")
 
-        val height = texture.height * (Config.getRES_WIDTH() / texture.width.toFloat())
+        val height = texture!!.height * (Config.getRES_WIDTH() / texture.width.toFloat())
         val width = Config.getRES_WIDTH().toFloat()
 
         background = SpriteBackground(Sprite(0f, (Config.getRES_HEIGHT() - height) / 2f, width, height, texture))
@@ -527,7 +527,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
     private fun updateBeatmapInfo()
     {
-        beatmapInfoRectangle!!.isVisible = getGlobal().selectedTrack?.let { track ->
+        beatmapInfoRectangle!!.isVisible = GlobalManager.getInstance().selectedTrack?.let { track ->
 
             beatmapInfoText.text = """
                 Length: ${
@@ -569,7 +569,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
         var newStatus = NOT_READY
 
-        if (room!!.beatmap != null && getGlobal().selectedTrack == null)
+        if (room!!.beatmap != null && GlobalManager.getInstance().selectedTrack == null)
             newStatus = MISSING_BEATMAP
 
         if (player!!.status != newStatus)
@@ -592,7 +592,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
             options?.dismiss()
 
             updateThread {
-                getModMenu().hide()
+                ModMenu.getInstance().hide()
 
                 playerList?.detachSelf()
                 playerList = null
@@ -604,9 +604,9 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
     // Navigation
 
     private fun applyModMenuSpeed() {
-        val speed = getModMenu().speed
-        val enableNC = getModMenu().isEnableNCWhenSpeedChange || getModMenu().mod.contains(GameMod.MOD_NIGHTCORE)
-        getGlobal().songService?.applySpeed(speed, enableNC)
+        val speed = ModMenu.getInstance().speed
+        val enableNC = ModMenu.getInstance().isEnableNCWhenSpeedChange || ModMenu.getInstance().mod.contains(GameMod.MOD_NIGHTCORE)
+        GlobalManager.getInstance().songService?.applySpeed(speed, enableNC)
     }
 
     override fun back()
@@ -614,7 +614,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         // Stopping the attempt loop if user cancels reconnection.
         Multiplayer.isReconnecting = false
 
-        getGlobal().songService?.applySpeed(1.0f, false)
+        GlobalManager.getInstance().songService?.applySpeed(1.0f, false)
         ignoreException { RoomAPI.disconnect() }
         clear()
         LobbyScene.show()
@@ -622,7 +622,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
     fun show()
     {
-        (getGlobal().camera as SmoothCamera).apply {
+        (GlobalManager.getInstance().camera as SmoothCamera).apply {
 
             setZoomFactorDirect(1f)
 
@@ -636,14 +636,14 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
             return
         }
 
-        getGlobal().engine.scene = this
+        GlobalManager.getInstance().engine?.scene = this
 
         room?.let { DiscordRPC.updateForMultiRoom(it.name, it.activePlayers.size, it.maxPlayers) }
 
         // Updating beatmap just in case only if there's no await lock.
         if (!awaitBeatmapChange)
             onRoomBeatmapChange(room!!.beatmap)
-        else if (getGlobal().songService?.status == ru.nsu.ccfit.zuev.audio.Status.STOPPED && getGlobal().selectedTrack != null)
+        else if (GlobalManager.getInstance().songService?.status == ru.nsu.ccfit.zuev.audio.Status.STOPPED && GlobalManager.getInstance().selectedTrack != null)
             onRoomBeatmapChange(room!!.beatmap)
         else
             applyModMenuSpeed()
@@ -693,7 +693,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         awaitStatusChange = false
 
         // Finding our player object
-        player = newRoom.playersMap[getOnline().userId]!!
+        player = newRoom.playersMap[OnlineManager.getInstance().userId]!!
 
         // Reloading player list
         playerList?.detachSelf()
@@ -702,21 +702,21 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
         // Reloading mod menu, we set player mods first in case the scene was reloaded (due to skin change).
         clearChildScene()
-        getModMenu().setMods(player!!.mods, false, true)
-        getModMenu().init()
-        getModMenu().setMods(newRoom.mods, newRoom.gameplaySettings.isFreeMod, newRoom.gameplaySettings.allowForceDifficultyStatistics)
+        ModMenu.getInstance().setMods(player!!.mods, false, true)
+        ModMenu.getInstance().init()
+        ModMenu.getInstance().setMods(newRoom.mods, newRoom.gameplaySettings.isFreeMod, newRoom.gameplaySettings.allowForceDifficultyStatistics)
 
         // Updating player mods for other clients
         awaitModsChange = true
 
         RoomAPI.setPlayerMods(
-            modsToString(getModMenu().mod),
-            getModMenu().changeSpeed,
-            getModMenu().fLfollowDelay,
-            getModMenu().customAR,
-            getModMenu().customOD,
-            getModMenu().customCS,
-            getModMenu().customHP
+            modsToString(ModMenu.getInstance().mod),
+            ModMenu.getInstance().changeSpeed,
+            ModMenu.getInstance().FLfollowDelay,
+            ModMenu.getInstance().customAR,
+            ModMenu.getInstance().customOD,
+            ModMenu.getInstance().customCS,
+            ModMenu.getInstance().customHP
         )
 
         // Updating UI
@@ -735,7 +735,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
             {
                 // Handling special case when the beatmap could have been changed and match was started while player was
                 // disconnected.
-                if (getGlobal().selectedTrack != null)
+                if (GlobalManager.getInstance().selectedTrack != null)
                     onRoomMatchPlay()
                 else
                     invalidateStatus()
@@ -791,13 +791,13 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         room!!.beatmap = beatmap
 
         // Searching the beatmap in the library
-        getGlobal().selectedTrack = library.findTrackByMD5(beatmap?.md5)
+        GlobalManager.getInstance().selectedTrack = LibraryManager.INSTANCE.findTrackByMD5(beatmap?.md5)
 
         // Updating track button
         trackButton!!.updateBeatmap(beatmap)
 
         // Preventing from change song when host is in room while other players are in gameplay
-        if (getGlobal().engine.scene != this)
+        if (GlobalManager.getInstance().engine?.scene != this)
         {
             awaitBeatmapChange = false
             return
@@ -811,20 +811,20 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         invalidateStatus()
 
         // Updating background
-        updateBackground(getGlobal().selectedTrack?.background)
+        updateBackground(GlobalManager.getInstance().selectedTrack?.background)
         updateBeatmapInfo()
 
         // Releasing await lock
         awaitBeatmapChange = false
 
-        if (getGlobal().selectedTrack == null)
+        if (GlobalManager.getInstance().selectedTrack == null)
         {
-            getGlobal().songService.stop()
+            GlobalManager.getInstance().songService!!.stop()
             return
         }
 
-        getGlobal().songService.preLoadPreview(getGlobal().selectedTrack.beatmap.music)
-        getGlobal().songService.play()
+        GlobalManager.getInstance().songService!!.preLoadPreview(GlobalManager.getInstance().selectedTrack?.beatmap?.getMusic())
+        GlobalManager.getInstance().songService!!.play()
         applyModMenuSpeed()
     }
 
@@ -836,11 +836,11 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
         // Reloading mod menu
         updateThread {
-            getModMenu().hide(false)
+            ModMenu.getInstance().hide(false)
 
             // Reloading buttons sprites
-            getModMenu().init()
-            getModMenu().update()
+            ModMenu.getInstance().init()
+            ModMenu.getInstance().update()
         }
 
         // Updating player list
@@ -860,19 +860,19 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         // If free mods is enabled it'll keep player mods and enforce speed changing mods and ScoreV2.
         // If allow force difficulty statistics is enabled under free mod, the force difficulty statistics settings
         // set by the player will not be overridden.
-        getModMenu().setMods(mods, room!!.gameplaySettings.isFreeMod, room!!.gameplaySettings.allowForceDifficultyStatistics)
+        ModMenu.getInstance().setMods(mods, room!!.gameplaySettings.isFreeMod, room!!.gameplaySettings.allowForceDifficultyStatistics)
 
         // Updating player mods
         awaitModsChange = true
 
         RoomAPI.setPlayerMods(
-            modsToString(getModMenu().mod),
-            getModMenu().changeSpeed,
-            getModMenu().fLfollowDelay,
-            getModMenu().customAR,
-            getModMenu().customOD,
-            getModMenu().customCS,
-            getModMenu().customHP
+            modsToString(ModMenu.getInstance().mod),
+            ModMenu.getInstance().changeSpeed,
+            ModMenu.getInstance().FLfollowDelay,
+            ModMenu.getInstance().customAR,
+            ModMenu.getInstance().customOD,
+            ModMenu.getInstance().customCS,
+            ModMenu.getInstance().customHP
         )
 
         // Update room info text
@@ -892,7 +892,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         modsButton!!.isVisible = isRoomHost || settings.isFreeMod
 
         // Closing mod menu, to enforce mod menu scene update
-        getModMenu().hide(false)
+        ModMenu.getInstance().hide(false)
 
         // Invalidating player status
         invalidateStatus()
@@ -952,12 +952,12 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
             // Applying to all room
             RoomAPI.setRoomMods(
                 modsToString(roomMods),
-                getModMenu().changeSpeed,
-                getModMenu().fLfollowDelay,
-                getModMenu().customAR,
-                getModMenu().customOD,
-                getModMenu().customCS,
-                getModMenu().customHP
+                ModMenu.getInstance().changeSpeed,
+                ModMenu.getInstance().FLfollowDelay,
+                ModMenu.getInstance().customAR,
+                ModMenu.getInstance().customOD,
+                ModMenu.getInstance().customCS,
+                ModMenu.getInstance().customHP
             )
         }
 
@@ -973,26 +973,26 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
     override fun onRoomMatchPlay()
     {
-        if (player!!.status != MISSING_BEATMAP && getGlobal().engine.scene != getGlobal().gameScene.scene)
+        if (player!!.status != MISSING_BEATMAP && GlobalManager.getInstance().engine?.scene != GlobalManager.getInstance().gameScene?.scene)
         {
-            if (getGlobal().selectedTrack == null)
+            if (GlobalManager.getInstance().selectedTrack == null)
             {
                 Multiplayer.log("WARNING: Attempt to start match with null track.")
                 return
             }
 
-            getGlobal().songMenu.stopMusic()
+            GlobalManager.getInstance().songMenu?.stopMusic()
 
-            Replay.oldMod = getModMenu().mod
-            Replay.oldChangeSpeed = getModMenu().changeSpeed
-            Replay.oldFLFollowDelay = getModMenu().fLfollowDelay
+            Replay.oldMod = ModMenu.getInstance().mod
+            Replay.oldChangeSpeed = ModMenu.getInstance().changeSpeed
+            Replay.oldFLFollowDelay = ModMenu.getInstance().FLfollowDelay
 
-            Replay.oldCustomAR = getModMenu().customAR
-            Replay.oldCustomOD = getModMenu().customOD
-            Replay.oldCustomCS = getModMenu().customCS
-            Replay.oldCustomHP = getModMenu().customHP
+            Replay.oldCustomAR = ModMenu.getInstance().customAR
+            Replay.oldCustomOD = ModMenu.getInstance().customOD
+            Replay.oldCustomCS = ModMenu.getInstance().customCS
+            Replay.oldCustomHP = ModMenu.getInstance().customHP
 
-            getGlobal().gameScene.startGame(getGlobal().selectedTrack, null)
+            GlobalManager.getInstance().gameScene?.startGame(GlobalManager.getInstance().selectedTrack, null)
 
             // Hiding any player menu if its shown
             mainThread { playerList!!.menu.dismiss() }
@@ -1004,8 +1004,8 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
     override fun onRoomMatchStart()
     {
-        if (getGlobal().engine.scene is LoadingScene)
-            getGlobal().gameScene.start()
+        if (GlobalManager.getInstance().engine?.scene is LoadingScene)
+            GlobalManager.getInstance().gameScene?.start()
 
         // Updating player list
         playerList!!.invalidate()
@@ -1013,10 +1013,10 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
 
     override fun onRoomMatchSkip()
     {
-        if (getGlobal().engine.scene != getGlobal().gameScene.scene)
+        if (GlobalManager.getInstance().engine?.scene != GlobalManager.getInstance().gameScene?.scene)
             return
 
-        getGlobal().gameScene.skip()
+        GlobalManager.getInstance().gameScene?.skip()
     }
 
 
@@ -1063,7 +1063,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         {
             Multiplayer.log("Kicked from room.")
 
-            if (getGlobal().engine.scene == getGlobal().gameScene.scene) {
+            if (GlobalManager.getInstance().engine?.scene == GlobalManager.getInstance().gameScene?.scene) {
                 ToastLogger.showText("You were kicked by the room host, but you can continue playing.", true)
                 return
             }

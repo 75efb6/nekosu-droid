@@ -23,7 +23,7 @@ import ru.nsu.ccfit.zuev.osu.helper.InputManager
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.menu.IFilterMenu
 import ru.nsu.ccfit.zuev.osu.menu.SongMenu
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
+import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osuplus.R
 
 class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
@@ -31,7 +31,7 @@ class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
     private var savedFolder: String? = null
     private var savedFavOnly = false
     private var savedFilter: String? = null
-    private var scene: Scene? = null
+    internal var scene: Scene? = null
     private lateinit var filter: EditText
     private var menu: SongMenu? = null
     private lateinit var favoritesOnly: CheckBox
@@ -75,7 +75,7 @@ class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
     override fun getFavoriteFolder(): String =
         if (StringTable.get(R.string.favorite_default) == favoriteFolder.text) "" else favoriteFolder.text.toString()
 
-    override fun loadConfig(context: Context?) {
+    override fun loadConfig(context: Context) {
         configContext = context
         mainThread(this::reloadViewData)
     }
@@ -88,15 +88,15 @@ class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
         dismiss()
     }
 
-    override fun showMenu(parent: SongMenu?) {
-        this.menu = parent!!
+    override fun showMenu(parent: SongMenu) {
+        this.menu = parent
         scene = Scene()
         scene!!.isBackgroundEnabled = false
         updater = object : Updater() {
             override fun createEventRunnable(): Runnable =
                 Runnable { parent.loadFilter(this@FilterMenuFragment) }
 
-            override fun postEvent(r: Runnable?) = parent.scene.postRunnable(r)
+            override fun postEvent(r: Runnable) { parent.scene?.postRunnable(r) }
         }
         show()
     }
@@ -115,7 +115,7 @@ class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
 
     override fun dismiss() {
         playEndAnim { super.dismiss() }
-        getGlobal().songMenu.unloadFilterFragment()
+        GlobalManager.getInstance().songMenu?.unloadFilterFragment()
         saveState(savedFolder, savedFavOnly, savedFilter)
     }
 
@@ -233,7 +233,7 @@ class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
     }
 
     private fun updateOrderButton() {
-        val s = when (order) {
+        val s = when (getOrder()) {
             SongMenu.SortOrder.Title -> StringTable.get(R.string.menu_search_sort_title)
             SongMenu.SortOrder.Artist -> StringTable.get(R.string.menu_search_sort_artist)
             SongMenu.SortOrder.Creator -> StringTable.get(R.string.menu_search_sort_creator)
@@ -252,7 +252,7 @@ class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
     }
 
     private fun nextOrder() {
-        var order = order
+        var order = getOrder()
         order = SongMenu.SortOrder.entries.toTypedArray()[(order.ordinal + 1) % SongMenu.SortOrder.entries.size]
         saveOrder(order)
     }
@@ -270,8 +270,8 @@ class FilterMenuFragment : BaseFragment(), IUpdateHandler, IFilterMenu {
     }
 
     override fun onUpdate(pSecondsElapsed: Float) {
-        if (InputManager.getInstance().isChanged) {
-            filter.setText(InputManager.getInstance().text)
+        if (InputManager.getInstance().isChanged()) {
+            filter.setText(InputManager.getInstance().getText())
         }
     }
 

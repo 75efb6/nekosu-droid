@@ -28,7 +28,7 @@ class EditorMetadataFragment : EditorFragment() {
         title.gravity = Gravity.CENTER
         layout.addView(title)
 
-        val data = editorScene?.getBeatmapData()
+        val data = editorScene?.beatmapData
 
         val titleEdit = addField(layout, "Title", data?.metadata?.title ?: "")
         val artistEdit = addField(layout, "Artist", data?.metadata?.artist ?: "")
@@ -49,12 +49,14 @@ class EditorMetadataFragment : EditorFragment() {
         params.setMargins(0, 24, 0, 12)
         saveBtn.layoutParams = params
         saveBtn.setOnClickListener {
-            data?.metadata?.title = titleEdit.text.toString()
-            data?.metadata?.artist = artistEdit.text.toString()
-            data?.metadata?.creator = creatorEdit.text.toString()
-            data?.metadata?.version = versionEdit.text.toString()
-            data?.metadata?.tags = tagsEdit.text.toString()
-            data?.metadata?.source = sourceEdit.text.toString()
+            data?.metadata?.apply {
+                title = titleEdit.text.toString()
+                artist = artistEdit.text.toString()
+                creator = creatorEdit.text.toString()
+                version = versionEdit.text.toString()
+                tags = tagsEdit.text.toString()
+                source = sourceEdit.text.toString()
+            }
             dismiss()
         }
         layout.addView(saveBtn)

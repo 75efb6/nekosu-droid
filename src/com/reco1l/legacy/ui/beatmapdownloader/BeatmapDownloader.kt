@@ -29,7 +29,7 @@ object BeatmapDownloader : IDownloaderObserver {
     private lateinit var currentFilename: String
 
 
-    private val context = GlobalManager.getInstance().mainActivity
+    private val context get() = GlobalManager.getInstance().getMainActivity()!!
 
     // TODO: We should adapt the system to allow multiple downloads at a time.
     private var isDownloading = false

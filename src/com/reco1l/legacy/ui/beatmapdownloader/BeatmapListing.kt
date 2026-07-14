@@ -439,7 +439,7 @@ class BeatmapListing : BaseFragment(),
 
 
     override fun show() {
-        isPlayingMusic = GlobalManager.getInstance().songService.status == Status.PLAYING
+        isPlayingMusic = GlobalManager.getInstance().songService!!.status == Status.PLAYING
         super.show()
     }
 

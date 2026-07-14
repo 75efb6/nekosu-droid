@@ -309,9 +309,10 @@ class InGameSettingMenu : BaseFragment() {
                 ) {
                     if (!containsFlashlight) return
 
-                    ModMenu.getInstance().fLfollowDelay =
-                        ((progress * ModMenu.DEFAULT_FL_FOLLOW_DELAY).roundToInt()).toFloat() // (progress * 1200f / (10f * 1000f)).roundToInt().toFloat()
-                    followDelayText.text = "${progress * FlashLightEntity.defaultMoveDelayMS}ms"
+                    ModMenu.getInstance().setFLfollowDelay(
+                        ((progress * ModMenu.DEFAULT_FL_FOLLOW_DELAY).roundToInt()).toFloat()
+                    )
+                    followDelayText.text = "${progress * FlashLightEntity.defaultMoveDelayS * 1000}ms"
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -324,7 +325,7 @@ class InGameSettingMenu : BaseFragment() {
                     seekBar!!.progress = 0
                     ModMenu.getInstance().resetFLFollowDelay()
                     followDelayText.text =
-                        "${(ModMenu.getInstance().fLfollowDelay * 1000f).toInt()}ms"
+                        "${(ModMenu.getInstance().FLfollowDelay * 1000f).toInt()}ms"
                 }
             }
         )
@@ -521,11 +522,11 @@ class InGameSettingMenu : BaseFragment() {
     }
 
     private fun updateVisibility() {
-        val flFollowDelay = ModMenu.getInstance().fLfollowDelay
+        val flFollowDelay = ModMenu.getInstance().FLfollowDelay
         followDelayRow.visibility =
             if (ModMenu.getInstance().mod.contains(GameMod.MOD_FLASHLIGHT)) View.VISIBLE else View.GONE
         followDelayBar.progress =
-            (flFollowDelay * 1000f / FlashLightEntity.defaultMoveDelayMS).toInt()
+            (flFollowDelay * 1000f / (FlashLightEntity.defaultMoveDelayS * 1000)).toInt()
         followDelayText.text = "${(flFollowDelay * 1000f).toInt()}ms"
 
         if (Multiplayer.isMultiplayer) {
@@ -595,7 +596,7 @@ class InGameSettingMenu : BaseFragment() {
     }
 
     fun updatePreviewSpeed() {
-        val songService = GlobalManager.getInstance().getSongService() ?: return
+        val songService = GlobalManager.getInstance().songService ?: return
         if (songService.status != Status.PLAYING) return
         val speed = ModMenu.getInstance().speed
         val enableNC = ModMenu.getInstance().isEnableNCWhenSpeedChange ||

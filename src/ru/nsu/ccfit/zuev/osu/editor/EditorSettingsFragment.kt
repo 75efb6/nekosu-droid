@@ -93,7 +93,7 @@ class EditorSettingsFragment : EditorFragment() {
 
         // === Selection ===
         sectionHeader(layout, "Selection")
-        val multiLabel = if (scene?.isMultiSelectMode == true) "Multi-Select: ON" else "Multi-Select: OFF"
+        val multiLabel = if (scene?.isMultiSelectMode() == true) "Multi-Select: ON" else "Multi-Select: OFF"
         addButton(layout, multiLabel) {
             scene?.toggleMultiSelect()
             dismiss()
@@ -165,7 +165,7 @@ class EditorSettingsFragment : EditorFragment() {
 
     private fun saveBeatmap() {
         val scene = editorScene ?: return
-        val data = scene.getBeatmapData() ?: return
+        val data = scene.beatmapData ?: return
         val path = scene.getBeatmapPath() ?: return
 
         val file = java.io.File(path)

@@ -19,8 +19,8 @@ import com.reco1l.framework.lang.mainThread
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.menu.LoadingScreen
 import ru.nsu.ccfit.zuev.osuplus.R
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
-import ru.nsu.ccfit.zuev.osu.online.OnlineManager.getInstance as getOnline
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
 class LobbyCreateRoom : BaseFragment()
 {
@@ -52,7 +52,7 @@ class LobbyCreateRoom : BaseFragment()
                     override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
                 }
         )
-        nameField!!.setText("${getOnline().username}'s room")
+        nameField!!.setText("${OnlineManager.getInstance().username}'s room")
 
         findViewById<View>(R.id.room_create)!!.setOnClickListener {
 
@@ -75,12 +75,12 @@ class LobbyCreateRoom : BaseFragment()
                 val password = passwordField!!.text.toString().takeUnless { it.isEmpty() }
 
                 // Track MD5 should never be null.
-                val beatmap = getGlobal().selectedTrack?.takeUnless { it.mD5 == null }?.let {
+                val beatmap = GlobalManager.getInstance().selectedTrack?.takeUnless { it.md5 == null }?.let {
 
                     RoomBeatmap(
-                            md5 = it.mD5,
-                            title = it.beatmap.title,
-                            artist = it.beatmap.artist,
+                            md5 = it.md5,
+                            title = it.beatmap?.title,
+                            artist = it.beatmap?.artist,
                             creator = it.creator,
                             version = it.mode
                     )
@@ -96,13 +96,13 @@ class LobbyCreateRoom : BaseFragment()
                     val roomId = LobbyAPI.createRoom(
                             name,
                             beatmap,
-                            getOnline().userId,
-                            getOnline().username,
+                            OnlineManager.getInstance().userId,
+                            OnlineManager.getInstance().username,
                             SecurityUtils.signRequest(signStr),
                             password,
                             maxBar.progress
                     )
-                    RoomAPI.connectToRoom(roomId, getOnline().userId, getOnline().username, password)
+                    RoomAPI.connectToRoom(roomId, OnlineManager.getInstance().userId, OnlineManager.getInstance().username, password)
                 }
                 catch (e: Exception)
                 {

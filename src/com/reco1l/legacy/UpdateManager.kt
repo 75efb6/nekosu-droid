@@ -17,7 +17,6 @@ import org.json.JSONObject
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
-import ru.nsu.ccfit.zuev.osu.online.OnlineManager.updateEndpoint
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig.APPLICATION_ID
 import ru.nsu.ccfit.zuev.osuplus.R.string.changelog_title
 import ru.nsu.ccfit.zuev.osuplus.R.string.beatmap_downloader_cancel
@@ -37,19 +36,19 @@ import java.io.File
 object UpdateManager: IDownloaderObserver
 {
 
-    private val mainActivity = GlobalManager.getInstance().mainActivity
+    private val mainActivity get() = GlobalManager.getInstance().getMainActivity()!!
 
     private val preferences
         get() = PreferenceManager.getDefaultSharedPreferences(mainActivity)
 
-    private val cacheDirectory = File(mainActivity.cacheDir, "updates").apply { mkdirs() }
+    private val cacheDirectory = File(mainActivity!!.cacheDir, "updates").apply { mkdirs() }
 
-    private val snackBar = Snackbar.make(mainActivity.window.decorView, "", LENGTH_INDEFINITE)
+    private val snackBar = Snackbar.make(mainActivity!!.window.decorView, "", LENGTH_INDEFINITE)
 
     
     private var downloadURL: String? = null
     
-    private var newVersionCode: Long = mainActivity.versionCode
+    private var newVersionCode: Long = mainActivity!!.getVersionCode()
     
 
     fun onActivityStart() = mainThread {
@@ -57,11 +56,11 @@ object UpdateManager: IDownloaderObserver
         // showing the changelog after update with a prompt asking user to show.
         preferences.apply {
 
-            val latestUpdate = getLong("latestVersionCode", mainActivity.versionCode)
+            val latestUpdate = getLong("latestVersionCode", mainActivity!!.getVersionCode())
             val pendingChangelog = getString("pendingChangelog", null)
 
             if (!pendingChangelog.isNullOrEmpty()) {
-                if (latestUpdate > mainActivity.versionCode) {
+                if (latestUpdate > mainActivity!!.getVersionCode()) {
                     snackBar.apply {
 
                         // Will only dismiss if user wants.
@@ -112,14 +111,14 @@ object UpdateManager: IDownloaderObserver
             // then installing it.
             cacheDirectory.listFiles()?.also { list ->
 
-                var newestVersionDownloaded: Long = mainActivity.versionCode
+                var newestVersionDownloaded: Long = mainActivity!!.getVersionCode()
 
                 list.forEach {
 
                     val version = it.nameWithoutExtension.toLongOrNull() ?: return@forEach
 
                     // Deleting the file corresponding to this version if still present.
-                    if (version == mainActivity.versionCode)
+                    if (version == mainActivity!!.getVersionCode())
                         it.delete()
 
                     // Finding the newest package.
@@ -128,7 +127,7 @@ object UpdateManager: IDownloaderObserver
                 }
 
                 // Directly navigate to installation if there's already a newer package.
-                if (newestVersionDownloaded > mainActivity.versionCode) {
+                if (newestVersionDownloaded > mainActivity!!.getVersionCode()) {
                     newVersionCode = newestVersionDownloaded
                     onFoundNewUpdate(silently)
                     return@async
@@ -145,7 +144,7 @@ object UpdateManager: IDownloaderObserver
                 }
                 
                 val request = Request.Builder()
-                    .url(updateEndpoint + mainActivity.resources.configuration.locale.language)
+                    .url(OnlineManager.updateEndpoint + mainActivity!!.resources.configuration.locale.language)
                     .build()
 
                 OnlineManager.client.newCall(request).execute().use {
@@ -158,7 +157,7 @@ object UpdateManager: IDownloaderObserver
 
                     // Previous implementation has this check, server returning an older version 
                     // shouldn't happen.
-                    if (newVersionCode <= mainActivity.versionCode) {
+                    if (newVersionCode <= mainActivity!!.getVersionCode()) {
                         onAlreadyLatestVersion(silently)
                         return@async
                     }
@@ -189,7 +188,7 @@ object UpdateManager: IDownloaderObserver
             setDataAndType(uri, "application/vnd.android.package-archive")
             addFlags(FLAG_GRANT_READ_URI_PERMISSION)
         }
-        mainActivity.startActivity(intent)
+        mainActivity!!.startActivity(intent)
     }
     
     private fun onDownloadNewUpdate(file: File) {
@@ -206,7 +205,7 @@ object UpdateManager: IDownloaderObserver
     
     private fun onFoundNewUpdate(silently: Boolean) = mainThread {
 
-        if (newVersionCode <= mainActivity.versionCode) {
+        if (newVersionCode <= mainActivity!!.getVersionCode()) {
             onAlreadyLatestVersion(silently)
             return@mainThread
         }
@@ -271,21 +270,25 @@ object UpdateManager: IDownloaderObserver
     }
 
     
-    override fun onDownloadStart(downloader: Downloader) = mainThread {
+    override fun onDownloadStart(downloader: Downloader) {
+        mainThread {
 
-        snackBar.apply {
+            snackBar.apply {
 
-            duration = LENGTH_INDEFINITE
+                duration = LENGTH_INDEFINITE
 
-            setText(StringTable.format(update_info_downloading, 0))
-            setAction(beatmap_downloader_cancel) { downloader.cancel() }
-            show()
+                setText(StringTable.format(update_info_downloading, 0))
+                setAction(beatmap_downloader_cancel) { downloader.cancel() }
+                show()
+            }
         }
     }
 
-    override fun onDownloadUpdate(downloader: Downloader) = mainThread {
+    override fun onDownloadUpdate(downloader: Downloader) {
+        mainThread {
 
-        snackBar.setText(StringTable.format(update_info_downloading, downloader.progress.toInt()))
+            snackBar.setText(StringTable.format(update_info_downloading, downloader.progress.toInt()))
+        }
     }
 
     override fun onDownloadEnd(downloader: Downloader) {
