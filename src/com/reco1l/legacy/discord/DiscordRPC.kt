@@ -55,22 +55,21 @@ object DiscordRPC {
             init(activity)
         }
 
-        if (isConnected) {
-            Log.d(TAG, "connect() ignored: already connected.")
-            return
-        }
-
         if (isPendingAuthorization) {
             Log.d(TAG, "connect() ignored: authorization already in progress.")
             return
+        }
+
+        if (isConnected) {
+            Log.d(TAG, "Re-authorizing: disconnecting and clearing saved token.")
+            disconnect()
+            clearSavedToken()
         }
 
         if (callbackJob?.isActive == true) {
             Log.d(TAG, "connect() ignored: connection already in progress.")
             return
         }
-
-        if (!Config.isDiscordRichPresence()) return
 
         val savedToken = Config.getDiscordToken()
         if (!savedToken.isNullOrEmpty()) {

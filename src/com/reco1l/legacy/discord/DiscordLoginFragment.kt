@@ -20,6 +20,14 @@ class DiscordLoginFragment : BaseFragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        if (DiscordRPC.isConnected || (!DiscordRPC.isPendingAuthorization && !DiscordRPC.isConnecting)) {
+            dismiss()
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         DiscordRPC.setConnectionStateListener(null)
