@@ -17,9 +17,8 @@ class SupportCanvas(private val supportInfo: SupportInfo) : BaseCanvas() {
 
     }
 
-    override fun getBlendSetting(): BlendSetting {
-        return GLWrapped.blend
-    }
+    override val blendSetting: BlendSetting
+        get() = GLWrapped.blend
 
     override fun checkCanDraw() {
 

@@ -40,18 +40,11 @@ class ModMenu private constructor() : IModSwitcher {
     private var enableNCWhenSpeedChange = false
     private var modsRemoved = false
     var FLfollowDelay = DEFAULT_FL_FOLLOW_DELAY
-        private set
     internal var customAR: Float? = null
     internal var customOD: Float? = null
     internal var customHP: Float? = null
     internal var customCS: Float? = null
     private var menu: InGameSettingMenu? = null
-
-    fun getFLfollowDelay(): Float = FLfollowDelay
-
-    fun setFLfollowDelay(newfLfollowDelay: Float) {
-        FLfollowDelay = newfLfollowDelay
-    }
 
     fun reload() {
         mod = EnumSet.noneOf(GameMod::class.java)

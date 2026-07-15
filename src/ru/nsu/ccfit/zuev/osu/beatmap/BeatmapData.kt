@@ -3,10 +3,8 @@ package ru.nsu.ccfit.zuev.osu.beatmap
 import com.rian.difficultycalculator.attributes.DifficultyAttributes
 import com.rian.difficultycalculator.beatmap.BeatmapControlPointsManager
 import com.rian.difficultycalculator.beatmap.BeatmapHitObjectsManager
-import com.rian.difficultycalculator.beatmap.hitobject.HitObject
 import com.rian.difficultycalculator.beatmap.hitobject.HitObjectWithDuration
 import com.rian.difficultycalculator.beatmap.hitobject.Slider
-import com.rian.difficultycalculator.beatmap.timings.TimingControlPoint
 import ru.nsu.ccfit.zuev.osu.BeatmapInfo
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.TrackInfo
@@ -21,17 +19,17 @@ import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osuplus.R
 import java.io.File
 
-class BeatmapData {
-    var general: BeatmapGeneral = BeatmapGeneral()
-    var metadata: BeatmapMetadata = BeatmapMetadata()
-    var difficulty: BeatmapDifficulty = BeatmapDifficulty()
-    var events: BeatmapEvents = BeatmapEvents()
-    var colors: BeatmapColor = BeatmapColor()
-    var rawTimingPoints: ArrayList<String> = ArrayList()
-    var timingPoints: BeatmapControlPointsManager = BeatmapControlPointsManager()
-    var rawHitObjects: ArrayList<String> = ArrayList()
-    var hitObjects: BeatmapHitObjectsManager = BeatmapHitObjectsManager()
-
+class BeatmapData private constructor(
+    val general: BeatmapGeneral,
+    val metadata: BeatmapMetadata,
+    val difficulty: BeatmapDifficulty,
+    val events: BeatmapEvents,
+    val colors: BeatmapColor,
+    val rawTimingPoints: ArrayList<String>,
+    val timingPoints: BeatmapControlPointsManager,
+    val rawHitObjects: ArrayList<String>,
+    val hitObjects: BeatmapHitObjectsManager,
+) {
     var folder: String? = null
         internal set
     var filename: String = ""
@@ -44,39 +42,36 @@ class BeatmapData {
     @JvmField
     var isCalculator: Boolean = false
 
-    constructor()
+    constructor() : this(
+        BeatmapGeneral(),
+        BeatmapMetadata(),
+        BeatmapDifficulty(),
+        BeatmapEvents(),
+        BeatmapColor(),
+        ArrayList(),
+        BeatmapControlPointsManager(),
+        ArrayList(),
+        BeatmapHitObjectsManager(),
+    )
 
-    internal constructor(source: BeatmapData) {
+    internal constructor(source: BeatmapData) : this(
+        source.general.deepClone(),
+        source.metadata.deepClone(),
+        source.difficulty.deepClone(),
+        source.events.deepClone(),
+        source.colors.deepClone(),
+        ArrayList(source.rawTimingPoints),
+        source.timingPoints.deepClone(),
+        ArrayList(source.rawHitObjects),
+        source.hitObjects.deepClone(),
+    ) {
         folder = source.folder
         filename = source.filename
         formatVersion = source.formatVersion
         md5 = source.md5
-
-        general = source.general.deepClone()
-        metadata = source.metadata.deepClone()
-        difficulty = source.difficulty.deepClone()
-        events = source.events.deepClone()
-        colors = source.colors.deepClone()
-        timingPoints = source.timingPoints.deepClone()
-        hitObjects = source.hitObjects.deepClone()
-
-        rawTimingPoints.addAll(source.rawTimingPoints)
-        rawHitObjects.addAll(source.rawHitObjects)
     }
 
     fun deepClone(): BeatmapData = BeatmapData(this)
-
-    fun getFolder(): String? = folder
-
-    fun setFolder(path: String) {
-        folder = path
-    }
-
-    fun getFilename(): String = filename
-
-    fun setFilename(filename: String) {
-        this.filename = filename
-    }
 
     fun getMD5(): String? = md5
 
@@ -98,12 +93,6 @@ class BeatmapData {
         return combo
     }
 
-    fun getFormatVersion(): Int = formatVersion
-
-    fun setFormatVersion(formatVersion: Int) {
-        this.formatVersion = formatVersion
-    }
-
     fun getOffsetTime(time: Double): Double = time + if (formatVersion < 5) 24.0 else 0.0
 
     fun getOffsetTime(time: Int): Int = time + if (formatVersion < 5) 24 else 0
@@ -122,7 +111,6 @@ class BeatmapData {
         }
     }
 
-    @JvmOverloads
     fun populateMetadata(info: BeatmapInfo): Boolean {
         if (info.title == null) {
             info.title = metadata.title
@@ -137,7 +125,7 @@ class BeatmapData {
             info.artist = metadata.artist
         }
         if (info.artistUnicode == null) {
-            val artistUnicode = metadata.artist
+            val artistUnicode = metadata.artistUnicode
             if (artistUnicode.isNotEmpty()) {
                 info.artistUnicode = artistUnicode
             }
@@ -152,7 +140,6 @@ class BeatmapData {
         return true
     }
 
-    @JvmOverloads
     fun populateMetadata(track: TrackInfo): Boolean {
         track.md5 = md5
         track.creator = metadata.creator
@@ -180,7 +167,7 @@ class BeatmapData {
         track.hpDrain = difficulty.hp
         track.circleSize = difficulty.cs
 
-        track.background = "$folder/${events.backgroundFilename}"
+        track.background = if (events.backgroundFilename.isNullOrEmpty() || events.backgroundFilename == "null") null else "$folder/${events.backgroundFilename}"
 
         for (point in timingPoints.timing.controlPoints) {
             val bpm = point.getBPM().toFloat()
@@ -197,11 +184,11 @@ class BeatmapData {
         track.hitCircleCount = hitObjects.circleCount
         track.sliderCount = hitObjects.sliderCount
         track.spinnerCount = hitObjects.spinnerCount
-        track.musicLength = getDuration()
+        track.musicLength = getDuration().toLong()
         track.maxCombo = getMaxCombo()
 
         val attributes: DifficultyAttributes = BeatmapDifficultyCalculator.calculateDifficulty(this)
-        track.difficulty = GameHelper.Round(attributes.starRating.toFloat(), 2)
+        track.difficulty = GameHelper.Round(attributes.starRating.toFloat(), 2).toFloat()
 
         return true
     }

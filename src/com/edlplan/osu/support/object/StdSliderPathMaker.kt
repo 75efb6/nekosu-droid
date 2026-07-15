@@ -36,7 +36,7 @@ class StdSliderPathMaker(private val slider: StdPath) {
             if (i == getControlPoint().size - 1 || getControlPoint()[i] == getControlPoint()[i + 1]) {
                 val subPath = calculateSubPath(subControlPoints)
                 for (v in subPath) {
-                    if (path.size() == 0 || path.last() != v) {
+                    if (path.size() == 0 || path.getLast() != v) {
                         path.add(v)
                     }
                 }

@@ -64,6 +64,10 @@ class SongMenu : IUpdateHandler, MenuItemListener, IScrollBarListener {
     var game: GameScene? = null
         private set
     private var scoreScene: ScoringScene? = null
+
+    fun setScoringScene(ss: ScoringScene) {
+        scoreScene = ss
+    }
     private var camY = 0f
     private var velocityY = 0f
     private var context: Context? = null
@@ -426,9 +430,6 @@ class SongMenu : IUpdateHandler, MenuItemListener, IScrollBarListener {
         updateScoringSwitcherStatus(true)
     }
 
-    fun getScene(): Scene = scene!!
-    fun getFilterMenu(): FilterMenuFragment? = filterMenu
-
     fun show() {
         engine?.setScene(scene)
         DiscordRPC.updateForSongSelection()
@@ -704,11 +705,13 @@ class SongMenu : IUpdateHandler, MenuItemListener, IScrollBarListener {
         }
         Execution.async {
             synchronized(backgroundMutex) {
-                val tex: TextureRegion = if (Config.isSafeBeatmapBg() || track.background == null) ResourceManager.getInstance().getTexture("menu-background")!! else ResourceManager.getInstance().loadBackground(bgName)!!
-                var h = tex.height.toFloat()
-                h *= Config.getRES_WIDTH() / tex.width.toFloat()
-                bg = Sprite(0f, (Config.getRES_HEIGHT() - h) / 2, Config.getRES_WIDTH().toFloat(), h, tex)
-                bg!!.setColor(0f, 0f, 0f)
+                val tex: TextureRegion? = if (Config.isSafeBeatmapBg() || track.background == null) ResourceManager.getInstance().getTexture("menu-background") else ResourceManager.getInstance().loadBackground(bgName)
+                if (tex != null) {
+                    var h = tex.height.toFloat()
+                    h *= Config.getRES_WIDTH() / tex.width.toFloat()
+                    bg = Sprite(0f, (Config.getRES_HEIGHT() - h) / 2, Config.getRES_WIDTH().toFloat(), h, tex)
+                    bg!!.setColor(0f, 0f, 0f)
+                }
                 Execution.updateThread {
                     synchronized(backgroundMutex) {
                         if (bg == null) {
@@ -894,8 +897,6 @@ class SongMenu : IUpdateHandler, MenuItemListener, IScrollBarListener {
         }
     }
 
-    fun getSelectedTrack(): TrackInfo? = selectedTrack
-
     private fun tryReloadMenuItems(order: SortOrder) {
         when (order) {
             SortOrder.Title, SortOrder.Artist, SortOrder.Creator, SortOrder.Date, SortOrder.Bpm -> reloadMenuItems(GroupType.MapSet)
@@ -915,7 +916,7 @@ class SongMenu : IUpdateHandler, MenuItemListener, IScrollBarListener {
             val lowerFilter = filterMenu?.getFilter()?.lowercase() ?: ""
             val favsOnly = filterMenu?.isFavoritesOnly() ?: false
             val favFolder = filterMenu?.getFavoriteFolder()
-            val limit = FavoriteLibrary.get().getMaps(favFolder)
+            val limit = FavoriteLibrary.get().getMaps(favFolder ?: "")
             for (item in items) item.applyFilter(lowerFilter, favsOnly, limit)
         }
     }
@@ -964,7 +965,7 @@ class SongMenu : IUpdateHandler, MenuItemListener, IScrollBarListener {
         scoringSwitcher?.setFrame(1)
         Execution.async {
             try {
-                val status = OnlineManager.getInstance().getBeatmapStatus(md5)
+                val status = OnlineManager.getInstance().getBeatmapStatus(md5!!)
                 if (board?.isShowOnlineScores != true || status == null || scoringSwitcher == null || selectedTrack == null || selectedTrack!!.getMD5() != md5) return@async
                 mapStatuses.put(md5, status)
                 scoringSwitcher?.setFrame(when (status) { RankedStatus.ranked -> 2; RankedStatus.approved -> 3; RankedStatus.loved -> 4; else -> 5 })

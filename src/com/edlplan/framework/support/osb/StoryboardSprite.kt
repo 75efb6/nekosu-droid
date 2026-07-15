@@ -42,14 +42,6 @@ class StoryboardSprite(width: Float, height: Float) : SupportSprite(width, heigh
         return context.texturePool!!
     }
 
-    fun getStoryboard(): OsuStoryboard? {
-        return storyboard
-    }
-
-    fun setTransparentBackground(transparentBackground: Boolean) {
-        this.transparentBackground = transparentBackground
-    }
-
     fun setBrightness(brightness: Float) {
         val region: TextureRegion = TextureHelper.create1xRegion(Color.argb(255, 0, 0, 0))!!
         backgroundQuad = TextureQuad()

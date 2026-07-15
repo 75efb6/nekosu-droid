@@ -11,11 +11,11 @@ import ru.nsu.ccfit.zuev.osu.RGBColor
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 
-class CircleNumber : Entity(0f, 0f) {
+class CircleNumber() : Entity(0f, 0f) {
 
     private var num: Int = 0
 
-    constructor(number: Int) : super() {
+    constructor(number: Int) : this() {
         num = number
         val snum = Math.abs(number).toString()
 
@@ -27,7 +27,7 @@ class CircleNumber : Entity(0f, 0f) {
         }
     }
 
-    constructor(region: TextureRegion) : super() {
+    constructor(region: TextureRegion) : this() {
         num = 0
         attachChild(Sprite(0f, 0f, region))
     }

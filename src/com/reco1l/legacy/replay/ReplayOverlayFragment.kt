@@ -67,7 +67,7 @@ class ReplayOverlayFragment : BaseFragment(), ReplayOverlay.Listener {
 
         pauseBtn.setOnClickListener {
             val game = GlobalManager.getInstance().gameScene ?: return@setOnClickListener
-            if (game.isPaused) {
+            if (game.isPaused()) {
                 game.resume()
                 isPaused = false
                 pauseBtn.setImageResource(android.R.drawable.ic_media_pause)

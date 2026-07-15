@@ -14,7 +14,7 @@ class GameScoreText(
     scale: Float
 ) {
     private val letters: Array<AnimSprite>
-    private val characters: Map<Char, AnimSprite>
+    private val characters: Map<Char, AnimSprite?>
     private val digits: MutableList<AnimSprite> = mutableListOf()
     private val scale: Float
     private val hasX: Boolean
@@ -25,7 +25,8 @@ class GameScoreText(
         var scorePercent: AnimSprite? = null
         var scoreX: AnimSprite? = null
         digitWidth = ResourceManager.getInstance().getTextureWithPrefix(prefix, "0")!!.getWidth().toFloat()
-        letters = Array(mask.length) { AnimSprite(0f, 0f, 0f) }
+        @Suppress("UNCHECKED_CAST")
+        letters = arrayOfNulls<AnimSprite>(mask.length) as Array<AnimSprite>
         var width = 0f
 
         for (i in mask.indices) {
@@ -52,7 +53,7 @@ class GameScoreText(
         }
         this.scale = scale
         this.hasX = mask.last() == 'x'
-        this.characters = mapOf('.' to scoreComma!!, '%' to scorePercent!!, 'x' to scoreX!!)
+        this.characters = mapOf('.' to scoreComma, '%' to scorePercent, 'x' to scoreX)
     }
 
     fun changeText(text: String) {
@@ -66,7 +67,7 @@ class GameScoreText(
             val ch = text[i]
 
             when {
-                ch == '0' -> {
+                ch in '0'..'9' -> {
                     digit.setVisible(true)
                     digit.setFrame(ch - '0')
                     digit.setWidth(digit.getFrameWidth() * scale)

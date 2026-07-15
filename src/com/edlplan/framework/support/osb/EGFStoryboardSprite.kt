@@ -23,11 +23,11 @@ open class EGFStoryboardSprite(protected var context: OsbContext) : PlayingSprit
     }
 
     override fun onAddedToScene() {
-        context.engines!![sprite.layer]!!.add(this)
+        context.engines!![sprite.layer.ordinal]!!.add(this)
     }
 
     override fun onRemoveFromScene() {
-        context.engines!![sprite.layer]!!.remove(this)
+        context.engines!![sprite.layer.ordinal]!!.remove(this)
     }
 
     override fun createByTarget(target: Target): CommandHandleTimeline<*>? {

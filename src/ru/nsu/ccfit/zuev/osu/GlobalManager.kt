@@ -33,23 +33,24 @@ class GlobalManager private constructor() {
         val activity = getMainActivity() ?: return
         saveServiceObject = activity.application as SaveServiceObject
         songService = saveServiceObject?.getSongService()
-        setLoadingProgress(10)
+        loadingProgress = 10
         mainScene = MainScene()
         mainScene?.load(activity)
         info = "Loading skin..."
         skinNow = Config.getSkinPath()
         ResourceManager.getInstance().loadSkin(skinNow!!)
         ScoreLibrary.getInstance().load(activity)
-        setLoadingProgress(20)
+        loadingProgress = 20
         PropertiesLibrary.instance.load(activity)
-        setLoadingProgress(30)
+        loadingProgress = 30
         gameScene = GameScene(engine!!)
         songMenu = SongMenu()
-        setLoadingProgress(40)
+        loadingProgress = 40
         songMenu?.init(activity, engine!!, gameScene!!)
         songMenu?.load()
         scoring = ScoringScene(engine!!, gameScene!!, songMenu!!)
         gameScene?.setScoringScene(scoring!!)
+        songMenu?.setScoringScene(scoring!!)
         gameScene?.setOldScene(songMenu!!.scene!!)
 
         GlobalFPSOverlay().attachToCamera(camera!!)
@@ -66,10 +67,6 @@ class GlobalManager private constructor() {
 
     fun setMainActivity(mainActivity: MainActivity?) {
         mainActivityRef = WeakReference(mainActivity)
-    }
-
-    fun setLoadingProgress(loadingProgress: Int) {
-        this.loadingProgress = loadingProgress
     }
 
     fun getDisplayMetrics(): DisplayMetrics {

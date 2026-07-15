@@ -309,9 +309,8 @@ class InGameSettingMenu : BaseFragment() {
                 ) {
                     if (!containsFlashlight) return
 
-                    ModMenu.getInstance().setFLfollowDelay(
+                    ModMenu.getInstance().FLfollowDelay =
                         ((progress * ModMenu.DEFAULT_FL_FOLLOW_DELAY).roundToInt()).toFloat()
-                    )
                     followDelayText.text = "${progress * FlashLightEntity.defaultMoveDelayS * 1000}ms"
                 }
 

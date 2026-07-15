@@ -116,7 +116,7 @@ class GameObjectData(line: String) {
         if (!isSlider() || rawdata.size < 6) return points
         try {
             val pathData = rawdata[5]
-            val pointsStr = pathData.split("|".toRegex()).drop(1).dropLastWhile { it.isEmpty() }
+            val pointsStr = pathData.split("\\|".toRegex()).drop(1).dropLastWhile { it.isEmpty() }
             for (pointStr in pointsStr) {
                 val coords = pointStr.split(":".toRegex()).toTypedArray()
                 if (coords.size >= 2) {

@@ -109,7 +109,7 @@ class PropsMenuFragment : BaseFragment(), IPropsMenu {
     private fun playOnLoadAnim() {
         val body = findViewById<View>(R.id.fullLayout) ?: return
         body.alpha = 0f
-        body.translationY(500f)
+        body.translationY = 500f
         body.animate().cancel()
         body.animate()
             .alpha(1f)
@@ -159,7 +159,7 @@ class PropsMenuFragment : BaseFragment(), IPropsMenu {
         PropertiesLibrary.instance.setProperties(
             item?.beatmap?.path ?: return, props!!
         )
-        item?.setFavorite(props!!.favorite)
+        item?.favorite = props!!.favorite
         PropertiesLibrary.instance.save()
     }
 }

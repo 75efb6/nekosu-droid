@@ -78,7 +78,7 @@ class StoryBoardTestActivity : BaseGameActivity(), IUpdateHandler {
 
         osuSprites = OsbParser.instance.getSprites()
         if (osuSprites != null && osuSprites!!.size > 0) {
-            nextSprite = osuSprites!!.remove(0)
+            nextSprite = osuSprites!!.removeAt(0)
         }
         return scene
     }
@@ -97,7 +97,7 @@ class StoryBoardTestActivity : BaseGameActivity(), IUpdateHandler {
         if (pSecondsElapsed >= nextSprite!!.spriteStartTime) {
             nextSprite!!.play()
             if (osuSprites!!.size > 0) {
-                nextSprite = osuSprites!!.remove(0)
+                nextSprite = osuSprites!!.removeAt(0)
                 checkSpriteTime(pSecondsElapsed)
             } else {
                 nextSprite = null
@@ -129,7 +129,6 @@ class StoryBoardTestActivity : BaseGameActivity(), IUpdateHandler {
         private const val INVALID_POINTER_ID = -1
         private const val CAMERA_WIDTH = 640
         private const val CAMERA_HEIGHT = 480
-        @JvmField
         var activity: StoryBoardTestActivity? = null
             private set
     }

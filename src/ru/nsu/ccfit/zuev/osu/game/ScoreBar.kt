@@ -10,7 +10,7 @@ import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 class ScoreBar(listener: GameObjectListener, scene: Scene, private val stat: StatisticV2) : GameObject() {
 
     private val bg: Sprite
-    private val colour: AnimSprite
+    private val colour: Sprite
     private val ki: AnimSprite
     private val width: Float
     private var lasthp = 0f
@@ -30,9 +30,9 @@ class ScoreBar(listener: GameObjectListener, scene: Scene, private val stat: Sta
                 *loadedScoreBarTextures.toTypedArray()
             )
         } else {
-            colour = AnimSprite(
+            colour = Sprite(
                 Utils.toRes(5).toFloat(), Utils.toRes(16).toFloat(),
-                "scorebar-colour", 1, 0f
+                ResourceManager.getInstance().getTexture("scorebar-colour")!!
             )
         }
         width = colour.getWidth()

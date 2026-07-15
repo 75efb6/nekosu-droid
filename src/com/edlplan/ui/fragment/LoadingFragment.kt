@@ -7,7 +7,7 @@ import com.edlplan.ui.BaseAnimationListener
 import com.edlplan.ui.EasingHelper
 import ru.nsu.ccfit.zuev.osuplus.R
 
-class LoadingFragment : BaseFragment() {
+open class LoadingFragment : BaseFragment() {
 
     override val layoutID: Int
         get() = R.layout.fragment_loading

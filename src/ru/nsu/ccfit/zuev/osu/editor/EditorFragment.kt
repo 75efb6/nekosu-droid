@@ -11,7 +11,7 @@ import com.edlplan.ui.fragment.BackPressListener
 open class EditorFragment : Fragment(), BackPressListener {
 
     var editorScene: EditorScene? = null
-        private set
+        internal set
 
     fun withEditor(scene: EditorScene): EditorFragment {
         this.editorScene = scene

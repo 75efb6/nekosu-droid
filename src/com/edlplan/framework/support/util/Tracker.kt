@@ -43,10 +43,6 @@ class Tracker {
             stack = 0
         }
 
-        fun setName(name: String) {
-            this.name = name
-        }
-
         fun wrap(runnable: Runnable): ConsumerContainer<TrackNode> {
             watch()
             runnable.run()

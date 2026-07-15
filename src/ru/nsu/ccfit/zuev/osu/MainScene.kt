@@ -512,6 +512,7 @@ class MainScene : IUpdateHandler {
 
     private fun createOnlinePanel(scene: Scene) {
         Config.loadOnlineConfig(context!!)
+        OnlineManager.getInstance().init(context!!)
 
         if (OnlineManager.getInstance().isStayOnline) {
             Debug.i("Stay online, creating panel")
@@ -970,8 +971,6 @@ class MainScene : IUpdateHandler {
         }
     }
 
-    fun getBeatmapInfo(): BeatmapInfo? = beatmapInfo
-
     fun setBeatmap(info: Any?) {
         val beatmapInfoObj = when (info) {
             is BeatmapInfo -> info
@@ -1014,7 +1013,7 @@ class MainScene : IUpdateHandler {
     }
 
     fun show() {
-        GlobalManager.getInstance().songService?.setGaming(false)
+        GlobalManager.getInstance().songService?.isGaming = false
         GlobalManager.getInstance().engine?.setScene(scene)
         DiscordRPC.updateForMainMenu()
 

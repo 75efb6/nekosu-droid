@@ -30,8 +30,8 @@ class BeatmapHitObjectsParser : BeatmapSectionParser() {
 
         val type = HitObjectType.valueOf(parseInt(pars[3]) % 16)
         val position = Vector2(
-            parseFloat(pars[0], maxCoordinateValue.toFloat()),
-            parseFloat(pars[1], maxCoordinateValue.toFloat())
+            parseFloat(pars[0], maxCoordinateValue.toFloat()).toInt().toFloat(),
+            parseFloat(pars[1], maxCoordinateValue.toFloat()).toInt().toFloat()
         )
 
         var object_: HitObject? = null
@@ -103,7 +103,7 @@ class BeatmapHitObjectsParser : BeatmapSectionParser() {
             path,
             data.difficulty.sliderMultiplier.toDouble(),
             data.difficulty.sliderTickRate.toDouble(),
-            if (data.getFormatVersion() < 8) 1 / difficultyControlPoint.speedMultiplier else 1.0,
+            if (data.formatVersion < 8) 1 / difficultyControlPoint.speedMultiplier else 1.0,
             difficultyControlPoint.generateTicks
         )
     }
@@ -135,7 +135,7 @@ class BeatmapHitObjectsParser : BeatmapSectionParser() {
     }
 
     private fun parseCurvePointsCalculator(sliderData: String, position: Vector2): ArrayList<Vector2> {
-        val curvePointsData = sliderData.split("|".toRegex()).toTypedArray()
+        val curvePointsData = sliderData.split("\\|".toRegex()).toTypedArray()
         val curvePoints = ArrayList<Vector2>()
         curvePoints.add(Vector2(0f))
 

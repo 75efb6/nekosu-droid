@@ -120,9 +120,7 @@ abstract class BaseCanvas() : AbstractSRable<CanvasData>() {
         }
     }
 
-    abstract fun getBlendSetting(): BlendSetting
-
-    val blendSetting: BlendSetting get() = getBlendSetting()
+    abstract val blendSetting: BlendSetting
 
     protected abstract fun checkCanDraw()
 

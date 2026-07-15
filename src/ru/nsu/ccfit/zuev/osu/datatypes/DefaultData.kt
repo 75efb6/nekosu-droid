@@ -1,7 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.datatypes
 
 abstract class DefaultData<T> @JvmOverloads constructor(
-    defaultValue: T? = instanceDefaultValue()
+    defaultValue: T? = null
 ) : IDefaultableData<T> {
     override val defaultValue: T = defaultValue ?: instanceDefaultValue()
 

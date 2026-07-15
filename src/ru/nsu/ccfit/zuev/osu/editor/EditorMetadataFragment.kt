@@ -50,7 +50,7 @@ class EditorMetadataFragment : EditorFragment() {
         saveBtn.layoutParams = params
         saveBtn.setOnClickListener {
             data?.metadata?.apply {
-                title = titleEdit.text.toString()
+                this.title = titleEdit.text.toString()
                 artist = artistEdit.text.toString()
                 creator = creatorEdit.text.toString()
                 version = versionEdit.text.toString()

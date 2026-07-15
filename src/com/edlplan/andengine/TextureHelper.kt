@@ -13,19 +13,20 @@ import java.io.FileOutputStream
 import java.io.IOException
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.helper.QualityFileBitmapSource
+import ru.nsu.ccfit.zuev.osu.helper.QualityFileBitmapSource.InputFactory
 
 object TextureHelper {
 
     private var tmpFileId = 0
 
     @JvmStatic
-    fun createFactoryFromBitmap(bitmap: Bitmap): QualityFileBitmapSource.InputFactory? {
+    fun createFactoryFromBitmap(bitmap: Bitmap): InputFactory? {
         tmpFileId++
         try {
             val tmp = File.createTempFile("bmp_cache$tmpFileId", ".png")
             tmp.deleteOnExit()
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, FileOutputStream(tmp))
-            return QualityFileBitmapSource.InputFactory { FileInputStream(tmp) }
+            return InputFactory { FileInputStream(tmp) }
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -33,11 +34,11 @@ object TextureHelper {
     }
 
     @JvmStatic
-    fun createMemoryFactoryFromBitmap(bitmap: Bitmap): QualityFileBitmapSource.InputFactory {
+    fun createMemoryFactoryFromBitmap(bitmap: Bitmap): InputFactory {
         val byteArrayOutputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
         val bytes = byteArrayOutputStream.toByteArray()
-        return QualityFileBitmapSource.InputFactory { ByteArrayInputStream(bytes) }
+        return InputFactory { ByteArrayInputStream(bytes) }
     }
 
     @JvmStatic

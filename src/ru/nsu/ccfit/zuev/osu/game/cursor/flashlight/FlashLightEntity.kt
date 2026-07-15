@@ -31,7 +31,7 @@ class FlashLightEntity : Entity(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT
     }
 
     fun onMouseMove(pX: Float, pY: Float) {
-        val flFollowDelay = ModMenu.getInstance().getFLfollowDelay()
+        val flFollowDelay = ModMenu.getInstance().FLfollowDelay
 
         if (nextPX != 0f && nextPY != 0f && currentModifier != null && this.x != nextPX && this.y != nextPY) {
             unregisterEntityModifier(currentModifier!!)

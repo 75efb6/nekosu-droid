@@ -31,10 +31,10 @@ open class DepthOrderRenderEngine {
         var s: LinkedNode<EGFStoryboardSprite>? = first.next
         while (s != end) {
             if (s!!.value === sprite) {
-                s.removeFromList()
+                s?.removeFromList()
                 break
             }
-            s = s.next
+            s = s?.next
         }
     }
 

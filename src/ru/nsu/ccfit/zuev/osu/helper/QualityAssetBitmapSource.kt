@@ -56,7 +56,7 @@ class QualityAssetBitmapSource : BaseTextureAtlasSource, IBitmapTextureAtlasSour
         this.mHeight = pHeight
     }
 
-    fun deepCopy(): QualityAssetBitmapSource {
+    override fun deepCopy(): QualityAssetBitmapSource {
         return QualityAssetBitmapSource(this.mContext, this.mAssetPath,
             this.mTexturePositionX, this.mTexturePositionY, this.mWidth,
             this.mHeight)
@@ -71,7 +71,7 @@ class QualityAssetBitmapSource : BaseTextureAtlasSource, IBitmapTextureAtlasSour
         return bitmap != null
     }
 
-    fun onLoadBitmap(pBitmapConfig: Bitmap.Config): Bitmap? {
+    override fun onLoadBitmap(pBitmapConfig: Bitmap.Config): Bitmap? {
         if (bitmap != null) {
             val bmp = bitmap
             bitmap = null

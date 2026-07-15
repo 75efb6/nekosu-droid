@@ -336,7 +336,7 @@ class SettingsMenu : SettingsFragment() {
             GlobalManager.getInstance().mainScene?.loadTimingPoints(false)
             val songService = GlobalManager.getInstance().songService
             songService?.setVolume(Config.getBgmVolume())
-            songService?.setGaming(false)
+            songService?.isGaming = false
             if (songService != null) applyDiscordRpc(songService)
             super@SettingsMenu.dismiss()
         })

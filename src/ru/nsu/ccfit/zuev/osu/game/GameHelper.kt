@@ -1,23 +1,17 @@
 package ru.nsu.ccfit.zuev.osu.game
 
-import com.rian.difficultycalculator.calculator.DifficultyCalculationParameters
-import org.anddev.andengine.entity.scene.Scene
-import org.anddev.andengine.entity.shape.Shape
-import org.anddev.andengine.entity.sprite.Sprite
-import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.DifficultyData
-import ru.nsu.ccfit.zuev.osu.ResourceManager
+import android.graphics.PointF
 import ru.nsu.ccfit.zuev.osu.RGBColor
 import ru.nsu.ccfit.zuev.osu.Utils
-import ru.nsu.ccfit.zuev.osu.helper.AnimSprite
-import ru.nsu.ccfit.zuev.osu.helper.CentredSprite
 import ru.nsu.ccfit.zuev.osu.helper.DifficultyHelper
-import ru.nsu.ccfit.zuev.osu.scoring.ScoreNumber
-import ru.nsu.ccfit.zuev.skins.OsuSkin
-import ru.nsu.ccfit.zuev.skins.SkinManager
+import ru.nsu.ccfit.zuev.osu.polygon.Spline
+import java.util.ArrayList
+import java.util.LinkedList
+import java.util.Queue
 
 object GameHelper {
     var isKiai = false
+        get() = !ru.nsu.ccfit.zuev.skins.OsuSkin.get().isDisableKiai() && field
     var tickRate = 1f
     var objectTimePre = 0f
     var objectTimeFadeIn = 0f
@@ -34,6 +28,8 @@ object GameHelper {
     var stackLeniency = 0f
     var sliderColor: RGBColor = RGBColor(200f, 200f, 200f)
     var kiaiTickLength = 0.0
+        get() = initalBeatLength.toDouble()
+        private set
 
     private var hardrock = false
     private var doubleTime = false
@@ -50,16 +46,22 @@ object GameHelper {
     private var auto = false
     private var timeMultiplier = 1f
 
+    private var curveType: Spline.CurveTypes = Spline.CurveTypes.Linear
+
     var controlPoints = com.edlplan.osu.support.timing.controlpoint.ControlPoints()
 
-    var difficulty: DifficultyData? = null
+    var overallDifficulty = 0f
 
     var difficultyHelper: DifficultyHelper = DifficultyHelper.StdDifficulty
+
+    private val pathPool: Queue<SliderPath> = LinkedList()
+    private val pointPool: Queue<PointF> = LinkedList()
+    private const val MAX_CONTROL_POINTS = 24
 
     fun reset() {
         isKiai = false
         tickRate = 1f
-        difficulty = null
+        overallDifficulty = 0f
         objectTimePre = 0f
         objectTimeFadeIn = 0f
         approachRate = 0f
@@ -87,8 +89,6 @@ object GameHelper {
         auto = false
         timeMultiplier = 1f
     }
-
-    fun getDifficulty() = difficulty
 
     fun Round(value: Float, places: Int): Double {
         val factor = Math.pow(10.0, places.toDouble())
@@ -162,48 +162,161 @@ object GameHelper {
     fun getTimeMultiplier(): Float = timeMultiplier
 
     fun setStackLeniency(value: Number) { stackLeniency = value.toFloat() }
-    fun getStackLeniency(): Float = stackLeniency
 
     fun setSpeed(value: Number) { speed = value.toFloat() }
-    fun setTickRate(value: Float) { tickRate = value }
-    fun setScale(value: Float) { scale = value }
-    fun setDifficulty(value: Float) { approachRate = value }
-    fun setDrain(value: Float) { drain = value }
-    fun getDrain(): Float = drain
-    fun setApproachRate(value: Float) { approachRate = value }
-
-    fun setSliderColor(color: RGBColor) { sliderColor = color }
-
-    fun setTimingOffset(value: Number) { timingOffset = value.toFloat() }
+    fun setDifficulty(value: Float) { overallDifficulty = value }
     fun setBeatLength(value: Number) { beatLength = value.toFloat() }
-    fun setTimeSignature(value: Int) { timeSignature = value }
-    fun setKiai(value: Boolean) { isKiai = value }
-    fun setInitalBeatLength(value: Float) { initalBeatLength = value }
+    fun setTimingOffset(value: Number) { timingOffset = value.toFloat() }
 
-    fun setGlobalTime(value: Double) { globalTime = value }
-
-    fun setDifficultyHelper(helper: DifficultyHelper) { difficultyHelper = helper }
+    fun getSliderTickLength(): Double {
+        return 100.0 * initalBeatLength / speed
+    }
 
     fun updateGameid() {}
 
     fun clearPools() {
+        pathPool.clear()
+        pointPool.clear()
         GameObjectPool.instance.purge()
         SpritePool.getInstance().purge()
     }
 
     fun calculatePath(
-        start: android.graphics.PointF,
-        keywords: Array<String>,
-        length: Float,
+        pos: PointF,
+        data: Array<String>,
+        maxLength: Float,
         offset: Float
-    ): GameHelper.SliderPath {
-        return SliderPath(start, keywords, length, offset)
+    ): SliderPath {
+        val points = ArrayList<ArrayList<PointF>>()
+        points.add(ArrayList())
+        var lastIndex = 0
+        points[lastIndex].add(pos)
+
+        val path = newPath()
+
+        for (s in data) {
+            if (s == data[0]) {
+                curveType = Spline.getCurveType(s[0])
+
+                if (curveType == Spline.CurveTypes.PerfectCurve && data.size != 3) {
+                    curveType = Spline.CurveTypes.Bezier
+                }
+
+                continue
+            }
+            val nums = s.split(":".toRegex()).toTypedArray()
+            val point = newPointF()
+            point.set(nums[0].toFloat().toInt().toFloat(), nums[1].toFloat().toInt().toFloat())
+            point.x += offset
+            point.y += offset
+            val ppoint = points[lastIndex][points[lastIndex].size - 1]
+            if (point.x == ppoint.x && point.y == ppoint.y || data[0] == "C") {
+                if (data[0] == "C") {
+                    points[lastIndex].add(point)
+                }
+                points.add(ArrayList())
+                lastIndex++
+            }
+            points[lastIndex].add(point)
+        }
+
+        for (plist in points) {
+            if (plist.size > MAX_CONTROL_POINTS) {
+                val step = Math.max(1, (plist.size - 1) / (MAX_CONTROL_POINTS - 1))
+                val downsampled = ArrayList<PointF>(MAX_CONTROL_POINTS + 1)
+                var i = 0
+                while (i < plist.size) {
+                    downsampled.add(plist[i])
+                    i += step
+                }
+                val lastPt = plist[plist.size - 1]
+                if (downsampled[downsampled.size - 1] !== lastPt) {
+                    downsampled.add(lastPt)
+                }
+                plist.clear()
+                plist.addAll(downsampled)
+            }
+        }
+
+        var section: ArrayList<PointF>
+        var pind = -1
+        var trackLength = 0f
+        val vec = newPointF()
+
+        run breaking@{
+            for (plist in points) {
+                val spline = Spline.getInstance()
+                spline.setControlPoints(plist)
+                spline.setType(curveType)
+                spline.refresh()
+                section = spline.getPoints()
+
+                if (curveType == Spline.CurveTypes.PerfectCurve && section.isEmpty()) {
+                    spline.setType(Spline.CurveTypes.Bezier)
+                    spline.refresh()
+                    section = spline.getPoints()
+                }
+
+                for (p in section) {
+                    if (pind < 0 || Math.abs(p.x - path.points[pind].x) +
+                        Math.abs(p.y - path.points[pind].y) > 1f
+                    ) {
+                        if (path.points.isNotEmpty()) {
+                            vec.set(
+                                p.x - path.points[path.points.size - 1].x,
+                                p.y - path.points[path.points.size - 1].y
+                            )
+                            trackLength += Utils.length(vec)
+                            path.length.add(trackLength)
+                        }
+                        path.points.add(p)
+                        pind++
+
+                        if (trackLength >= maxLength) {
+                            return@breaking
+                        }
+                    }
+                }
+            }
+        }
+
+        for (i in path.points.indices) {
+            path.points[i] = Utils.trackToRealCoords(path.points[i])
+        }
+
+        if (path.points.size == 1) {
+            path.points.add(PointF(path.points[0].x, path.points[0].y))
+            path.length.add(0f)
+        }
+
+        return path
     }
 
-    class SliderPath(
-        val start: android.graphics.PointF,
-        val keywords: Array<String>,
-        val length: Float,
-        val offset: Float
-    )
+    fun putPath(path: SliderPath) {
+        pointPool.addAll(path.points)
+        path.points.clear()
+        path.length.clear()
+        pathPool.add(path)
+    }
+
+    private fun newPath(): SliderPath {
+        return if (pathPool.isEmpty()) {
+            SliderPath()
+        } else {
+            pathPool.poll()
+        }
+    }
+
+    private fun newPointF(): PointF {
+        return if (pointPool.isEmpty()) {
+            PointF()
+        } else {
+            pointPool.poll()
+        }
+    }
+
+    class SliderPath {
+        val points: ArrayList<PointF> = ArrayList()
+        val length: ArrayList<Float> = ArrayList()
+    }
 }

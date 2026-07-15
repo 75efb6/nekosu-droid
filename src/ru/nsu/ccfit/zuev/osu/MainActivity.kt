@@ -106,6 +106,7 @@ class MainActivity : BaseGameActivity(), IAccelerometerListener {
         StringTable.setContext(this)
         ToastLogger.init(this)
         InputManager.setContext(this)
+        OnlineManager.getInstance().init(this)
         crashlytics!!.setUserId(Config.getOnlineDeviceID())
 
         val dm = DisplayMetrics()
@@ -780,7 +781,7 @@ class MainActivity : BaseGameActivity(), IAccelerometerListener {
                 }
 
                 if (GlobalManager.getInstance().editorScene != null &&
-                    GlobalManager.getInstance().engine?.scene == GlobalManager.getInstance().editorScene?.getScene()
+                    GlobalManager.getInstance().engine?.scene == GlobalManager.getInstance().editorScene?.scene
                 ) {
                     GlobalManager.getInstance().editorScene?.back()
                     return true

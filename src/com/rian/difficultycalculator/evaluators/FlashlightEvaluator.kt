@@ -41,7 +41,7 @@ object FlashlightEvaluator {
 
                 result += (stackNerf * opacityBonus * scalingFactor * jumpDistance) / cumulativeStrainTime
 
-                if (!Double.isNaN(currentObject.angle) && !current.angle.isNaN()) {
+                if (!currentObject.angle.isNaN() && !current.angle.isNaN()) {
                     if (Math.abs(currentObject.angle - current.angle) < 0.02) {
                         angleRepeatCount += Math.max(0.0, 1 - 0.1 * i)
                     }

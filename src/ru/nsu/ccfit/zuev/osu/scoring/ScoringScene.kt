@@ -27,6 +27,7 @@ import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.beatmap.BeatmapData
 import ru.nsu.ccfit.zuev.osu.beatmap.parser.BeatmapParser
 import ru.nsu.ccfit.zuev.osu.game.GameScene
+import ru.nsu.ccfit.zuev.osu.game.cursor.flashlight.FlashLightEntity
 import ru.nsu.ccfit.zuev.osu.game.mods.GameMod
 import ru.nsu.ccfit.zuev.osu.helper.BeatmapDifficultyCalculator
 import ru.nsu.ccfit.zuev.osu.menu.ModMenu
@@ -147,7 +148,7 @@ class ScoringScene(private val engine: Engine, private val game: GameScene, priv
         scene!!.attachChild(accText)
         val maxCombo = ScoreNumber(Utils.toRes(20f + x), Utils.toRes(maxComboText.y + 38), "${stat.maxCombo}x", 1f, false)
         maxCombo.attachToScene(scene!!)
-        val accStr = String.format(Locale.ENGLISH, "%2.2f%%", stat.accuracy * 100)
+        val accStr = String.format(Locale.ENGLISH, "%2.2f%%", stat.getAccuracy() * 100)
         val accuracy = ScoreNumber(Utils.toRes(260f + x), Utils.toRes(accText.y + 38), accStr, 1f, false)
         accuracy.attachToScene(scene!!)
 
@@ -222,11 +223,11 @@ class ScoringScene(private val engine: Engine, private val game: GameScene, priv
                         Replay.oldCustomCS = ModMenu.getInstance().getCustomCS()
                         Replay.oldCustomHP = ModMenu.getInstance().getCustomHP()
 
-                        Replay.oldFLFollowDelay = ModMenu.getInstance().getFLfollowDelay()
+                        Replay.oldFLFollowDelay = ModMenu.getInstance().FLfollowDelay
 
                         ModMenu.getInstance().setMod(stat.mod)
                         ModMenu.getInstance().setChangeSpeed(stat.changeSpeed)
-                        ModMenu.getInstance().setFLfollowDelay(stat.flFollowDelay)
+                        ModMenu.getInstance().FLfollowDelay = stat.flFollowDelay
 
                         ModMenu.getInstance().setCustomAR(stat.customAR)
                         ModMenu.getInstance().setCustomOD(stat.customOD)
@@ -244,7 +245,7 @@ class ScoringScene(private val engine: Engine, private val game: GameScene, priv
             }
         }
 
-        if (stat.accuracy == 1f || stat.maxCombo == this.track!!.maxCombo || stat.isPerfect) {
+        if (stat.getAccuracy() == 1f || stat.maxCombo == this.track!!.maxCombo || stat.isPerfect) {
             val perfect = Sprite(0f, 0f, ResourceManager.getInstance().getTexture("ranking-perfect"))
             perfect.setPosition(0f, accuracy.y + accuracy.height + 10)
             scene!!.attachChild(perfect)
@@ -359,7 +360,7 @@ class ScoringScene(private val engine: Engine, private val game: GameScene, priv
             stat.isCustomOD() ||
             stat.isCustomCS() ||
             stat.isCustomHP() ||
-            stat.flFollowDelay != ru.nsu.ccfit.zuev.osu.game.cursor.flashlight.FlashLightEntity.defaultMoveDelayS &&
+            stat.flFollowDelay != FlashLightEntity.defaultMoveDelayS &&
             stat.mod.contains(GameMod.MOD_FLASHLIGHT)
         ) {
 
@@ -379,7 +380,7 @@ class ScoringScene(private val engine: Engine, private val game: GameScene, priv
             if (stat.isCustomHP()) {
                 mapperStr.append(String.format(Locale.ENGLISH, "HP%.1f,", stat.customHP))
             }
-            if (stat.flFollowDelay != ru.nsu.ccfit.zuev.osu.game.cursor.flashlight.FlashLightEntity.defaultMoveDelayS && stat.mod.contains(GameMod.MOD_FLASHLIGHT)) {
+            if (stat.flFollowDelay != FlashLightEntity.defaultMoveDelayS && stat.mod.contains(GameMod.MOD_FLASHLIGHT)) {
                 mapperStr.append(String.format(Locale.ENGLISH, "FLD%.2f,", stat.flFollowDelay))
             }
             if (mapperStr.endsWith(",")) {
@@ -424,10 +425,10 @@ class ScoringScene(private val engine: Engine, private val game: GameScene, priv
             updateLeaderboard()
         }
 
-        if (track != null && track!!.md5 != null && track!!.md5 == mapMD5) {
+        if (track != null && track.md5 != null && track.md5 == mapMD5) {
             ResourceManager.getInstance().getSound("applause").play()
             if (!Multiplayer.isMultiplayer || !GlobalManager.getInstance().gameScene!!.hasFailed) {
-                ScoreLibrary.getInstance().addScore(track!!.filename!!, stat, replay)
+                ScoreLibrary.getInstance().addScore(track.filename ?: "", stat, replay)
             }
 
             if (stat.totalScoreWithMultiplier > 0 && OnlineManager.getInstance().isStayOnline &&
@@ -455,10 +456,10 @@ class ScoringScene(private val engine: Engine, private val game: GameScene, priv
                     OnlineManager.getInstance().score,
                     OnlineManager.getInstance().accuracy
                 )
-                sendingPanel.setPosition(Config.getRES_WIDTH().toFloat() / 2 - 400, Utils.toRes(-300f))
+                sendingPanel.setPosition((Config.getRES_WIDTH() / 2 - 400).toFloat(), Utils.toRes(-300f))
                 scene!!.registerTouchArea(sendingPanel.getDismissTouchArea())
                 scene!!.attachChild(sendingPanel)
-                ScoreLibrary.getInstance().sendScoreOnline(stat, replay!!, sendingPanel!!)
+                ScoreLibrary.getInstance().sendScoreOnline(stat, replay ?: "", sendingPanel)
             }
         }
     }

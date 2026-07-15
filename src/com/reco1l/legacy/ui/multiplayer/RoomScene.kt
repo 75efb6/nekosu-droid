@@ -823,7 +823,7 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
             return
         }
 
-        GlobalManager.getInstance().songService!!.preLoadPreview(GlobalManager.getInstance().selectedTrack?.beatmap?.getMusic())
+        GlobalManager.getInstance().songService!!.preLoadPreview(GlobalManager.getInstance().selectedTrack?.beatmap?.getMusic() ?: "")
         GlobalManager.getInstance().songService!!.play()
         applyModMenuSpeed()
     }

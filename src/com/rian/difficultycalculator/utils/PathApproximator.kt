@@ -77,7 +77,7 @@ object PathApproximator {
         val b = controlPoints[1]
         val c = controlPoints[2]
 
-        if (Precision.almostEqualsNumber(0.0, (b.y - a.y) * (c.x - a.x) - (b.x - a.x) * (c.y - a.y))) {
+        if (Precision.almostEqualsNumber(0.0, ((b.y - a.y) * (c.x - a.x) - (b.x - a.x) * (c.y - a.y)).toDouble())) {
             return approximateBezier(controlPoints)
         }
 
@@ -116,7 +116,7 @@ object PathApproximator {
         val amountPoints = if (2 * radius <= circularArcTolerance)
             2
         else
-            Math.max(2, Math.ceil(thetaRange / (2 * Math.acos(1 - circularArcTolerance / radius))).toInt())
+            Math.max(2, Math.ceil(thetaRange / (2 * Math.acos(1 - circularArcTolerance.toDouble() / radius.toDouble()))).toInt())
 
         val output = ArrayList<Vector2>()
 

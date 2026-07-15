@@ -55,7 +55,7 @@ class MainMenu(val main: MainScene)
 
                     // Solo Play (level 3) -> open song selection
                     2 -> {
-                        GlobalManager.getInstance().songService?.setGaming(true)
+                        GlobalManager.getInstance().songService?.isGaming = true
 
                         async {
                             LoadingScreen().show()
@@ -64,9 +64,9 @@ class MainMenu(val main: MainScene)
                             GlobalManager.getInstance().getMainActivity()?.checkNewBeatmaps()
                             LibraryManager.INSTANCE.updateLibrary(true)
 
-                            if (LibraryManager.INSTANCE.library.isEmpty())
+                            if (LibraryManager.library.isEmpty())
                             {
-                                GlobalManager.getInstance().songService?.setGaming(false)
+                                GlobalManager.getInstance().songService?.isGaming = false
                                 GlobalManager.getInstance().engine?.scene = main.scene
 
                                 BeatmapListing().show()
@@ -108,7 +108,7 @@ class MainMenu(val main: MainScene)
                     // Settings (level 1)
                     0 -> {
                         if (main.isOnExitAnim) return true
-                        GlobalManager.getInstance().songService?.setGaming(true)
+                        GlobalManager.getInstance().songService?.isGaming = true
                         GlobalManager.getInstance().getMainActivity()?.runOnUiThread { SettingsMenu().show() }
                     }
 
@@ -121,7 +121,7 @@ class MainMenu(val main: MainScene)
 
                         if (main.isOnExitAnim) return true
 
-                        GlobalManager.getInstance().songService?.setGaming(true)
+                        GlobalManager.getInstance().songService?.isGaming = true
                         Multiplayer.isMultiplayer = true
 
                         async {
@@ -148,7 +148,7 @@ class MainMenu(val main: MainScene)
                             return true
                         }
 
-                        GlobalManager.getInstance().songService?.setGaming(true)
+                        GlobalManager.getInstance().songService?.isGaming = true
 
                         async {
                             LoadingScreen().show()
@@ -157,9 +157,9 @@ class MainMenu(val main: MainScene)
                             GlobalManager.getInstance().getMainActivity()?.checkNewBeatmaps()
                             LibraryManager.INSTANCE.updateLibrary(true)
 
-                            if (LibraryManager.INSTANCE.library.isEmpty())
+                            if (LibraryManager.library.isEmpty())
                             {
-                                GlobalManager.getInstance().songService?.setGaming(false)
+                                GlobalManager.getInstance().songService?.isGaming = false
                                 GlobalManager.getInstance().engine?.scene = main.scene
 
                                 BeatmapListing().show()

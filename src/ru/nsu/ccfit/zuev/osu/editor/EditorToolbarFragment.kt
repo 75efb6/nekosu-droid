@@ -13,8 +13,6 @@ import java.util.Locale
 
 class EditorToolbarFragment : EditorFragment() {
 
-    override var editorScene: EditorScene? = null
-        private set
     private lateinit var toolbarLayout: LinearLayout
     private lateinit var toolLabel: TextView
     private lateinit var objectInfoLabel: TextView

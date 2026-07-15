@@ -62,7 +62,7 @@ class EditorComboFragment : EditorFragment() {
         layout.addView(info)
 
         // New Combo toggle
-        val comboFlags = scene.getNewComboFlags()
+        val comboFlags = scene.newComboFlags
         val isNewCombo = comboFlags[idx] ?: false
 
         val comboTitle = TextView(requireContext())

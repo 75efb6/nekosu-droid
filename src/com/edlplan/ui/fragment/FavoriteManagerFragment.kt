@@ -38,13 +38,15 @@ class FavoriteManagerFragment : BaseFragment() {
         val newFolder = findViewById<Button>(R.id.new_folder)!!
         newFolder.setOnClickListener {
             val dialog = InputDialog(context!!)
-            dialog.showForResult { s: String ->
-                if (s.isEmpty()) return@showForResult
-                if (FavoriteLibrary.get().getMaps(s) == null && s != StringTable.get(R.string.favorite_default)) {
-                    FavoriteLibrary.get().addFolder(s)
-                    adapter?.add(s)
+            dialog.showForResult(object : InputDialog.OnResult {
+                override fun onResult(s: String) {
+                    if (s.isEmpty()) return
+                    if (FavoriteLibrary.get().getMaps(s) == null && s != StringTable.get(R.string.favorite_default)) {
+                        FavoriteLibrary.get().addFolder(s)
+                        adapter?.add(s)
+                    }
                 }
-            }
+            })
         }
 
         onLoadViewFunc?.run()
@@ -151,7 +153,7 @@ class FavoriteManagerFragment : BaseFragment() {
         override fun getItemCount(): Int = folders.size
     }
 
-    inner class AddAdapter(private val track: String) : FMAdapter() {
+    internal inner class AddAdapter(private val track: String) : FMAdapter() {
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val f = folders[position]
@@ -224,7 +226,7 @@ class FavoriteManagerFragment : BaseFragment() {
         }
     }
 
-    inner class SelectAdapter(private val onSelectListener: OnSelectListener?) : FMAdapter() {
+    internal inner class SelectAdapter(private val onSelectListener: OnSelectListener?) : FMAdapter() {
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val f = folders[position]

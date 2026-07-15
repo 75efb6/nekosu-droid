@@ -33,7 +33,7 @@ import java.util.Stack
 
 class EditorScene(private val engine: Engine) : IUpdateHandler {
 
-    private val scene: Scene = Scene()
+    val scene: Scene = Scene()
     private lateinit var bgScene: Scene
     private lateinit var mgScene: Scene
     private lateinit var fgScene: Scene
@@ -1456,8 +1456,6 @@ class EditorScene(private val engine: Engine) : IUpdateHandler {
         return try { ResourceManager.getInstance().getFont("smallFont") } catch (_: Exception) { null }
     }
 
-    fun getScene(): Scene = scene
-
     fun play() {
         val svc = GlobalManager.getInstance().songService
         if (svc != null) {
@@ -1687,11 +1685,6 @@ class EditorScene(private val engine: Engine) : IUpdateHandler {
     }
 
     fun isMultiSelectMode(): Boolean = isMultiSelecting
-    fun getNewComboFlags(): HashMap<Int, Boolean> = newComboFlags
-    fun getKiaiFlags(): HashMap<Double, Boolean> = kiaiFlags
-    fun setComboColorCount(count: Int) { comboColorCount = count }
-    fun getComboColorCount(): Int = comboColorCount
-    fun getBeatmapPath(): String? = beatmapPath
 
     fun testPlay() {
         val data = beatmapData

@@ -37,7 +37,7 @@ class BeatmapDifficultyManager {
     }
 
     fun getAR(): Float {
-        return if (Float.isNaN(ar)) od else ar
+        return if (ar.isNaN()) od else ar
     }
 
     fun setAR(ar: Float) {

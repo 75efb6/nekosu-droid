@@ -24,16 +24,14 @@ class DownloadingFragment : LoadingFragment() {
         mDownloader = downloader
     }
 
-    override fun getLayoutID(): Int {
-        return R.layout.fragment_downloading
-    }
+    override val layoutID = R.layout.fragment_downloading
 
     override fun onLoadView() {
         super.onLoadView()
 
-        mText = findViewById(R.id.text)
-        mButton = findViewById(R.id.button)
-        mProgressBar = findViewById(R.id.progress)
+        mText = findViewById(R.id.text)!!
+        mButton = findViewById(R.id.button)!!
+        mProgressBar = findViewById(R.id.progress)!!
 
         mAwaitCall.run()
     }

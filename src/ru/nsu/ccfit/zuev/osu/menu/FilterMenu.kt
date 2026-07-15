@@ -209,7 +209,7 @@ class FilterMenu private constructor() : IUpdateHandler, IFilterMenu {
 
     override fun hideMenu() {
         if (menu != null) {
-            menu!!.getScene().clearChildScene()
+            menu!!.scene?.clearChildScene()
             menu!!.loadFilter(this)
             scene = null
         }

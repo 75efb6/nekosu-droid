@@ -175,7 +175,7 @@ class PerformanceCalculator {
         val relevantCountGreat = Math.max(0.0, countGreat - relevantTotalDiff)
         val relevantCountOk = Math.max(0.0, countOk - Math.max(0.0, relevantTotalDiff - countGreat))
         val relevantCountMeh = Math.max(0.0, countMeh - Math.max(0.0, relevantTotalDiff - countGreat - countOk))
-        val relevantAccuracy = if (difficultyAttributes.speedNoteCount == 0) 0.0 else (relevantCountGreat * 6 + relevantCountOk * 2 + relevantCountMeh) / (difficultyAttributes.speedNoteCount * 6)
+        val relevantAccuracy = if (difficultyAttributes.speedNoteCount == 0.0) 0.0 else (relevantCountGreat * 6 + relevantCountOk * 2 + relevantCountMeh) / (difficultyAttributes.speedNoteCount * 6)
 
         speedValue *= (0.95 + Math.pow(difficultyAttributes.overallDifficulty, 2.0) / 750) * Math.pow((getAccuracy() + relevantAccuracy) / 2, (14.5 - Math.max(difficultyAttributes.overallDifficulty, 8.0)) / 2)
 

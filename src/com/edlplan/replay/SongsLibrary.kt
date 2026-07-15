@@ -8,11 +8,13 @@ class SongsLibrary {
 
     init {
         val songs = OdrConfig.getSongDir()
-        val songsList = FileUtils.listFiles(songs, ".osu") ?: return
-        for (set in songsList) {
-            if (set.isDirectory) {
-                set.list()?.forEach { osu ->
-                    osu2set[osu] = set.name + "/" + osu
+        val songsList = FileUtils.listFiles(songs, ".osu")
+        if (songsList != null) {
+            for (set in songsList) {
+                if (set.isDirectory) {
+                    set.list()?.forEach { osu ->
+                        osu2set[osu] = set.name + "/" + osu
+                    }
                 }
             }
         }

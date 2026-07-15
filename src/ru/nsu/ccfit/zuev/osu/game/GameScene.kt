@@ -206,7 +206,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
                 video = VideoSprite(lastTrack!!.beatmap!!.path + "/" + beatmapData!!.events.videoFilename, engine)
                 video!!.setAlpha(0f)
                 bgSprite = video as? Sprite
-                storyboardSprite?.setTransparentBackground(true)
+                storyboardSprite?.transparentBackground = true
             } catch (e: Exception) {
                 e.printStackTrace()
                 video = null
@@ -365,11 +365,11 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         GameHelper.setStackLeniency(beatmapData!!.general.stackLeniency)
         if (scale < 0.001f) scale = 0.001f
         GameHelper.setSpeed(beatmapData!!.difficulty.sliderMultiplier * 100)
-        GameHelper.setTickRate(beatmapData!!.difficulty.sliderTickRate.toFloat())
-        GameHelper.setScale(scale)
+        GameHelper.tickRate = beatmapData!!.difficulty.sliderTickRate.toFloat()
+        GameHelper.scale = scale
         GameHelper.setDifficulty(overallDifficulty)
-        GameHelper.setDrain(drain)
-        GameHelper.setApproachRate(approachRate)
+        GameHelper.drain = drain
+        GameHelper.approachRate = approachRate
 
         objects = LinkedList(); allObjects = ArrayList()
         for (s in beatmapData!!.rawHitObjects) {
@@ -381,9 +381,9 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         activeObjects = ArrayList(); passiveObjects = ArrayList(); expiredObjects = LinkedList()
         lastObjectId = -1
 
-        GameHelper.setSliderColor(SkinManager.getInstance().getSliderColor())
-        beatmapData!!.colors.sliderBorderColor?.let { GameHelper.setSliderColor(it) }
-        if (OsuSkin.get().isForceOverrideSliderBorderColor()) GameHelper.setSliderColor(OsuSkin.get().sliderBorderColor.currentValue)
+        GameHelper.sliderColor = SkinManager.getInstance().getSliderColor()
+        beatmapData!!.colors.sliderBorderColor?.let { GameHelper.sliderColor = it }
+        if (OsuSkin.get().isForceOverrideSliderBorderColor()) GameHelper.sliderColor = OsuSkin.get().sliderBorderColor.currentValue
 
         combos = ArrayList()
         for (color in beatmapData!!.colors.comboColors) combos!!.add(RGBColor(color.r() / 255f, color.g() / 255f, color.b() / 255f))
@@ -419,12 +419,12 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         if (soundTimingPoint != null) {
             GameHelper.setTimingOffset(soundTimingPoint!!.time)
             GameHelper.setBeatLength(soundTimingPoint!!.beatLength * GameHelper.speed / 100f)
-            GameHelper.setTimeSignature(soundTimingPoint!!.signature)
-            GameHelper.setKiai(soundTimingPoint!!.isKiai())
+            GameHelper.timeSignature = soundTimingPoint!!.signature
+            GameHelper.isKiai = soundTimingPoint!!.isKiai()
         } else {
-            GameHelper.setTimingOffset(0); GameHelper.setBeatLength(1); GameHelper.setTimeSignature(4); GameHelper.setKiai(false)
+            GameHelper.setTimingOffset(0); GameHelper.setBeatLength(1); GameHelper.timeSignature = 4; GameHelper.isKiai = false
         }
-        GameHelper.setInitalBeatLength(GameHelper.beatLength)
+        GameHelper.initalBeatLength = GameHelper.beatLength
 
         GameObjectPool.getInstance().purge(); SpritePool.getInstance().purge(); GameHelper.clearPools(); ModifierFactory.clear()
 
@@ -498,13 +498,13 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         isFirst = true; failcount = 0; mainCursorId = -1
         val screen = LoadingScreen()
         engine.setScene(screen.scene)
-        val rfile = replayFile ?: this.replayFile
+        val rfile = if (track != null) replayFile else this.replayFile
         Execution.async {
             if (loadGame(track ?: lastTrack!!, rfile)) prepareScene()
             else {
                 ModMenu.getInstance().setMod(Replay.oldMod)
                 ModMenu.getInstance().setChangeSpeed(Replay.oldChangeSpeed)
-                ModMenu.getInstance().setFLfollowDelay(Replay.oldFLFollowDelay)
+                ModMenu.getInstance().FLfollowDelay = Replay.oldFLFollowDelay
                 ModMenu.getInstance().setCustomAR(Replay.oldCustomAR)
                 ModMenu.getInstance().setCustomOD(Replay.oldCustomOD)
                 ModMenu.getInstance().setCustomCS(Replay.oldCustomCS)
@@ -595,7 +595,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         stat!!.setCustomCS(ModMenu.getInstance().customCS)
         stat!!.setCustomHP(ModMenu.getInstance().customHP)
         stat!!.setChangeSpeed(ModMenu.getInstance().changeSpeed)
-        stat!!.setFLFollowDelay(ModMenu.getInstance().getFLfollowDelay())
+        stat!!.setFLFollowDelay(ModMenu.getInstance().FLfollowDelay)
 
         GameHelper.setHardrock(stat!!.mod.contains(GameMod.MOD_HARDROCK))
         GameHelper.setDoubleTime(stat!!.mod.contains(GameMod.MOD_DOUBLETIME))
@@ -610,7 +610,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         GameHelper.setScoreV2(stat!!.mod.contains(GameMod.MOD_SCOREV2))
         GameHelper.setEasy(stat!!.mod.contains(GameMod.MOD_EASY))
         difficultyHelper = if (stat!!.mod.contains(GameMod.MOD_PRECISE)) DifficultyHelper.HighDifficulty else DifficultyHelper.StdDifficulty
-        GameHelper.setDifficultyHelper(difficultyHelper)
+        GameHelper.difficultyHelper = difficultyHelper
 
         for (i in 0 until CursorCount) { cursors[i] = Cursor(); cursors[i]!!.mouseDown = false; cursors[i]!!.mousePressed = false; cursors[i]!!.mouseOldDown = false }
         cursorIIsDown.fill(false); kbKeyToSlot.clear()
@@ -621,7 +621,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         if (secPassed > -1) secPassed = -1f
         if (video != null && videoOffset < 0) secPassed = minOf(videoOffset, secPassed)
 
-        skipTime = if (!objects.isNullOrEmpty()) objects!!.peek().time - approachRate - 1f else 0f
+        skipTime = if (!objects.isNullOrEmpty()) objects!!.peek().getTime() - approachRate - 1f else 0f
 
         metronome = null
         if ((Config.getMetronomeSwitch() == 1 && GameHelper.isNightCore()) || Config.getMetronomeSwitch() == 2) metronome = Metronome()
@@ -640,19 +640,19 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         if (Config.isCorovans() && countdown != null) {
             val cdSpeed = countdown.speed.toFloat()
             skipTime -= cdSpeed * Countdown.COUNTDOWN_LENGTH
-            if (cdSpeed != 0f && objects!!.peek().time - secPassed >= cdSpeed * Countdown.COUNTDOWN_LENGTH) {
-                addPassiveObject(Countdown(this, bgScene, cdSpeed, 0f, objects!!.peek().time - secPassed))
+            if (cdSpeed != 0f && objects!!.peek().getTime() - secPassed >= cdSpeed * Countdown.COUNTDOWN_LENGTH) {
+                addPassiveObject(Countdown(this, bgScene, cdSpeed, 0f, objects!!.peek().getTime() - secPassed))
             }
         }
 
-        val lastObjectTime = if (!objects.isNullOrEmpty()) objects!!.last.time.toFloat() else 0f
+        val lastObjectTime = if (!objects.isNullOrEmpty()) objects!!.last.getTime() else 0f
         if (!Config.isHideInGameUI()) {
-            progressBar = SongProgressBar(this, fgScene, lastObjectTime, objects!!.first.time.toFloat(), PointF(0f, Config.getRES_HEIGHT() - 7), Config.getRES_WIDTH().toFloat(), 7f)
+            progressBar = SongProgressBar(this, fgScene, lastObjectTime, objects!!.first.getTime(), PointF(0f, Config.getRES_HEIGHT().toFloat() - 7), Config.getRES_WIDTH().toFloat(), 7f)
             progressBar!!.setProgressRectColor(RGBAColor(153f / 255f, 204f / 255f, 51f / 255f, 0.4f))
         }
 
         if (Config.getErrorMeter() == 1 || (Config.getErrorMeter() == 2 && replaying)) {
-            hitErrorMeter = HitErrorMeter(fgScene, PointF(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() - 20), overallDifficulty, 12f, difficultyHelper)
+            hitErrorMeter = HitErrorMeter(fgScene, PointF(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT().toFloat() - 20), overallDifficulty, 12f, difficultyHelper)
         }
 
         skipBtn = null
@@ -669,7 +669,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
             }
             skipBtn!!.setAlpha(0.7f); fgScene.attachChild(skipBtn)
         }
-        GameHelper.setGlobalTime(0.0)
+        GameHelper.globalTime = 0.0
 
         var effectOffset = 155 - 25f
         breakAnimator = BreakAnimator(this, fgScene, stat!!, beatmapData!!.general.letterboxInBreaks, dimRectangle)
@@ -793,7 +793,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
         val gtime = if (soundTimingPoint == null || soundTimingPoint!!.time > secPassed) 0.0
             else (secPassed - firstTimingPoint!!.time) % GameHelper.kiaiTickLength
-        GameHelper.setGlobalTime(gtime)
+        GameHelper.globalTime = gtime
 
         if (Config.isEnableStoryboard()) storyboardSprite?.updateTime((secPassed * 1000).toDouble())
 
@@ -846,7 +846,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         while (activeTimingPoints!!.isNotEmpty() && activeTimingPoints!!.peek().time <= secPassed) {
             soundTimingPoint = activeTimingPoints!!.poll()
             if (!soundTimingPoint!!.inherited) { GameHelper.setBeatLength(soundTimingPoint!!.beatLength); GameHelper.setTimingOffset(soundTimingPoint!!.time) }
-            GameHelper.setTimeSignature(soundTimingPoint!!.signature); GameHelper.setKiai(soundTimingPoint!!.isKiai())
+            GameHelper.timeSignature = soundTimingPoint!!.signature; GameHelper.isKiai = soundTimingPoint!!.isKiai()
         }
 
         if (breakPeriods.isNotEmpty() && !breakAnimator!!.isBreak() && breakPeriods.peek().start <= secPassed) {
@@ -879,7 +879,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
             val comboStr = strBuilder.toString()
             if (Config.isComplexAnimations()) scoreShadow?.changeText(comboStr) else comboText?.changeText(comboStr)
             strBuilder.setLength(0)
-            var rawAccuracy = stat!!.accuracy * 100f
+            var rawAccuracy = stat!!.getAccuracy() * 100f
             strBuilder.append(rawAccuracy.toInt()); if (rawAccuracy.toInt() < 10) strBuilder.insert(0, '0')
             strBuilder.append('.'); rawAccuracy -= rawAccuracy.toInt().toFloat(); rawAccuracy *= 100
             if (rawAccuracy.toInt() < 10) strBuilder.append('0'); strBuilder.append(rawAccuracy.toInt())
@@ -917,14 +917,14 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         }
 
         var shouldBePunished = false
-        while (objects!!.isNotEmpty() && secPassed + approachRate > objects!!.peek().time) {
+        while (objects!!.isNotEmpty() && secPassed + approachRate > objects!!.peek().getTime()) {
             gameStarted = true
             val data = objects!!.poll()!!
             val params = data.rawdata; val pos = data.pos; val objDefine = data.comboCode; val time = data.getRawTime()
             if (time > totalLength) shouldBePunished = true
             val nextObj = objects!!.peek()
             if (objDefine and 2 <= 0) { pos.x += data.posOffset; pos.y += data.posOffset }
-            if (objects!!.isNotEmpty()) { distToNextObject = (nextObj.time - data.time).toDouble(); if (soundTimingPoint != null && distToNextObject < soundTimingPoint!!.beatLength / 2) distToNextObject = soundTimingPoint!!.beatLength / 2 } else distToNextObject = 0.0
+            if (objects!!.isNotEmpty()) { distToNextObject = (nextObj.getTime() - data.getTime()).toDouble(); if (soundTimingPoint != null && distToNextObject < soundTimingPoint!!.beatLength / 2) distToNextObject = soundTimingPoint!!.beatLength / 2 } else distToNextObject = 0.0
             var comboCode = objDefine
             if (comboCode == 12) currentComboNum = 0
             else if (comboNum == -1) { comboNum = 1; currentComboNum = 0 }
@@ -933,20 +933,20 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
             if (objDefine and 1 > 0) {
                 val col = getComboColor(comboNum); val circle = GameObjectPool.getInstance().getCircle()
                 var tempSound: String? = null; if (params.size > 5) tempSound = params[5]
-                circle.init(this, mgScene, pos, data.time - secPassed, col.r(), col.g(), col.b(), scale, currentComboNum, data.sampleSet, tempSound, isFirst)
+                circle.init(this, mgScene, pos, data.getTime() - secPassed, col.r(), col.g(), col.b(), scale, currentComboNum, data.sampleSet, tempSound, isFirst)
                 circle.setEndsCombo(objects!!.isEmpty() || nextObj.isNewCombo())
                 addObject(circle); isFirst = false
-                if (objects!!.isNotEmpty() && !nextObj.isNewCombo()) { val track = GameObjectPool.getInstance().getTrack(); val end = if (nextObj.time > data.time) data.getEnd() else data.pos; track.init(this, bgScene, end, nextObj.pos, nextObj.time - secPassed, approachRate, scale) }
+                if (objects!!.isNotEmpty() && !nextObj.isNewCombo()) { val track = GameObjectPool.getInstance().getTrack(); val end = if (nextObj.getTime() > data.getTime()) data.getEnd() else data.pos; track.init(this, bgScene, end, nextObj.pos, nextObj.getTime() - secPassed, approachRate, scale) }
                 if (GameHelper.isAuto()) circle.setAutoPlay()
-                circle.hitTime = data.time.toFloat()
-                if (objects!!.isNotEmpty() && nextObj.time > data.time) currentComboNum++
+                circle.hitTime = data.getTime()
+                if (objects!!.isNotEmpty() && nextObj.getTime() > data.getTime()) currentComboNum++
                 circle.setId(++lastObjectId)
                 if (replaying) circle.setReplayData(replay!!.objectData!![circle.getId()])
             } else if (objDefine and 8 > 0) {
                 val endTime = params[5].toInt() / 1000.0f; val rps = 2 + 2 * overallDifficulty / 10f
                 val spinner = GameObjectPool.getInstance().getSpinner()
                 var tempSound: String? = null; if (params.size > 6) tempSound = params[6]
-                spinner.init(this, bgScene, (data.time - secPassed) / timeMultiplier, (endTime - data.time) / timeMultiplier, rps, data.sampleSet, tempSound, stat!!)
+                spinner.init(this, bgScene, (data.getTime() - secPassed) / timeMultiplier, (endTime - data.getTime()) / timeMultiplier, rps, data.sampleSet, tempSound, stat!!)
                 spinner.setEndsCombo(objects!!.isEmpty() || nextObj.isNewCombo()); addObject(spinner); isFirst = false
                 if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) spinner.setAutoPlay()
                 spinner.setId(++lastObjectId)
@@ -956,14 +956,14 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
                 val slider = GameObjectPool.getInstance().getSlider()
                 var tempSound: String? = null; if (params.size > 9) tempSound = params[9]
                 val sliderPath = getSliderPath(sliderIndex)
-                slider.init(this, mgScene, pos, data.posOffset, data.time - secPassed, col.r(), col.g(), col.b(), scale, currentComboNum, data.sampleSet, data.customSound, data.timingShift.toFloat(), params[5], currentTimingPoint, soundspec, tempSound, isFirst, data.getRawTime().toDouble(), sliderPath)
+                slider.init(this, mgScene, pos, data.posOffset, data.getTime() - secPassed, col.r(), col.g(), col.b(), scale, currentComboNum, data.sampleSet, data.customSound, data.timingShift.toFloat(), params[5], currentTimingPoint, soundspec, tempSound, isFirst, data.getRawTime().toDouble(), sliderPath)
                 sliderIndex++; slider.setEndsCombo(objects!!.isEmpty() || nextObj.isNewCombo()); addObject(slider); isFirst = false
-                if (objects!!.isNotEmpty() && !nextObj.isNewCombo()) { val track = GameObjectPool.getInstance().getTrack(); val end = if (nextObj.time > data.time) data.getEnd() else data.pos; track.init(this, bgScene, end, nextObj.pos, nextObj.time - secPassed, approachRate, scale) }
+                if (objects!!.isNotEmpty() && !nextObj.isNewCombo()) { val track = GameObjectPool.getInstance().getTrack(); val end = if (nextObj.getTime() > data.getTime()) data.getEnd() else data.pos; track.init(this, bgScene, end, nextObj.pos, nextObj.getTime() - secPassed, approachRate, scale) }
                 if (GameHelper.isAuto()) slider.setAutoPlay()
-                slider.hitTime = data.time.toFloat()
-                if (objects!!.isNotEmpty() && nextObj.time > data.time) currentComboNum++
+                slider.hitTime = data.getTime()
+                if (objects!!.isNotEmpty() && nextObj.getTime() > data.getTime()) currentComboNum++
                 slider.setId(++lastObjectId)
-                if (replaying) { slider.setReplayData(replay!!.objectData!![slider.getId()]); if (slider.replayData.tickSet == null) slider.replayData.tickSet = BitSet() }
+                if (replaying) { slider.setReplayData(replay!!.objectData!![slider.getId()]); slider.getReplayData()?.let { if (it.tickSet == null) it.tickSet = BitSet() } }
             }
         }
 
@@ -983,7 +983,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
             }
             if (GlobalManager.getInstance().camera is SmoothCamera) { val camera = GlobalManager.getInstance().camera as SmoothCamera; camera.setZoomFactorDirect(1f); if (Config.isShrinkPlayfieldDownwards()) camera.setCenterDirect(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f) }
             if (scoringScene != null) {
-                if (replaying) { ModMenu.getInstance().setMod(Replay.oldMod); ModMenu.getInstance().setChangeSpeed(Replay.oldChangeSpeed); ModMenu.getInstance().setFLfollowDelay(Replay.oldFLFollowDelay); ModMenu.getInstance().setCustomAR(Replay.oldCustomAR); ModMenu.getInstance().setCustomOD(Replay.oldCustomOD); ModMenu.getInstance().setCustomCS(Replay.oldCustomCS); ModMenu.getInstance().setCustomHP(Replay.oldCustomHP) }
+                if (replaying) { ModMenu.getInstance().setMod(Replay.oldMod); ModMenu.getInstance().setChangeSpeed(Replay.oldChangeSpeed); ModMenu.getInstance().FLfollowDelay = Replay.oldFLFollowDelay; ModMenu.getInstance().setCustomAR(Replay.oldCustomAR); ModMenu.getInstance().setCustomOD(Replay.oldCustomOD); ModMenu.getInstance().setCustomCS(Replay.oldCustomCS); ModMenu.getInstance().setCustomHP(Replay.oldCustomHP) }
                 if (replaying) scoringScene!!.load(scoringScene!!.getReplayStat()!!, null, GlobalManager.getInstance().songService, rFile, null, lastTrack)
                 else { val s = stat!!; if (s.mod.contains(GameMod.MOD_AUTO)) s.playerName = "osu!"; EdExtensionHelper.onEndGame(lastTrack, stat); if (Multiplayer.isConnected) { Multiplayer.log("Match ended, moving to results scene."); RoomScene.chat.show();                 Execution.asyncIgnoreExceptions { RoomAPI.submitFinalScore(s.toJson()) }; ToastLogger.showText("Loading room statistics...", false) }; scoringScene!!.load(s, lastTrack, GlobalManager.getInstance().songService, rFile, trackMD5, null) }
                 GlobalManager.getInstance().songService!!.setVolume(0.2f); DiscordRPC.updateForResults(); engine.setScene(scoringScene!!.scene)
@@ -1031,7 +1031,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         SkinManager.setSkinEnabled(false); GameObjectPool.getInstance().purge(); SpritePool.getInstance().purge(); GameHelper.clearPools()
         passiveObjects.clear(); breakPeriods.clear(); cursorSprites = null; scoreBoard = null
         GlobalManager.getInstance().songService?.let { it.stop(); it.preLoadPreview(filePath!!); it.play(); it.setVolume(Config.getBgmVolume()) }
-        if (replaying) { replayFile = null; ModMenu.getInstance().setMod(Replay.oldMod); ModMenu.getInstance().setChangeSpeed(Replay.oldChangeSpeed); ModMenu.getInstance().setFLfollowDelay(Replay.oldFLFollowDelay); ModMenu.getInstance().setCustomAR(Replay.oldCustomAR); ModMenu.getInstance().setCustomOD(Replay.oldCustomOD); ModMenu.getInstance().setCustomCS(Replay.oldCustomCS); ModMenu.getInstance().setCustomHP(Replay.oldCustomHP) }
+        if (replaying) { replayFile = null; ModMenu.getInstance().setMod(Replay.oldMod); ModMenu.getInstance().setChangeSpeed(Replay.oldChangeSpeed); ModMenu.getInstance().FLfollowDelay = Replay.oldFLFollowDelay; ModMenu.getInstance().setCustomAR(Replay.oldCustomAR); ModMenu.getInstance().setCustomOD(Replay.oldCustomOD); ModMenu.getInstance().setCustomCS(Replay.oldCustomCS); ModMenu.getInstance().setCustomHP(Replay.oldCustomHP) }
     }
 
     fun quit() {
@@ -1290,7 +1290,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     private fun stackNotes() {
         var i = 0
         for (data in objects!!) { val pos = data.pos; val params = data.rawdata; val objDefine = params[3].toInt()
-            if (objects!!.isNotEmpty() && objDefine and 1 > 0 && i + 1 < objects!!.size) { if (objects!![i + 1].time - data.time < 2f * GameHelper.getStackLeniency() && Utils.squaredDistance(pos, objects!![i + 1].pos) < scale) objects!![i + 1].setPosOffset(data.posOffset + Utils.toRes(4) * scale) }
+            if (objects!!.isNotEmpty() && objDefine and 1 > 0 && i + 1 < objects!!.size) {             if (objects!![i + 1].getTime() - data.getTime() < 2f * GameHelper.stackLeniency && Utils.squaredDistance(pos, objects!![i + 1].pos) < scale) objects!![i + 1].setPosOffset(data.posOffset + Utils.toRes(4) * scale) }
             i++ }
     }
 
@@ -1300,7 +1300,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         for (data in objects!!) { if (data.rawdata[3].toInt() and 2 > 0) sliderCount++ }
         if (sliderCount <= 0) return
         sliderPaths = arrayOfNulls(sliderCount); sliderIndex = 0
-        for (data in objects!!) { val params = data.rawdata; if (params[3].toInt() and 2 > 0) { val pos = data.pos; val length = params[7].toFloat(); val offset = data.posOffset; pos.x += data.posOffset; pos.y += data.posOffset; sliderPaths!![sliderIndex] = if (length < 0) GameHelper.calculatePath(Utils.realToTrackCoords(pos), params[5].split("|".toRegex()).toTypedArray(), 0f, offset) else GameHelper.calculatePath(Utils.realToTrackCoords(pos), params[5].split("|".toRegex()).toTypedArray(), length, offset); sliderIndex++ } }
+        for (data in objects!!) { val params = data.rawdata; if (params[3].toInt() and 2 > 0) { val pos = data.pos; val length = params[7].toFloat(); val offset = data.posOffset; pos.x += data.posOffset; pos.y += data.posOffset; sliderPaths!![sliderIndex] = if (length < 0) GameHelper.calculatePath(Utils.realToTrackCoords(pos), params[5].split("\\|".toRegex()).toTypedArray(), 0f, offset) else GameHelper.calculatePath(Utils.realToTrackCoords(pos), params[5].split("\\|".toRegex()).toTypedArray(), length, offset); sliderIndex++ } }
         sliderIndex = 0
     }
 
@@ -1313,12 +1313,12 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         val targetSec = positionMs / 1000f
         if (targetSec < secPassed) {
             var excludedCount = 0; var excludedSliders = 0
-            for (data in allObjects!!) { if (data.time + approachRate <= targetSec) { excludedCount++; if (data.isSlider()) excludedSliders++ } else break }
+            for (data in allObjects!!) { if (data.getTime() + approachRate <= targetSec) { excludedCount++; if (data.isSlider()) excludedSliders++ } else break }
             lastObjectId = excludedCount - 1; sliderIndex = excludedSliders
-            objects!!.clear(); for (data in allObjects!!) { if (data.time + approachRate > targetSec) objects!!.add(data) }
+            objects!!.clear(); for (data in allObjects!!) { if (data.getTime() + approachRate > targetSec) objects!!.add(data) }
             val iterA = activeObjects.iterator(); while (iterA.hasNext()) { val obj = iterA.next(); if (obj.hitTime > targetSec) { obj.cleanupFromScene(); iterA.remove() } }
             val iterP = passiveObjects.iterator(); while (iterP.hasNext()) { val obj = iterP.next(); if (obj.hitTime > targetSec) { obj.cleanupFromScene(); iterP.remove() } }
-        } else { while (objects!!.isNotEmpty() && objects!!.peek().time + approachRate <= targetSec) { val data = objects!!.poll()!!; lastObjectId++; if (data.isSlider()) sliderIndex++ } }
+        } else { while (objects!!.isNotEmpty() && objects!!.peek().getTime() + approachRate <= targetSec) { val data = objects!!.poll()!!; lastObjectId++; if (data.isSlider()) sliderIndex++ } }
         secPassed = targetSec; GlobalManager.getInstance().songService!!.seekTo(positionMs)
         if (video != null) { val videoSeekTime = positionMs - (videoOffset * 1000).toInt(); video!!.texture.seekTo(videoSeekTime) }
         for (i in replay!!.cursorIndex.indices) { replay!!.cursorIndex[i] = 0; replay!!.lastMoveIndex[i] = -1

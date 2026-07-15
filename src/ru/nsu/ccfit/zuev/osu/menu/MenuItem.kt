@@ -33,7 +33,7 @@ class MenuItem {
     internal var listener: WeakReference<MenuItemListener>? = null
     private var selTrack: MenuItemTrack? = null
     private var visible = true
-    private var favorite: Boolean
+    var favorite: Boolean
     private var deleted = false
     private var layer: Entity? = null
     private val trackId: Int
@@ -65,8 +65,6 @@ class MenuItem {
         val props: BeatmapProperties? = PropertiesLibrary.instance.getProperties(info.path!!)
         favorite = props != null && props.isFavorite()
     }
-
-    fun getBeatmap(): BeatmapInfo = beatmap
 
     fun updateMarks() {
         for (tr in trackSprites) {
@@ -292,7 +290,7 @@ class MenuItem {
                 trackSprites[i] = SongMenuPool.getInstance().newTrack()
                 trackSprites[i]!!.setItem(this)
                 trackSprites[i]!!.setTrack(beatmap.getTrack(i), beatmap)
-                beatmap.getTrack(i).setBeatmap(beatmap)
+                beatmap.getTrack(i).beatmap = beatmap
                 if (!trackSprites[i]!!.hasParent()) {
                     layer!!.attachChild(trackSprites[i])
                 }
@@ -303,7 +301,7 @@ class MenuItem {
             trackSprites[0] = SongMenuPool.getInstance().newTrack()
             trackSprites[0]!!.setItem(this)
             trackSprites[0]!!.setTrack(beatmap.getTrack(trackId), beatmap)
-            beatmap.getTrack(trackId).setBeatmap(beatmap)
+            beatmap.getTrack(trackId).beatmap = beatmap
             if (!trackSprites[0]!!.hasParent()) {
                 layer!!.attachChild(trackSprites[0])
             }
@@ -313,10 +311,6 @@ class MenuItem {
     }
 
     fun isFavorite(): Boolean = favorite
-
-    fun setFavorite(favorite: Boolean) {
-        this.favorite = favorite
-    }
 
     fun showPropertiesMenu() {
         listener?.get()?.showPropertiesMenu(this)

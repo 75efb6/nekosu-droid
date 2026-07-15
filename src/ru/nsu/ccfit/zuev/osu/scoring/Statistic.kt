@@ -15,6 +15,12 @@ class Statistic : Serializable {
     var hit100k = 0
     var misses = 0
     var maxCombo = 0
+        get() {
+            if (currentCombo > field) {
+                field = currentCombo
+            }
+            return field
+        }
     var currentCombo = 0
     var totalScore = 0
     var possibleScore = 0
@@ -22,8 +28,7 @@ class Statistic : Serializable {
     var hp = 1f
     var diffModifier = 1f
     var mod: EnumSet<GameMod> = EnumSet.noneOf(GameMod::class.java)
-
-    fun getHp(): Float = hp
+        set(value) { field = value.clone() as EnumSet<GameMod> }
 
     fun changeHp(amount: Float) {
         hp += amount
@@ -34,8 +39,6 @@ class Statistic : Serializable {
             hp = 1f
         }
     }
-
-    fun getTotalScore(): Int = totalScore
 
     fun getModifiedTotalScore(): Int {
         var mult = 1f
@@ -120,7 +123,7 @@ class Statistic : Serializable {
             return
         }
         if (score == 0 && k) {
-            changeHp(-(5 + GameHelper.getDrain()) / 100f)
+            changeHp(-(5 + GameHelper.drain) / 100f)
             if (currentCombo > maxCombo) {
                 maxCombo = currentCombo
             }
@@ -160,7 +163,7 @@ class Statistic : Serializable {
                 currentCombo++
             }
             else -> {
-                changeHp(-(5 + GameHelper.getDrain()) / 100f)
+                changeHp(-(5 + GameHelper.drain) / 100f)
                 misses++
                 if (currentCombo > maxCombo) {
                     maxCombo = currentCombo
@@ -217,40 +220,7 @@ class Statistic : Serializable {
         return "D"
     }
 
-    fun getMaxCombo(): Int {
-        if (currentCombo > maxCombo) {
-            maxCombo = currentCombo
-        }
-        return maxCombo
-    }
-
-    fun getNotes(): Int = notes
-
-    fun getHit300(): Int = hit300
-
-    fun getHit100(): Int = hit100
-
-    fun getHit50(): Int = hit50
-
-    fun getHit300k(): Int = hit300k
-
-    fun getHit100k(): Int = hit100k
-
-    fun getMisses(): Int = misses
-
     fun getCombo(): Int = currentCombo
-
-    fun getMod(): EnumSet<GameMod> = mod
-
-    fun setMod(mod: EnumSet<GameMod>) {
-        this.mod = mod.clone() as EnumSet<GameMod>
-    }
-
-    fun getDiffModifier(): Float = diffModifier
-
-    fun setDiffModifier(diffModifier: Float) {
-        this.diffModifier = diffModifier
-    }
 
     companion object {
         private const val serialVersionUID = 8339570462000129479L

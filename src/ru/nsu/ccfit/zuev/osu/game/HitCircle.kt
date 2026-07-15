@@ -3,7 +3,6 @@ package ru.nsu.ccfit.zuev.osu.game
 import android.graphics.PointF
 import org.anddev.andengine.entity.IEntity
 import org.anddev.andengine.entity.modifier.*
-import org.anddev.andengine.entity.primitive.Rectangle
 import org.anddev.andengine.entity.scene.Scene
 import org.anddev.andengine.entity.shape.Shape
 import org.anddev.andengine.entity.sprite.Sprite
@@ -18,6 +17,8 @@ import ru.nsu.ccfit.zuev.osu.helper.CentredSprite
 import ru.nsu.ccfit.zuev.osu.scoring.ScoreNumber
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import ru.nsu.ccfit.zuev.skins.SkinManager
+import androidx.core.util.Supplier
+import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 import java.util.concurrent.atomic.AtomicBoolean
 
 class HitCircle(
@@ -86,70 +87,117 @@ class HitCircle(
     private var hitEffect: GameEffect? = null
     private var hitSound: GameEffect? = null
 
+    private var soundId = 0
+    private var sampleSet = 0
+    private var addition = 0
+    private var isFirstNote = false
+    private var comboNumber = -1
+    private var showCombo = true
+    private var dataReverse = false
+
     init {
         if (pScene != null && pListener != null && pData != null && pApproach != null && pCombo != null && pNumber != null && pStat != null) {
             radius = (Config.getHitCircleRadius() * scale)
-            val pos = Utils.trackToRealCoords(data!!.getPos())
+            val pos = data!!.getPos()
             approach!!.setPosition(
                 pos.x - approach!!.getTextureRegion().getWidth().toFloat() / 2,
                 pos.y - approach!!.getTextureRegion().getHeight().toFloat() / 2
             )
             hit = SpritePool.getInstance().getCenteredSprite("hitcircle", pos)
-            hit!!.setAlpha(0.95f)
+            hit!!.setAlpha(0f)
             hit!!.setScale(scale)
 
             if (data!!.getTime() > 0 && GameHelper.isPerfect()) {
                 hit!!.setBlendFunction(Shape.BLENDFUNCTION_SOURCE_DEFAULT, Shape.BLENDFUNCTION_DESTINATION_DEFAULT)
             }
 
+            comboNumber = data!!.getComboNum()
+            showCombo = data!!.isShowCombo()
+            dataReverse = data!!.isReverse()
+            this.pos = pos
+
             numberRect = OsuSkin.get().getTexture(
                 when {
-                    data!!.getComboNum() >= 100 -> "score-999"
-                    data!!.getComboNum() >= 10 -> "score-99"
+                    comboNumber >= 100 -> "score-999"
+                    comboNumber >= 10 -> "score-99"
                     else -> "score-9"
                 }
             )
 
             overlay = SpritePool.getInstance().getCenteredSprite("hitcircleoverlay", pos)
             overlay!!.setScale(scale)
-            number = CircleNumber(numberRect!!)
-            number!!.setScale(scale)
+            overlay!!.setAlpha(0f)
 
-            if (OsuSkin.get().isComboNumbers() && !data!!.isShowCombo()) {
-                number!!.setNum(data!!.getComboNum())
+            var num = comboNumber + 1
+            if (OsuSkin.get().isLimitComboTextLength()) {
+                num %= 10
+            }
+            number = GameObjectPool.getInstance().getNumber(num)
+            number!!.init(pos, GameHelper.scale)
+            number!!.setAlpha(0f)
+
+            if (OsuSkin.get().isComboNumbers() && !showCombo) {
+                number!!.setNum(comboNumber)
                 isNumbered = true
             }
-            number!!.setPosition(pos.x, pos.y)
 
             bodyColor = RGBColor(1f, 1f, 1f)
-            val comboColor = OsuSkin.get().getComboColor(data!!.getComboNum() % OsuSkin.get().getComboCount())
+            val comboColor = OsuSkin.get().getComboColor(comboNumber % OsuSkin.get().getComboCount())
             bodyColor!!.set(
                 comboColor.r(), comboColor.g(), comboColor.b()
             )
             if (bodyColor != null) {
                 hit!!.setColor(bodyColor!!.r(), bodyColor!!.g(), bodyColor!!.b())
-                if (data!!.isShowCombo() && combo != null && combo!!.getBlazingColor() != null) {
+                if (showCombo && combo != null && combo!!.getBlazingColor() != null) {
                     combo!!.setColor(blendColors(combo!!.getBlazingColor()!!, bodyColor ?: RGBColor(1f, 1f, 1f)))
                 }
             }
 
+            approach!!.setColor(bodyColor!!.r(), bodyColor!!.g(), bodyColor!!.b())
+            approach!!.setScale(scale * 2)
+            approach!!.setAlpha(0f)
+            if (GameHelper.isHidden()) {
+                approach!!.setVisible(Config.isShowFirstApproachCircle() && isFirstNote)
+            }
+
             hitTime = time + leadIn * speed
-            elapsed = hitTime + GameHelper.getDifficulty()!!.getTimePre()
             this.timeFading = fadeIn * speed
-            fadeInT = elapsed - this.timeFading
+            fadeInT = hitTime - this.timeFading
             preTime = hitTime - approachTime
 
-            if (data!!.isShowCombo() && combo != null) {
+            if (showCombo && combo != null) {
                 number!!.setCombo(combo!!.getNum())
             }
 
-            val pos2 = Utils.trackToRealCoords(data!!.getPos())
-            approach!!.setPosition(
-                pos2.x - approach!!.getTextureRegion().getWidth().toFloat() / 2,
-                pos2.y - approach!!.getTextureRegion().getHeight().toFloat() / 2
-            )
+            if (GameHelper.isHidden()) {
+                val fadeInDuration = time * 0.4f * GameHelper.getTimeMultiplier()
+                val fadeOutDuration = time * 0.3f * GameHelper.getTimeMultiplier()
+                number!!.registerEntityModifiers(Supplier {
+                    SequenceEntityModifier(
+                        FadeInModifier(fadeInDuration),
+                        FadeOutModifier(fadeOutDuration)
+                    )
+                })
+                overlay!!.registerEntityModifier(
+                    SequenceEntityModifier(
+                        FadeInModifier(fadeInDuration),
+                        FadeOutModifier(fadeOutDuration)
+                    )
+                )
+                hit!!.registerEntityModifier(
+                    SequenceEntityModifier(
+                        FadeInModifier(fadeInDuration),
+                        FadeOutModifier(fadeOutDuration)
+                    )
+                )
+            }
 
-            if (data!!.isReverse()) {
+            scene!!.attachChild(number, 0)
+            scene!!.attachChild(overlay, 0)
+            scene!!.attachChild(hit, 0)
+            scene!!.attachChild(approach)
+
+            if (dataReverse) {
                 reverseArrow = SpritePool.getInstance().getAnimSprite("reversearrow", SkinManager.getFrames("reversearrow"))
                 reverseArrow!!.setPosition(pos.x, pos.y)
                 reverseArrow!!.setSize(
@@ -162,7 +210,7 @@ class HitCircle(
                 reverseArrow!!.setAlpha(0f)
             }
 
-            if (data!!.isEndCombo() && data!!.getComboNum() != -1) {
+            if (data!!.isEndCombo() && comboNumber != -1) {
                 val textX = pos.x + radius
                 val textY = pos.y - radius * 0.9f
                 comboNum = CentredSprite(textX, textY, OsuSkin.get().getTexture("combo-prefix")!!)
@@ -175,10 +223,116 @@ class HitCircle(
             if (isNumbered) {
                 val textX = pos.x + radius
                 val textY = pos.y + radius * 0.9f
-                numberText = ScoreNumber(textX, textY, data!!.getComboNum().toString(), scale, true)
+                numberText = ScoreNumber(textX, textY, comboNumber.toString(), scale, true)
                 numberText!!.setAlpha(0f)
             }
         }
+    }
+
+    fun init(listener: GameObjectListener, scene: Scene, pos: PointF, time: Float, r: Float, g: Float, b: Float, scale: Float, comboNum: Int, sound: Int, tempSound: String?, isFirst: Boolean) {
+        this.replayObjectData = null
+        this.scale = scale
+        this.pos = pos
+        this.listener = listener
+        this.scene = scene
+        this.soundId = sound
+        this.sampleSet = 0
+        this.addition = 0
+        this.time = time
+        this.isFirstNote = isFirst
+        this.comboNumber = comboNum
+        this.showCombo = true
+        this.dataReverse = false
+        elapsed = 0f
+        startHit = false
+        kiai = GameHelper.isKiai
+        bodyColor = RGBColor(r, g, b)
+
+        if (!Utils.isEmpty(tempSound)) {
+            val group = tempSound!!.split(":")
+            this.sampleSet = group[0].toInt()
+            this.addition = group[1].toInt()
+        }
+
+        radius = Utils.toRes(128) * scale / 2
+        radius *= radius
+
+        hit = SpritePool.getInstance().getCenteredSprite("hitcircle", pos)
+        hit!!.setAlpha(0f)
+        hit!!.setScale(scale)
+        hit!!.setColor(r, g, b)
+
+        overlay = SpritePool.getInstance().getCenteredSprite("hitcircleoverlay", pos)
+        overlay!!.setScale(scale)
+        overlay!!.setAlpha(0f)
+
+        if (approach == null) {
+            approach = SpritePool.getInstance().getSprite("approachcircle")
+        }
+        approach!!.setColor(r, g, b)
+        approach!!.setScale(scale * 2)
+        approach!!.setAlpha(0f)
+        Utils.putSpriteAnchorCenter(pos, approach!!)
+        if (GameHelper.isHidden()) {
+            approach!!.setVisible(Config.isShowFirstApproachCircle() && isFirst)
+        }
+
+        var num = comboNum + 1
+        if (OsuSkin.get().isLimitComboTextLength()) {
+            num %= 10
+        }
+        number = GameObjectPool.getInstance().getNumber(num)
+        number!!.init(pos, GameHelper.scale)
+        number!!.setAlpha(0f)
+
+        if (GameHelper.isHidden()) {
+            val fadeInDuration = time * 0.4f * GameHelper.getTimeMultiplier()
+            val fadeOutDuration = time * 0.3f * GameHelper.getTimeMultiplier()
+            number!!.registerEntityModifiers(Supplier {
+                SequenceEntityModifier(
+                    FadeInModifier(fadeInDuration),
+                    FadeOutModifier(fadeOutDuration)
+                )
+            })
+            overlay!!.registerEntityModifier(
+                SequenceEntityModifier(
+                    FadeInModifier(fadeInDuration),
+                    FadeOutModifier(fadeOutDuration)
+                )
+            )
+            hit!!.registerEntityModifier(
+                SequenceEntityModifier(
+                    FadeInModifier(fadeInDuration),
+                    FadeOutModifier(fadeOutDuration)
+                )
+            )
+        }
+
+        scene.attachChild(number, 0)
+        scene.attachChild(overlay, 0)
+        scene.attachChild(hit, 0)
+        scene.attachChild(approach)
+
+        hitTime = time
+        preTime = hitTime
+
+        circle = false
+        border = false
+        completed = false
+        timeover = false
+        passed = true
+        active = true
+        removed.set(false)
+        hasEffect = false
+        hitEffect = null
+        hitSound = null
+        isNumbered = false
+        numberText = null
+        complexNum = null
+        this.comboNum = null
+        reverseArrow = null
+        endOverlay = null
+        preApproachCircle = null
     }
 
     private fun blendColors(c1: RGBColor, c2: RGBColor): RGBColor {
@@ -191,6 +345,42 @@ class HitCircle(
             avg.set(0.4f, 0.4f, 0.4f)
         }
         return avg
+    }
+
+    private fun playSound() {
+        if (approach!!.getScaleX() <= scale * 1.5f) {
+            listener!!.playSound("hitnormal", sampleSet, addition)
+        }
+    }
+
+    private fun removeFromScene() {
+        if (scene == null) return
+        overlay!!.detachSelf()
+        hit!!.detachSelf()
+        number!!.detachSelf()
+        approach!!.detachSelf()
+        if (reverseArrow != null) reverseArrow!!.detachSelf()
+        if (comboNum != null) comboNum!!.detachSelf()
+        if (complexNum != null) complexNum!!.detachSelf()
+        if (numberText != null) numberText!!.detachSelf()
+        listener!!.removeObject(this)
+        GameObjectPool.getInstance().putCircle(this)
+        GameObjectPool.getInstance().putNumber(number!!)
+        scene = null
+    }
+
+    override fun cleanupFromScene() {
+        if (scene == null) return
+        overlay!!.detachSelf()
+        hit!!.detachSelf()
+        number!!.detachSelf()
+        approach!!.detachSelf()
+        if (reverseArrow != null) reverseArrow!!.detachSelf()
+        if (comboNum != null) comboNum!!.detachSelf()
+        if (complexNum != null) complexNum!!.detachSelf()
+        if (numberText != null) numberText!!.detachSelf()
+        listener!!.removeObject(this)
+        scene = null
     }
 
     fun initColor(combo: RGBColor, num: Int) {
@@ -206,7 +396,7 @@ class HitCircle(
     }
 
     fun initPos() {
-        val pos = Utils.trackToRealCoords(data!!.getPos())
+        val pos = this.pos
         hit!!.setPosition(pos.x, pos.y)
         if (overlay != null) overlay!!.setPosition(pos.x, pos.y)
         if (reverseArrow != null) {
@@ -240,124 +430,124 @@ class HitCircle(
     fun getEndTime(): Float = time + leadIn * speed
 
     override fun update(dt: Float) {
-        if (removed.get()) return
+        if (elapsed < 0) return
 
-        if (circle) {
-            approach!!.setAlpha(approach!!.getAlpha() + dt / approachTime * 2)
-            approach!!.setScale(approachScale - dt * 3 * (1 - scale))
-        }
-        if (!circle) {
-            approach!!.setScale(approachScale)
-            approach!!.setAlpha(1f)
-            approach!!.setVisible(true)
-            circle = true
-        }
-        approachScale = hit!!.getScaleX()
-
-        if (dt != 0f) elapsed += dt
-        if (!passed) {
-            if (elapsed >= hitTime) {
-                listener!!.passed(this, false)
-                passed = true
+        if (replayObjectData != null) {
+            if (elapsed - time + dt / 2 > replayObjectData!!.accuracy / 1000f) {
+                val acc = Math.abs(replayObjectData!!.accuracy / 1000f)
+                if (acc <= GameHelper.difficultyHelper.hitWindowFor50(GameHelper.overallDifficulty)) {
+                    playSound()
+                }
+                listener!!.registerAccuracy(replayObjectData!!.accuracy / 1000.0)
+                elapsed = -1f
+                listener!!.onCircleHit(id, replayObjectData!!.accuracy / 1000f, pos, endsCombo, replayObjectData!!.result, bodyColor ?: RGBColor(1f, 1f, 1f))
+                removeFromScene()
+                return
             }
-        }
-
-        if (!border && elapsed >= fadeInT) {
-            border = true
-
-            scene!!.attachChild(approach)
-            scene!!.attachChild(hit)
-            scene!!.attachChild(overlay, 0)
-
-            if (reverseArrow != null) scene!!.attachChild(reverseArrow, 0)
-            if (data!!.isEndCombo()) {
-                if (complexNum != null) scene!!.attachChild(complexNum, 0)
-                if (comboNum != null) scene!!.attachChild(comboNum, 0)
-            }
-            if (isNumbered) scene!!.attachChild(numberText, 0)
-
-            number!!.attachToScene(scene!!)
-            number!!.startFading()
-        }
-
-        if (elapsed <= fadeInT) {
-            var alpha = 0f
-            if (this.timeFading != 0f) alpha = (elapsed - (hitTime - approachTime - this.timeFading)) / this.timeFading
-            if (alpha < 0) alpha = 0f
-            hit!!.setAlpha(alpha)
-            overlay!!.setAlpha(alpha)
-            if (reverseArrow != null) reverseArrow!!.setAlpha(alpha)
-            if (complexNum != null) complexNum!!.setAlpha(alpha)
-            if (comboNum != null) comboNum!!.setAlpha(alpha)
-            if (numberText != null) numberText!!.setAlpha(alpha)
-        } else if (hit!!.getAlpha() < 1) {
-            var alpha = hit!!.getAlpha() + dt / GameHelper.getDifficulty()!!.getFadeInTime() * 3
-            if (alpha > 1) alpha = 1f
-            hit!!.setAlpha(0.95f)
-            if (complexNum != null) complexNum!!.setAlpha(1f)
-            if (comboNum != null) comboNum!!.setAlpha(1f)
-            if (numberText != null) numberText!!.setAlpha(1f)
-            overlay!!.setAlpha(1f)
-        }
-
-        if (!timeover && elapsed >= hitTime) {
-            timeover = true
-            if (!active) return
-
-            hit!!.setBlendFunction(Shape.BLENDFUNCTION_SOURCE_DEFAULT, Shape.BLENDFUNCTION_DESTINATION_DEFAULT)
-            var numRatio = 1f
-            if (data!!.getTime() < 0) {
-                numRatio = 0f
-                listener!!.objectClicked(this, PointF(0f, 0f), 0)
-            } else {
-                listener!!.objectClicked(this, PointF(data!!.getPos().x, data!!.getPos().y), 0)
-            }
-            number!!.setNum(0)
-            number!!.detachFromScene()
-            number = CircleNumber(numberRect!!)
-            number!!.setScale(numRatio * scale)
-            number!!.setNum(0)
-            number!!.setPosition(hit!!.getX() + radius, hit!!.getY() + radius)
-            number!!.detachFromScene()
-
-            hit!!.registerEntityModifier(
-                SequenceEntityModifier(
-                    ScaleModifier(0.2f, scale, scale * 1.5f),
-                    FadeOutModifier(0.2f)
-                )
-            )
-            overlay!!.registerEntityModifier(FadeOutModifier(0.2f))
-            if (reverseArrow != null) {
-                reverseArrow!!.registerEntityModifier(FadeOutModifier(0.2f))
-            }
-
-            listener!!.onCircleHit(
-                this.id, 10f,
-                PointF(data!!.getPos().x, data!!.getPos().y),
-                false, 0.toByte(),
-                Combo.hitColor(data!!.getComboNum())
-            )
-
-            if (data!!.isEndCombo()) {
-                listener!!.removePassiveObject(this)
-                completed = true
+        } else if (elapsed * 2 > time) {
+            val hitOffset = checkHit()
+            if (!hitOffset.isNaN()) {
+                val signAcc = elapsed - time + hitOffset
+                val acc = Math.abs(signAcc)
+                if (acc <= GameHelper.difficultyHelper.hitWindowFor50(GameHelper.overallDifficulty)) {
+                    playSound()
+                }
+                listener!!.registerAccuracy(signAcc.toDouble())
+                elapsed = -1f
+                startHit = true
+                listener!!.onCircleHit(id, signAcc, pos, endsCombo, 0.toByte(), bodyColor ?: RGBColor(1f, 1f, 1f))
+                removeFromScene()
                 return
             }
         }
 
-        if (elapsed > hitTime + GameHelper.getDifficulty()!!.getDifficultyRange(
-                stat!!.mod.let {
-                    val drainVal = GameHelper.getDrain()
-                    drainVal
-                }, 300f, 250f, 200f
-            )
-        ) {
-            listener!!.onCircleHit(this.id, 0f, PointF(data!!.getPos().x, data!!.getPos().y), false, 0.toByte(), Combo.hitColor(data!!.getComboNum()))
+        if (GameHelper.isKiai) {
+            val kiaiModifier = Math.max(0.0, 1 - GameHelper.globalTime / GameHelper.kiaiTickLength).toFloat() * 0.50f
+            val r = Math.min(1f, bodyColor!!.r() + (1 - bodyColor!!.r()) * kiaiModifier)
+            val g = Math.min(1f, bodyColor!!.g() + (1 - bodyColor!!.g()) * kiaiModifier)
+            val b = Math.min(1f, bodyColor!!.b() + (1 - bodyColor!!.b()) * kiaiModifier)
+            kiai = true
+            hit!!.setColor(r, g, b)
+        } else if (kiai) {
+            hit!!.setColor(bodyColor!!.r(), bodyColor!!.g(), bodyColor!!.b())
+            kiai = false
         }
 
-        if (data!!.isEndCombo()) {
-            listener!!.removePassiveObject(this)
-            completed = true
+        if (autoPlay && elapsed - time >= 0) {
+            playSound()
+            elapsed = -1f
+            listener!!.onCircleHit(id, 0f, pos, endsCombo, ResultType.HIT300.id, bodyColor ?: RGBColor(1f, 1f, 1f))
+            removeFromScene()
+            return
+        }
+
+        elapsed += dt
+
+        if (!GameHelper.isHidden()) {
+            val duration = 0.4f * Math.min(1f, time / 0.45f)
+            val percent = (elapsed / duration).coerceIn(0f, 1f)
+
+            if (elapsed < duration) {
+                hit!!.setAlpha(percent)
+                overlay!!.setAlpha(percent)
+                number!!.setAlpha(percent)
+            }
+        }
+
+        if (elapsed < time) {
+            val percentage = elapsed / time
+            approach!!.setScale(scale * (1 + 2f * (1 - percentage)))
+            if (!GameHelper.isHidden() || (isFirstNote && Config.isShowFirstApproachCircle())) {
+                if (elapsed < time / 2) {
+                    val p = elapsed * 2 / time
+                    approach!!.setAlpha(p)
+                } else if (!GameHelper.isHidden()) {
+                    approach!!.setAlpha(1f)
+                }
+            }
+        } else if (!autoPlay) {
+            approach!!.setAlpha(0f)
+
+            if (elapsed > time + GameHelper.difficultyHelper.hitWindowFor50(GameHelper.overallDifficulty)) {
+                elapsed = -1f
+                val forcedScore = if (replayObjectData == null) 0.toByte() else replayObjectData!!.result
+                removeFromScene()
+                listener!!.onCircleHit(id, 10f, pos, false, forcedScore, bodyColor ?: RGBColor(1f, 1f, 1f))
+            }
+        }
+    }
+
+    private fun checkHit(): Float {
+        for (i in 0 until listener!!.getCursorsCount()) {
+            val inPosition = Utils.squaredDistance(pos, listener!!.getMousePos(i)) <= radius
+            if (GameHelper.isRelaxMod() && elapsed - time >= 0 && inPosition) {
+                return 0f
+            }
+            if (!inPosition && !GameHelper.isAutopilotMod()) {
+                continue
+            }
+            val isPressed = listener!!.isMousePressed(this, i)
+            if (isPressed) {
+                return if (inPosition && Config.isFixFrameOffset()) (listener!!.downFrameOffset(i) / 1000f).toFloat() else 0f
+            }
+        }
+        return Float.NaN
+    }
+
+    override fun tryHit(dt: Float) {
+        if (elapsed * 2 > time) {
+            val hitOffset = checkHit()
+            if (!hitOffset.isNaN()) {
+                val signAcc = elapsed - time + hitOffset
+                val acc = Math.abs(signAcc)
+                if (acc <= GameHelper.difficultyHelper.hitWindowFor50(GameHelper.overallDifficulty)) {
+                    playSound()
+                }
+                listener!!.registerAccuracy(signAcc.toDouble())
+                elapsed = -1f
+                listener!!.onCircleHit(id, signAcc, pos, endsCombo, 0.toByte(), bodyColor ?: RGBColor(1f, 1f, 1f))
+                removeFromScene()
+            }
         }
     }
 
@@ -387,19 +577,6 @@ class HitCircle(
         }
     }
 
-    fun tryHit(time: Float, coords: PointF): Boolean {
-        if (!active) return false
-        if (hitTime > elapsed) return false
-        if (coords.x == 0f || coords.y == 0f) return false
-
-        val maxRadius = Config.getHitCircleRadius() * 1.35f * 2
-        val dist = Utils.distance(coords, data!!.getPos())
-
-        val relDist = (maxRadius - dist) / maxRadius
-        if (relDist > 1) return true
-        return relDist > 0
-    }
-
     fun timeOver(): Boolean = timeover
     fun isCompleted(): Boolean = completed
     fun isActive(): Boolean = active
@@ -409,11 +586,11 @@ class HitCircle(
     fun setActive(active: Boolean) {
         this.active = active
     }
-    fun getHitCirclePos(): PointF = data!!.getPos()
+    fun getHitCirclePos(): PointF = this.pos
     fun getTime(): Float = hitTime
-    fun getData(): GameObjectData = data!!
-    fun isShowCombo(): Boolean = data!!.isShowCombo()
-    fun getComboNum(): Int = data!!.getComboNum()
+    fun getData(): GameObjectData? = data
+    fun isShowCombo(): Boolean = showCombo
+    fun getComboNum(): Int = comboNumber
     fun setCombo(combo: Combo) {
         this.combo!!.setColor(combo.getBlazingColor()!!)
     }

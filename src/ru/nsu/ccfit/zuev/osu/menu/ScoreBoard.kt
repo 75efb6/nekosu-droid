@@ -133,11 +133,11 @@ class ScoreBoard(scene: Scene, layer: Entity, listener: MenuItemListener) : Enti
             override fun run() {
                 val columns = arrayOf("id", "playername", "score", "combo", "mark", "accuracy", "mode")
                 val scoreSet: Cursor? = ScoreLibrary.getInstance().getMapScores(columns, track.filename!!)
-                scoreSet?.use {
-                    if (it.count == 0 || !isActive()) {
-                        if (isActive()) scoreItems = ArrayList()
-                        return
-                    }
+                if (scoreSet == null || scoreSet.count == 0 || !isActive()) {
+                    if (isActive()) scoreItems = ArrayList()
+                    return
+                }
+                scoreSet.use {
                     val items = ArrayList<ScoreBoardItem>(it.count)
                     val sb = StringBuilder()
                     var nextTotalScore: Int
@@ -351,42 +351,45 @@ class ScoreBoard(scene: Scene, layer: Entity, listener: MenuItemListener) : Enti
             setAlpha(0.5f)
             attachChild(bannerLayer)
             val finalBaseY = baseY
-            avatarTask = if (shouldLoadAvatar) Runnable {
-                var atexture = ResourceManager.getInstance().getTexture("emptyavatar")
-                var btexture: TextureRegion? = null
-                var avatarLoaded = false
-                var bannerLoaded = false
-                if (!avatarExecutor!!.isShutdown) {
-                    avatarLoaded = OnlineManager.getInstance().loadAvatarToTextureManager(avaURL!!)
-                    bannerLoaded = OnlineManager.getInstance().loadBannerToTextureManager(banURL!!)
-                }
-                if (avatarLoaded || bannerLoaded) {
-                    avatarTexture = ResourceManager.getInstance().getAvatarTextureIfLoaded(avaURL!!)
-                    bannerTexture = ResourceManager.getInstance().getBannerTextureIfLoaded(banURL!!)
-                    if (avatarTexture != null) atexture = avatarTexture
-                    if (bannerTexture != null) btexture = bannerTexture
-                }
-                if (parent == null) {
-                    onDetached()
-                    return@Runnable
-                }
-                val finalBtexture = btexture
-                val finalAtexture = atexture
-                Execution.updateThread {
-                    if (parent == null) return@updateThread
-                    if (finalBtexture != null) {
-                        val w = (getWidth() - 68).toInt()
-                        val h = 90
-                        if (bannerTexture != null) {
-                            val bannerSprite = Sprite(55f, finalBaseY + 12, w.toFloat(), h.toFloat(), finalBtexture.deepCopy())
-                            bannerSprite.setColor(0.5f, 0.5f, 0.5f)
-                            bannerLayer.attachChild(bannerSprite)
-                        }
+            val avatarRunnable: Runnable = object : Runnable {
+                override fun run() {
+                    var atexture = ResourceManager.getInstance().getTexture("emptyavatar")
+                    var btexture: TextureRegion? = null
+                    var avatarLoaded = false
+                    var bannerLoaded = false
+                    if (!avatarExecutor!!.isShutdown) {
+                        avatarLoaded = OnlineManager.getInstance().loadAvatarToTextureManager(avaURL!!)
+                        bannerLoaded = OnlineManager.getInstance().loadBannerToTextureManager(banURL!!)
                     }
-                    attachChild(Sprite(55f, finalBaseY + 12, 90f, 90f, finalAtexture))
+                    if (avatarLoaded || bannerLoaded) {
+                        avatarTexture = ResourceManager.getInstance().getAvatarTextureIfLoaded(avaURL!!)
+                        bannerTexture = ResourceManager.getInstance().getBannerTextureIfLoaded(banURL!!)
+                        if (avatarTexture != null) atexture = avatarTexture
+                        if (bannerTexture != null) btexture = bannerTexture
+                    }
+                    if (parent == null) {
+                        onDetached()
+                        return
+                    }
+                    val finalBtexture = btexture
+                    val finalAtexture = atexture
+                    Execution.updateThread {
+                        if (parent == null) return@updateThread
+                        if (finalBtexture != null) {
+                            val w = (getWidth() - 68).toInt()
+                            val h = 90
+                            if (bannerTexture != null) {
+                                val bannerSprite = Sprite(55f, finalBaseY + 12, w.toFloat(), h.toFloat(), finalBtexture.deepCopy())
+                                bannerSprite.setColor(0.5f, 0.5f, 0.5f)
+                                bannerLayer.attachChild(bannerSprite)
+                            }
+                        }
+                        attachChild(Sprite(55f, finalBaseY + 12, 90f, 90f, finalAtexture))
+                    }
+                    if (currentAvatarTask === this) currentAvatarTask = null
                 }
-                if (currentAvatarTask === this@ScoreItem as Runnable) currentAvatarTask = null
-            } else null
+            }
+            avatarTask = if (shouldLoadAvatar) avatarRunnable else null
             val text = Text(baseX + 160f, baseY + 20, ResourceManager.getInstance().getFont("font"), title)
             val accText = Text(670f, baseY + 12, ResourceManager.getInstance().getFont("smallFont"), acc)
             val mark = Sprite(baseX + 80f, baseY + 35, ResourceManager.getInstance().getTexture("ranking-$markStr-small")!!)
@@ -502,7 +505,7 @@ class ScoreBoard(scene: Scene, layer: Entity, listener: MenuItemListener) : Enti
 
         private fun formatScore(sb: StringBuilder, score: Int): String {
             sb.setLength(0)
-            sb.append(Math.abs(score.toLong()))
+            sb.append(Math.abs(score))
             var i = sb.length - 3
             while (i > 0) {
                 sb.insert(i, ' ')

@@ -38,12 +38,17 @@ object SupportSliderPath {
         path.bufferLength(l)
         path = path.cutPath(0f, path.measurer.maxLength()).fitToLinePath()
         path.measure()
-        val points = ArrayList<PointF>(path.size())
+        val result = GameHelper.SliderPath()
         for (i in 0 until path.size()) {
             val v = path[i]
-            points.add(Utils.realToTrackCoords(PointF(v.x, v.y)))
+            result.points.add(Utils.realToTrackCoords(PointF(v.x, v.y)))
         }
-        val keywords = p.split("\\|".toRegex()).toTypedArray()
-        return GameHelper.SliderPath(s, keywords, l, 0f)
+        for (i in 1 until result.points.size) {
+            val dx = result.points[i].x - result.points[i - 1].x
+            val dy = result.points[i].y - result.points[i - 1].y
+            val len = Math.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+            result.length.add(if (result.length.isEmpty()) len else result.length[result.length.size - 1] + len)
+        }
+        return result
     }
 }

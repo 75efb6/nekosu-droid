@@ -137,7 +137,7 @@ class ScoreLibrary private constructor() {
         values.put("h100", stat.hit100)
         values.put("h50", stat.hit50)
         values.put("misses", stat.misses)
-        values.put("accuracy", stat.accuracy)
+        values.put("accuracy", stat.getAccuracy())
         values.put("time", stat.time)
         values.put("perfect", if (stat.isPerfect) 1 else 0)
 

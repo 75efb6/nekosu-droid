@@ -42,6 +42,14 @@ class OnlineManager private constructor() {
     internal var failMessage = ""
     private lateinit var context: Context
 
+    fun init(context: Context) {
+        this.stayOnline = Config.isStayOnline
+        this.username = Config.getOnlineUsername()
+        this.password = Config.getOnlinePassword() ?: ""
+        this.deviceID = Config.getOnlineDeviceID()
+        this.context = context
+    }
+
     @Throws(OnlineManagerException::class)
     fun logIn(): Boolean {
         return logIn(username, password)
@@ -209,8 +217,8 @@ class OnlineManager private constructor() {
         accuracy = resp[2].toInt() / 100000f
         mapRank = resp[3].toInt()
 
-        replayID = if (resp.size >= 5) {
-            resp[4].toInt()
+        replayID = if (resp.size >= 5 && resp[4].isNotEmpty()) {
+            resp[4].toIntOrNull() ?: 0
         } else {
             0
         }

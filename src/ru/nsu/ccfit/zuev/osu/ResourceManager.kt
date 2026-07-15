@@ -357,18 +357,18 @@ class ResourceManager private constructor() {
                 Objects.requireNonNull(textures["::background"])!!.texture
             )
         }
-        if (file == "null") {
+        if (file.isEmpty() || file == "null" || file.endsWith("/null")) {
             return textures["menu-background"]
         }
         var tw = 16
         var th = 16
         val region: TextureRegion
         val source = ScaledBitmapSource(File(file))
-        if (source.width == 0 || source.height == 0) {
+        if (source.getWidth() == 0 || source.getHeight() == 0) {
             return textures["menu-background"]
         }
-        while (tw < source.width) { tw *= 2 }
-        while (th < source.height) { th *= 2 }
+            while (tw < source.getWidth()) { tw *= 2 }
+            while (th < source.getHeight()) { th *= 2 }
         if (!source.preload()) {
             textures["::background"] = textures["menu-background"]
             return textures["::background"]
@@ -658,8 +658,8 @@ class ResourceManager private constructor() {
         var tw = 16
         var th = 16
         val source = QualityFileBitmapSource(file)
-        while (tw < source.width) { tw *= 2 }
-        while (th < source.height) { th *= 2 }
+        while (tw < source.getWidth()) { tw *= 2 }
+        while (th < source.getHeight()) { th *= 2 }
         if (!source.preload()) {
             return
         }

@@ -33,8 +33,9 @@ class GLTexture : AbstractTexture() {
     var glHeight = 0f
         private set
 
-    var textureId = 0
-        private set
+    internal var textureId = 0
+
+    override fun getTextureId(): Int = textureId
 
     private var recycled = false
 
@@ -60,10 +61,6 @@ class GLTexture : AbstractTexture() {
         return height
     }
 
-    override fun getTextureId(): Int {
-        return textureId
-    }
-
     fun bind(loc: Int) {
         bindGl(glTexIndex[loc])
     }
@@ -85,7 +82,6 @@ class GLTexture : AbstractTexture() {
     @Throws(Throwable::class)
     protected fun finalize() {
         if (!recycled) delete()
-        super.finalize()
     }
 
     override fun hashCode(): Int {

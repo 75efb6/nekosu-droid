@@ -201,7 +201,7 @@ class StatisticV2 : Serializable {
             return
         }
         if (score == 0 && k) {
-            changeHp(-(5 + GameHelper.getDrain()) / 100f)
+            changeHp(-(5 + GameHelper.drain) / 100f)
             if (currentCombo > maxCombo) {
                 maxCombo = currentCombo
             }
@@ -237,7 +237,7 @@ class StatisticV2 : Serializable {
                 currentCombo++
             }
             else -> {
-                changeHp(-(5 + GameHelper.getDrain()) / 100f)
+                changeHp(-(5 + GameHelper.drain) / 100f)
                 misses++
                 isPerfect = false
                 if (currentCombo > maxCombo) {
@@ -531,7 +531,7 @@ class StatisticV2 : Serializable {
         builder.append(' ')
         builder.append(maxCombo)
         builder.append(' ')
-        builder.append(mark)
+        builder.append(getMark())
         builder.append(' ')
         builder.append(hit300k)
         builder.append(' ')
@@ -545,7 +545,7 @@ class StatisticV2 : Serializable {
         builder.append(' ')
         builder.append(misses)
         builder.append(' ')
-        builder.append((accuracy * 100000f).toInt())
+        builder.append((getAccuracy() * 100000f).toInt())
         builder.append(' ')
         builder.append(time)
         builder.append(' ')
@@ -729,7 +729,7 @@ class StatisticV2 : Serializable {
     }
 
     fun toBoardItem(): ScoreBoardItem {
-        val combo = if (!Multiplayer.isConnected || Multiplayer.room?.winCondition !== WinCondition.MAX_COMBO) currentCombo else maxCombo
+        val combo = if (!Multiplayer.isConnected || Multiplayer.room?.winCondition != WinCondition.MAX_COMBO) currentCombo else maxCombo
 
         return ScoreBoardItem(playerName, totalScoreWithMultiplier, combo, accuracyForServer, isAlive)
     }

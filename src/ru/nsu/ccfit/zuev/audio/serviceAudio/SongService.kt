@@ -19,7 +19,14 @@ class SongService : Service() {
 
     private var audioFunc: BassAudioFunc? = null
     var isGaming = false
-        private set
+        set(value) {
+            audioFunc?.setGaming(value)
+            if (!value) {
+                hideNotification()
+            }
+            Log.w("Gaming Mode", "In Gamming mode :$value")
+            field = value
+        }
     private lateinit var notify: NotifyPlayer
 
     override fun onBind(intent: Intent): IBinder {
@@ -128,17 +135,6 @@ class SongService : Service() {
     fun seekTo(time: Int) {
         if (audioFunc == null) return
         println(audioFunc!!.jump(time))
-    }
-
-    fun isGaming(): Boolean = isGaming
-
-    fun setGaming(isGaming: Boolean) {
-        audioFunc?.setGaming(isGaming)
-        if (!isGaming) {
-            hideNotification()
-        }
-        Log.w("Gaming Mode", "In Gamming mode :$isGaming")
-        this.isGaming = isGaming
     }
 
     val status: Status get() = audioFunc?.getStatus() ?: Status.STOPPED

@@ -33,10 +33,6 @@ class MTimer {
         return nowTime
     }
 
-    fun getDeltaTime(): Double {
-        return deltaTime
-    }
-
     fun refresh(_deltaTime: Double) {
         deltaTime = _deltaTime
         nowTime += _deltaTime

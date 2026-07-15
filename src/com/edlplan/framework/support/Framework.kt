@@ -7,10 +7,8 @@ import java.io.File
 
 class Framework {
     companion object {
-        @JvmField
         const val PLATFORM_WIN_PC = 1
 
-        @JvmField
         const val PLATFORM_ANDROID = 2
 
         private const val frameworkVersion = 1

@@ -20,7 +20,8 @@ class GameScoreTextShadow(
     private var text = "0****"
 
     init {
-        letters = Array(mask.length) { AnimSprite(0f, 0f, 0f) }
+        @Suppress("UNCHECKED_CAST")
+        letters = arrayOfNulls<AnimSprite>(mask.length) as Array<AnimSprite>
         var width = 0f
         val prefix = OsuSkin.get().getComboPrefix()
 
@@ -61,7 +62,7 @@ class GameScoreTextShadow(
             val ch = text[i]
 
             when {
-                ch == '0' -> {
+                ch in '0'..'9' -> {
                     digit.setVisible(true)
                     digit.setFrame(ch - '0')
                     digitsWidth += digit.getWidth()

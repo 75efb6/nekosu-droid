@@ -22,10 +22,6 @@ class RunnableHandler : Loopable(), IRunnableHandler {
         flag = Loopable.Flag.Skip
     }
 
-    fun setLooper(lp: ILooper<*>) {
-        this.looper = lp
-    }
-
     override fun onRemove() {
         bufferedRunnables.clear()
         flag = Loopable.Flag.Stop
@@ -44,10 +40,6 @@ class RunnableHandler : Loopable(), IRunnableHandler {
             }
         }
         bufferedRunnables.endIterate()
-    }
-
-    fun getFlag(): Loopable.Flag {
-        return flag
     }
 
     private inner class DelayedRunnable(var r: Runnable, var delay: Double)

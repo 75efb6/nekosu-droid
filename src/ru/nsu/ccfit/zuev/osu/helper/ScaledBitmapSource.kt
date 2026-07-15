@@ -64,7 +64,7 @@ class ScaledBitmapSource : BaseTextureAtlasSource, IBitmapTextureAtlasSource {
         return bitmap != null
     }
 
-    fun onLoadBitmap(pBitmapConfig: Bitmap.Config): Bitmap? {
+    override fun onLoadBitmap(pBitmapConfig: Bitmap.Config): Bitmap? {
         if (bitmap != null) {
             val bmp = bitmap
             bitmap = null
@@ -87,5 +87,5 @@ class ScaledBitmapSource : BaseTextureAtlasSource, IBitmapTextureAtlasSource {
 
     override fun toString(): String = "${this.javaClass.simpleName}($mFile)"
 
-    fun deepCopy(): ScaledBitmapSource = ScaledBitmapSource(mFile, mTexturePositionX, mTexturePositionY)
+    override fun deepCopy(): ScaledBitmapSource = ScaledBitmapSource(mFile, mTexturePositionX, mTexturePositionY)
 }

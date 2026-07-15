@@ -56,9 +56,9 @@ abstract class GameObject {
 
     fun isStartHit(): Boolean = startHit
 
-    fun tryHit(dt: Float) {}
+    open fun tryHit(dt: Float) {}
 
     fun getPos(): PointF = pos
 
-    fun cleanupFromScene() {}
+    open fun cleanupFromScene() {}
 }

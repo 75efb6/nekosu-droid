@@ -141,7 +141,7 @@ class DifficultyCalculator {
         val od = beatmap.getDifficultyManager().getOD()
         val odMS = HitWindowConverter.odToHitWindow300(od) / (parameters?.getTotalSpeedMultiplier() ?: 1f)
 
-        attributes.overallDifficulty = HitWindowConverter.hitWindow300ToOD(odMS)
+        attributes.overallDifficulty = HitWindowConverter.hitWindow300ToOD(odMS).toDouble()
 
         attributes.maxCombo = beatmap.getMaxCombo()
         attributes.hitCircleCount = beatmap.getHitObjectsManager().getCircleCount()

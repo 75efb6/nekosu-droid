@@ -166,10 +166,10 @@ class EditorSettingsFragment : EditorFragment() {
     private fun saveBeatmap() {
         val scene = editorScene ?: return
         val data = scene.beatmapData ?: return
-        val path = scene.getBeatmapPath() ?: return
+        val path = scene.beatmapPath ?: return
 
         val file = java.io.File(path)
-        val success = BeatmapEncoder.encode(data, file, scene.getKiaiFlags())
+        val success = BeatmapEncoder.encode(data, file, scene.kiaiFlags)
 
         ToastLogger.showText(
             if (success) "Beatmap saved!" else "Failed to save beatmap",

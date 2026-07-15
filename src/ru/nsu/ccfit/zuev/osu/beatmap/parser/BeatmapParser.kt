@@ -3,7 +3,8 @@ package ru.nsu.ccfit.zuev.osu.beatmap.parser
 import android.util.Log
 import com.rian.difficultycalculator.beatmap.hitobject.HitObject
 import com.rian.difficultycalculator.utils.HitObjectStackEvaluator
-import okio.Okio
+import okio.buffer
+import okio.source
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.beatmap.BeatmapData
@@ -90,9 +91,9 @@ class BeatmapParser {
         data.isCalculator = calculatorMode
 
         data.setMD5(FileUtils.getMD5Checksum(file))
-        data.setFolder(file.parent ?: "")
-        data.setFilename(file.path)
-        data.setFormatVersion(beatmapFormatVersion)
+        data.folder = file.parent ?: ""
+        data.filename = file.path
+        data.formatVersion = beatmapFormatVersion
 
         try {
             var s: String?
@@ -171,7 +172,7 @@ class BeatmapParser {
             }
 
             HitObjectStackEvaluator.applyStacking(
-                data.getFormatVersion(),
+                data.formatVersion,
                 data.hitObjects.objects,
                 data.difficulty.ar,
                 data.general.stackLeniency

@@ -66,7 +66,7 @@ class QualityFileBitmapSource : BaseTextureAtlasSource, IBitmapTextureAtlasSourc
     @Throws(IOException::class)
     fun openInputStream(): InputStream = fileBitmapInput.openInput()
 
-    fun deepCopy(): QualityFileBitmapSource {
+    override fun deepCopy(): QualityFileBitmapSource {
         val source = QualityFileBitmapSource(this.fileBitmapInput, this.mTexturePositionX,
             this.mTexturePositionY, this.mWidth, this.mHeight)
         source.inSampleSize = inSampleSize
@@ -77,14 +77,12 @@ class QualityFileBitmapSource : BaseTextureAtlasSource, IBitmapTextureAtlasSourc
 
     override fun getHeight(): Int = this.mHeight
 
-    override fun getWidth(): Int = this.mWidth
-
-    override fun getHeight(): Int = this.mHeight
+    fun preload(): Boolean {
         bitmap = onLoadBitmap(Bitmap.Config.ARGB_8888)
         return bitmap != null
     }
 
-    fun onLoadBitmap(pBitmapConfig: Bitmap.Config): Bitmap? {
+    override fun onLoadBitmap(pBitmapConfig: Bitmap.Config): Bitmap? {
         if (bitmap != null) {
             val bmp = bitmap
             bitmap = null

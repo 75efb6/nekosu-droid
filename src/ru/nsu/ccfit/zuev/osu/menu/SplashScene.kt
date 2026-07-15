@@ -104,7 +104,7 @@ class SplashScene : IUpdateHandler {
         if (mStarting) {
             mLoading.setAlpha(mLoading.alpha + 0.1f)
         }
-        progressText.setText(String.format("%.0f %%", progress))
+        progressText.setText(String.format("%.0f %%", progress.toFloat()))
         progressText.setPosition((Config.getRES_WIDTH() - progressText.width) / 2f, (Config.getRES_HEIGHT() + mLoading.height) / 2f - mLoading.height / 4f)
         if (GlobalManager.getInstance().info != null) {
             infoText.setText(GlobalManager.getInstance().info)

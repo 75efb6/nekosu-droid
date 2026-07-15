@@ -22,7 +22,7 @@ class FavoriteLibrary private constructor() {
         json = File(jsonPath)
         try {
             ensureFile(json!!)
-            val favorite: JSONObject
+            var favorite: JSONObject
             val jsonTxt = readFull(json!!)
             if (jsonTxt.isEmpty()) {
                 favorite = JSONObject()

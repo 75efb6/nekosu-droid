@@ -78,7 +78,7 @@ class LobbyCreateRoom : BaseFragment()
                 val beatmap = GlobalManager.getInstance().selectedTrack?.takeUnless { it.md5 == null }?.let {
 
                     RoomBeatmap(
-                            md5 = it.md5,
+                            md5 = it.md5 ?: "",
                             title = it.beatmap?.title,
                             artist = it.beatmap?.artist,
                             creator = it.creator,

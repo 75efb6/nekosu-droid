@@ -136,7 +136,7 @@ object DiscordRPC {
     }
 
     private fun clearSavedToken() {
-        Config.setDiscordToken(null)
+        Config.setDiscordToken("")
         try {
             val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(
                 DiscordSocialSdkInit.getEngineActivity()

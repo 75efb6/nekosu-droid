@@ -21,8 +21,6 @@ class StdPath {
         Bezier("B"),
         Catmull("C");
 
-        fun getTag(): String = tag
-
         companion object {
             @JvmStatic
             fun forName(n: String): Type? = when (n) {

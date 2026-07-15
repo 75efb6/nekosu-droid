@@ -216,7 +216,7 @@ object LobbyScene : Scene()
         if (Multiplayer.isConnected)
             return
 
-        GlobalManager.getInstance().songService!!.setGaming(true)
+        GlobalManager.getInstance().songService!!.isGaming = true
         Multiplayer.isMultiplayer = true
 
         {
@@ -331,7 +331,7 @@ object LobbyScene : Scene()
         search.dismiss()
 
         Multiplayer.isMultiplayer = false
-        GlobalManager.getInstance().songService!!.setGaming(false)
+        GlobalManager.getInstance().songService!!.isGaming = false
 
         GlobalManager.getInstance().mainScene?.show()
     }
