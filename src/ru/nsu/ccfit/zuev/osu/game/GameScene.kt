@@ -74,6 +74,8 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
     companion object {
         const val CursorCount = 3
+
+    private fun getCursorCount(): Int = if (GameHelper.isRelaxMod()) 1 else CursorCount
     }
 
     @JvmField var filePath: String? = null
@@ -167,6 +169,8 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     private var previousFrameTime: Long = 0
     private var video: VideoSprite? = null
     private var videoOffset = 0f
+    private var relaxCursorHeld = false
+    private var waitingForCursorHold = false
     private var videoStarted = false
     private var lastBackPressTime = -1f
     private var isSkipRequested = false
@@ -636,6 +640,17 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
         if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) { autoCursor = AutoCursor(); autoCursor!!.attachToScene(fgScene) }
 
+        if (GameHelper.isRelaxMod() && !replaying) {
+            val centerX = Config.getRES_WIDTH() / 2f
+            val centerY = Config.getRES_HEIGHT() / 2f
+            cursors[0]!!.mousePos.x = centerX
+            cursors[0]!!.mousePos.y = centerY
+            cursorSprites?.get(0)?.setPosition(centerX, centerY)
+            cursorSprites?.get(0)?.setShowing(true)
+            waitingForCursorHold = true
+            relaxCursorHeld = false
+        }
+
         val countdown = beatmapData!!.general.countdown
         if (Config.isCorovans() && countdown != null) {
             val cdSpeed = countdown.speed.toFloat()
@@ -760,6 +775,18 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
         if (pendingReplaySeekMs >= 0) { val pos = pendingReplaySeekMs; pendingReplaySeekMs = -1; processReplaySeek(pos) }
 
+        if (waitingForCursorHold) {
+            if (relaxCursorHeld) {
+                waitingForCursorHold = false
+                if (GlobalManager.getInstance().songService?.status != Status.PLAYING && secPassed > 0) {
+                    GlobalManager.getInstance().songService!!.play()
+                    GlobalManager.getInstance().songService!!.setVolume(Config.getBgmVolume())
+                }
+            }
+            if (cursorSprites != null) { for (i in 0 until getCursorCount()) cursorSprites!![i].update(pSecondsElapsed) }
+            return
+        }
+
         var dt = pSecondsElapsed * timeMultiplier
         if (GlobalManager.getInstance().songService!!.status == Status.PLAYING) {
             val audioPos = GlobalManager.getInstance().songService!!.position / 1000.0f
@@ -823,9 +850,10 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
         if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) autoCursor?.update(dt)
         else if (cursorSprites != null) {
-            for (i in 0 until CursorCount) {
+            for (i in 0 until getCursorCount()) {
                 cursorSprites!![i].update(dt)
                 if (replaying) { cursorSprites!![i].setPosition(cursors[i]!!.mousePos.x, cursors[i]!!.mousePos.y); cursorSprites!![i].setShowing(cursors[i]!!.mouseDown) }
+                else if (GameHelper.isRelaxMod() && i == 0) { cursorSprites!![i].setPosition(cursors[i]!!.mousePos.x, cursors[i]!!.mousePos.y); cursorSprites!![i].setShowing(true) }
                 if (cursors[i]!!.mouseDown && cursors[i]!!.mousePressed) cursorSprites!![i].click()
             }
         }
@@ -901,7 +929,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         if ((GameHelper.isAuto() || GameHelper.isAutopilotMod()) && activeObjects.isNotEmpty()) autoCursor?.moveToObject(activeObjects[0], secPassed, this)
 
         var downPressCursorCount = 0
-        for (i in 0 until CursorCount) { if (cursorIIsDown[i]) downPressCursorCount++; cursorIIsDown[i] = false }
+        for (i in 0 until getCursorCount()) { if (cursorIIsDown[i]) downPressCursorCount++; cursorIIsDown[i] = false }
         for (i in 0 until downPressCursorCount - 1) { updateLastActiveObjectHitTime(); tryHitActiveObjects(dt) }
 
         if (video != null && secPassed >= videoOffset) {
@@ -1145,7 +1173,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     override fun onTrackingSliders(isTrackingSliders: Boolean) { if (GameHelper.isAuto()) autoCursor!!.onSliderTracking(); if (GameHelper.isFlashLight()) flashlightSprite!!.onTrackingSliders(isTrackingSliders) }
     override fun onUpdatedAutoCursor(pX: Float, pY: Float) { if (GameHelper.isFlashLight()) flashlightSprite!!.onMouseMove(pX, pY) }
     override fun updateAutoBasedPos(pX: Float, pY: Float) { if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) autoCursor!!.setPosition(pX, pY, this) }
-    override fun getCursorsCount(): Int = CursorCount
+    override fun getCursorsCount(): Int = getCursorCount()
     override fun addPassiveObject(obj: GameObject) { passiveObjects.add(obj) }
     override fun removePassiveObject(obj: GameObject) { expiredObjects.add(obj) }
 
@@ -1161,14 +1189,56 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
     override fun onSceneTouchEvent(pScene: Scene, event: TouchEvent): Boolean {
         if (replaying) return false
-        val id = event.pointerID; if (id < 0 || id >= CursorCount) return false
+        val id = event.pointerID; if (id < 0 || id >= getCursorCount()) return false
         val cursor = cursors[id]!!
         val sprite = if (!GameHelper.isAuto() && !GameHelper.isAutopilotMod() && cursorSprites != null) cursorSprites!![id] else null
-        cursor.mousePos.x = FMath.clamp(event.x, 0f, Config.getRES_WIDTH().toFloat())
-        cursor.mousePos.y = FMath.clamp(event.y, 0f, Config.getRES_HEIGHT().toFloat())
-        sprite?.setPosition(cursor.mousePos.x, cursor.mousePos.y)
+        val touchX = FMath.clamp(event.x, 0f, Config.getRES_WIDTH().toFloat())
+        val touchY = FMath.clamp(event.y, 0f, Config.getRES_HEIGHT().toFloat())
         val frameOffset = if (previousFrameTime > 0) (event.motionEvent.eventTime - previousFrameTime) * timeMultiplier else 0f
         val eventTime = (secPassed * 1000 + frameOffset).toInt()
+
+        if (GameHelper.isRelaxMod() && !paused) {
+            val grabRadius = Utils.toRes(80).toFloat()
+            val distToCursor = Utils.squaredDistance(PointF(touchX, touchY), cursor.mousePos)
+            when {
+                event.isActionDown -> {
+                    if (distToCursor <= grabRadius * grabRadius) {
+                        relaxCursorHeld = true
+                        cursor.mouseDown = true
+                        cursor.mouseDownOffsetMS = frameOffset.toDouble()
+                        for (v in cursors) v!!.mouseOldDown = false
+                        val gamePoint = applyCursorTrackCoordinates(cursor)
+                        replay?.addPress(eventTime, gamePoint, id)
+                        cursorIIsDown[id] = true
+                        sprite?.setShowing(true)
+                    }
+                }
+                event.isActionMove -> {
+                    if (relaxCursorHeld) {
+                        cursor.mousePos.x = touchX
+                        cursor.mousePos.y = touchY
+                        sprite?.setPosition(touchX, touchY)
+                        sprite?.setShowing(true)
+                        val gamePoint = applyCursorTrackCoordinates(cursor)
+                        replay?.addMove(eventTime, gamePoint, id)
+                    }
+                }
+                event.isActionUp -> {
+                    if (relaxCursorHeld) {
+                        relaxCursorHeld = false
+                        cursor.mouseDown = false
+                        cursorIIsDown[id] = false
+                        replay?.addUp(eventTime, id)
+                        pause()
+                    }
+                }
+            }
+            return true
+        }
+
+        cursor.mousePos.x = touchX
+        cursor.mousePos.y = touchY
+        sprite?.setPosition(cursor.mousePos.x, cursor.mousePos.y)
         when {
             event.isActionDown -> { sprite?.setShowing(true); cursor.mouseDown = true; cursor.mouseDownOffsetMS = frameOffset.toDouble(); for (v in cursors) v!!.mouseOldDown = false; val gamePoint = applyCursorTrackCoordinates(cursor); replay?.addPress(eventTime, gamePoint, id); cursorIIsDown[id] = true }
             event.isActionMove -> { sprite?.setShowing(true); val gamePoint = applyCursorTrackCoordinates(cursor); replay?.addMove(eventTime, gamePoint, id) }
@@ -1181,10 +1251,10 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     fun onKeyboardDown(keyCode: Int): Boolean {
         if (replaying || !KeyboardConfig.isEnabled()) return false
         val preferredSlot = KeyboardConfig.getCursorForKey(keyCode)
-        if (preferredSlot < 0 || preferredSlot >= CursorCount) return false
+        if (preferredSlot < 0 || preferredSlot >= getCursorCount()) return false
         if (kbKeyToSlot.containsKey(keyCode)) return true
         var slot = -1
-        for (s in 1 until CursorCount) { if (!cursors[s]!!.mouseDown) { slot = s; break } }
+        for (s in 1 until getCursorCount()) { if (!cursors[s]!!.mouseDown) { slot = s; break } }
         if (slot < 0) return false
         kbKeyToSlot[keyCode] = slot
         val cursor = cursors[slot]!!
@@ -1202,7 +1272,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     fun onKeyboardUp(keyCode: Int): Boolean {
         if (replaying || !KeyboardConfig.isEnabled()) return false
         val slot = kbKeyToSlot.getOrDefault(keyCode, -1)
-        if (slot < 0 || slot >= CursorCount) return false
+        if (slot < 0 || slot >= getCursorCount()) return false
         kbKeyToSlot.remove(keyCode)
         val cursor = cursors[slot]!!
         val sprite = if (!GameHelper.isAuto() && !GameHelper.isAutopilotMod() && cursorSprites != null) cursorSprites!![slot] else null
@@ -1223,7 +1293,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         if (!GameHelper.isAuto() && !GameHelper.isAutopilotMod() && !replaying) {
             val frameOffset = if (previousFrameTime > 0) (SystemClock.uptimeMillis() - previousFrameTime) * timeMultiplier else 0f
             val time = (secPassed * 1000 + frameOffset).toInt()
-            for (i in 0 until CursorCount) { val cursor = cursors[i]!!; if (cursor.mouseDown) { cursor.mouseDown = false; replay?.addUp(time, i) }; cursorSprites?.get(i)?.setShowing(false) }
+            for (i in 0 until getCursorCount()) { val cursor = cursors[i]!!; if (cursor.mouseDown) { cursor.mouseDown = false; replay?.addUp(time, i) }; if (!GameHelper.isRelaxMod()) cursorSprites?.get(i)?.setShowing(false) }
         }
         if (GlobalManager.getInstance().songService?.status == Status.PLAYING) GlobalManager.getInstance().songService!!.pause()
         paused = true
@@ -1247,6 +1317,11 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         if (!replaying) EdExtensionHelper.onResume(lastTrack)
         if (video != null && videoStarted) video!!.texture.play()
         if (GlobalManager.getInstance().songService?.status != Status.PLAYING && secPassed > 0) { GlobalManager.getInstance().songService!!.play(); GlobalManager.getInstance().songService!!.setVolume(Config.getBgmVolume()); totalLength = GlobalManager.getInstance().songService!!.length }
+        if (GameHelper.isRelaxMod() && !replaying) {
+            waitingForCursorHold = true
+            relaxCursorHeld = false
+            GlobalManager.getInstance().songService?.pause()
+        }
     }
 
     fun isPaused(): Boolean = paused
