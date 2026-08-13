@@ -171,6 +171,8 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     private var videoOffset = 0f
     private var relaxCursorHeld = false
     private var waitingForCursorHold = false
+    private var relaxLiftOffCount = 0
+    private var relaxLiftOffWindowStart = 0L
     private var videoStarted = false
     private var lastBackPressTime = -1f
     private var isSkipRequested = false
@@ -465,7 +467,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
         lastTrack = track; stackNotes(); calculateAllSliderPaths()
 
-        Multiplayer.finalData = null; hasFailed = false; lastBackPressTime = -1f; isSkipRequested = false; realTimeElapsed = 0; statisticDataTimeElapsed = 0; lastScoreSent = null
+        Multiplayer.finalData = null; hasFailed = false; lastBackPressTime = -1f; isSkipRequested = false; realTimeElapsed = 0; statisticDataTimeElapsed = 0; lastScoreSent = null; relaxLiftOffCount = 0; relaxLiftOffWindowStart = 0L
         paused = false; gameStarted = false
         return true
     }
@@ -1197,7 +1199,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         val frameOffset = if (previousFrameTime > 0) (event.motionEvent.eventTime - previousFrameTime) * timeMultiplier else 0f
         val eventTime = (secPassed * 1000 + frameOffset).toInt()
 
-        if (GameHelper.isRelaxMod() && !paused) {
+        if (GameHelper.isRelaxMod() && !paused && !Multiplayer.isMultiplayer) {
             val grabRadius = Utils.toRes(80).toFloat()
             val distToCursor = Utils.squaredDistance(PointF(touchX, touchY), cursor.mousePos)
             when {
@@ -1229,7 +1231,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
                         cursor.mouseDown = false
                         cursorIIsDown[id] = false
                         replay?.addUp(eventTime, id)
-                        pause()
+                        if (breakAnimator == null || !breakAnimator!!.isBreak()) pause()
                     }
                 }
             }
@@ -1242,7 +1244,21 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         when {
             event.isActionDown -> { sprite?.setShowing(true); cursor.mouseDown = true; cursor.mouseDownOffsetMS = frameOffset.toDouble(); for (v in cursors) v!!.mouseOldDown = false; val gamePoint = applyCursorTrackCoordinates(cursor); replay?.addPress(eventTime, gamePoint, id); cursorIIsDown[id] = true }
             event.isActionMove -> { sprite?.setShowing(true); val gamePoint = applyCursorTrackCoordinates(cursor); replay?.addMove(eventTime, gamePoint, id) }
-            event.isActionUp -> { sprite?.setShowing(false); cursor.mouseDown = false; cursorIIsDown[id] = false; replay?.addUp(eventTime, id) }
+            event.isActionUp -> {
+                sprite?.setShowing(false); cursor.mouseDown = false; cursorIIsDown[id] = false; replay?.addUp(eventTime, id)
+                if (GameHelper.isRelaxMod() && Multiplayer.isMultiplayer && !hasFailed && breakAnimator != null && !breakAnimator!!.isBreak()) {
+                    val now = SystemClock.uptimeMillis()
+                    if (now - relaxLiftOffWindowStart > 10000) {
+                        relaxLiftOffCount = 0
+                        relaxLiftOffWindowStart = now
+                    }
+                    relaxLiftOffCount++
+                    if (relaxLiftOffCount > 3) {
+                        hasFailed = true
+                        ToastLogger.showText("You failed but you can continue playing.", false)
+                    }
+                }
+            }
             else -> return false
         }
         return true

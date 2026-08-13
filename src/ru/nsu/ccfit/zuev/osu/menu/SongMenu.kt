@@ -145,7 +145,23 @@ class SongMenu : IUpdateHandler, MenuItemListener, IScrollBarListener {
         bgLoaded = true
         SongMenuPool.getInstance().init()
         loadFilterFragment()
-        if (!Multiplayer.isMultiplayer) ModMenu.getInstance().reload()
+        if (!Multiplayer.isMultiplayer) {
+            val savedMod = ModMenu.getInstance().mod.clone()
+            val savedSpeed = ModMenu.getInstance().changeSpeed
+            val savedFL = ModMenu.getInstance().FLfollowDelay
+            val savedCustomAR = ModMenu.getInstance().getCustomAR()
+            val savedCustomOD = ModMenu.getInstance().getCustomOD()
+            val savedCustomCS = ModMenu.getInstance().getCustomCS()
+            val savedCustomHP = ModMenu.getInstance().getCustomHP()
+            ModMenu.getInstance().reload()
+            ModMenu.getInstance().setMod(savedMod)
+            ModMenu.getInstance().changeSpeed = savedSpeed
+            ModMenu.getInstance().FLfollowDelay = savedFL
+            if (savedCustomAR != null) ModMenu.getInstance().setCustomAR(savedCustomAR)
+            if (savedCustomOD != null) ModMenu.getInstance().setCustomOD(savedCustomOD)
+            if (savedCustomCS != null) ModMenu.getInstance().setCustomCS(savedCustomCS)
+            if (savedCustomHP != null) ModMenu.getInstance().setCustomHP(savedCustomHP)
+        }
         bindDataBaseChangedListener()
         scene!!.attachChild(backLayer)
         scene!!.attachChild(frontLayer)
