@@ -912,7 +912,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         if (secPassed >= 0 && !musicStarted) {
             GlobalManager.getInstance().songService!!.play(); GlobalManager.getInstance().songService!!.setVolume(Config.getBgmVolume())
             totalLength = GlobalManager.getInstance().songService!!.length; musicStarted = true; musicReady = false; secPassed = 0f
-            if (replaying) showReplayOverlay()
+            if (replaying || GameHelper.isAuto()) showReplayOverlay()
             return
         }
 
@@ -1307,7 +1307,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     private fun getSliderPath(index: Int): SliderPath? = if (sliderPaths != null && index < sliderPaths!!.size && index >= 0) sliderPaths!![index] else null
 
     fun getReplaying(): Boolean = replaying
-    fun replaySeekTo(positionMs: Int) { if (!replaying) return; pendingReplaySeekMs = positionMs }
+    fun replaySeekTo(positionMs: Int) { if (!replaying && !GameHelper.isAuto()) return; pendingReplaySeekMs = positionMs }
 
     private fun processReplaySeek(positionMs: Int) {
         val targetSec = positionMs / 1000f
@@ -1316,20 +1316,20 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
             for (data in allObjects!!) { if (data.getTime() + approachRate <= targetSec) { excludedCount++; if (data.isSlider()) excludedSliders++ } else break }
             lastObjectId = excludedCount - 1; sliderIndex = excludedSliders
             objects!!.clear(); for (data in allObjects!!) { if (data.getTime() + approachRate > targetSec) objects!!.add(data) }
-            val iterA = activeObjects.iterator(); while (iterA.hasNext()) { val obj = iterA.next(); if (obj.hitTime > targetSec) { obj.cleanupFromScene(); iterA.remove() } }
-            val iterP = passiveObjects.iterator(); while (iterP.hasNext()) { val obj = iterP.next(); if (obj.hitTime > targetSec) { obj.cleanupFromScene(); iterP.remove() } }
+            val iterA = activeObjects.iterator(); while (iterA.hasNext()) { val obj = iterA.next(); obj.cleanupFromScene(); iterA.remove() }
+            val iterP = passiveObjects.iterator(); while (iterP.hasNext()) { val obj = iterP.next(); obj.cleanupFromScene(); iterP.remove() }
         } else { while (objects!!.isNotEmpty() && objects!!.peek().getTime() + approachRate <= targetSec) { val data = objects!!.poll()!!; lastObjectId++; if (data.isSlider()) sliderIndex++ } }
         secPassed = targetSec; GlobalManager.getInstance().songService!!.seekTo(positionMs)
         if (video != null) { val videoSeekTime = positionMs - (videoOffset * 1000).toInt(); video!!.texture.seekTo(videoSeekTime) }
-        for (i in replay!!.cursorIndex.indices) { replay!!.cursorIndex[i] = 0; replay!!.lastMoveIndex[i] = -1
+        if (replay != null) { for (i in replay!!.cursorIndex.indices) { replay!!.cursorIndex[i] = 0; replay!!.lastMoveIndex[i] = -1
             if (replay!!.cursorMoves.size > i) { var lastMovement: Replay.ReplayMovement? = null
                 for (j in 0 until replay!!.cursorMoves[i].size) { val movement = replay!!.cursorMoves[i].movements[j]; if (movement!!.time > positionMs) { replay!!.cursorIndex[i] = j; break }; lastMovement = movement }
                 if (lastMovement != null) { cursors[i]!!.mousePos.x = lastMovement.point.x; cursors[i]!!.mousePos.y = lastMovement.point.y; cursors[i]!!.mouseDown = lastMovement.touchType != TouchType.UP }
-            } }
+            } } }
     }
 
     fun replaySetSpeed(speed: Float) {
-        if (!replaying) return
+        if (!replaying && !GameHelper.isAuto()) return
         val s = maxOf(0.25f, minOf(3.0f, speed)); timeMultiplier = s
         GlobalManager.getInstance().songService?.let { val enableNC = ModMenu.getInstance().isEnableNCWhenSpeedChange || ModMenu.getInstance().mod.contains(GameMod.MOD_NIGHTCORE); it.applySpeed(s, enableNC) }
         if (video != null && videoStarted) video!!.texture.setPlaybackSpeed(s)
@@ -1337,7 +1337,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     }
 
     fun showReplayOverlay() {
-        if (!replaying) return
+        if (!replaying && !GameHelper.isAuto()) return
         Execution.mainThread {
             val activity = GlobalManager.getInstance().getMainActivity() ?: return@mainThread
             if (activity.isFinishing) return@mainThread
