@@ -132,6 +132,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     private var totalLength = Int.MAX_VALUE
     private var loadComplete = false
     private var paused = false
+    private var lastPauseTime = 0L
     private var skipBtn: Sprite? = null
     private var skipTime = 0f
     private var musicStarted = false
@@ -1303,6 +1304,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
     fun pause() {
         if (paused) return
+        if (System.currentTimeMillis() - lastPauseTime < 10000) return
         if (Multiplayer.isMultiplayer) { if (lastBackPressTime > 0 && realTimeElapsed - lastBackPressTime > 300) { if (Multiplayer.isConnected)                 Execution.asyncIgnoreExceptions { RoomAPI.submitFinalScore(stat!!.toJson()) }; Multiplayer.log("Player left the match."); quit(); return }; lastBackPressTime = realTimeElapsed.toFloat(); ToastLogger.showText("Tap twice to exit to room.", false); return }
         if (!replaying) EdExtensionHelper.onPauseGame(lastTrack)
         video?.texture?.pause()
@@ -1329,6 +1331,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     fun resume() {
         if (!paused) return
         scene.childScene.back(); paused = false
+        lastPauseTime = System.currentTimeMillis()
         if (stat!!.hp <= 0 && !stat!!.mod.contains(GameMod.MOD_NOFAIL) && !stat!!.mod.contains(GameMod.MOD_RELAX) && !stat!!.mod.contains(GameMod.MOD_AUTOPILOT)) { quit(); return }
         if (!replaying) EdExtensionHelper.onResume(lastTrack)
         if (video != null && videoStarted) video!!.texture.play()
