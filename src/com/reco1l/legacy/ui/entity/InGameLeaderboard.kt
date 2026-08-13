@@ -8,8 +8,8 @@ import org.anddev.andengine.entity.text.ChangeableText
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
-import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.ResourceManager
 
 class InGameLeaderboard(var playerName: String, private val stats: StatisticV2) : Entity(0f, 0f)
 {
@@ -25,11 +25,11 @@ class InGameLeaderboard(var playerName: String, private val stats: StatisticV2) 
     // This determines the max amount of sprites that can be shown according to the user screen height.
     private val maxAllowed = (Config.getRES_HEIGHT() - VERTICAL_PADDING * 2).toInt() / SPRITE_HEIGHT
 
-    private val replayId get() = getGlobal().scoring.replayID
+    private val replayId get() = GlobalManager.getInstance().scoring?.getReplayID() ?: -1
 
     private val isReplaying get() = replayId != -1
 
-    private val isGlobalLeaderboard get() = getGlobal().songMenu.isBoardOnline
+    private val isGlobalLeaderboard get() = GlobalManager.getInstance().songMenu?.board?.isShowOnlineScores == true
 
 
     init
@@ -42,7 +42,7 @@ class InGameLeaderboard(var playerName: String, private val stats: StatisticV2) 
     {
         if (!isMultiplayer)
         {
-            val items = getGlobal().songMenu.board
+            val items = GlobalManager.getInstance().songMenu?.board?.getScoreBoardItems()
 
             // We consider that if it's in replay mode the length should be the same, in case it's not then the
             // length should be +1 greater (because of the new score).
@@ -87,10 +87,10 @@ class InGameLeaderboard(var playerName: String, private val stats: StatisticV2) 
             if (!isMultiplayer) data.apply {
 
                 // Updating info only if needed.
-                if (playScore != stats.totalScoreWithMultiplier || maxCombo != stats.maxCombo || accuracy != stats.accuracy)
+                if (playScore != stats.totalScoreWithMultiplier || maxCombo != stats.getMaxCombo() || accuracy != stats.accuracy)
                 {
                     playScore = stats.totalScoreWithMultiplier
-                    maxCombo = stats.maxCombo
+                    maxCombo = stats.getMaxCombo()
                     accuracy = stats.accuracy
 
                     updateInfo()
@@ -207,7 +207,7 @@ class InGameLeaderboard(var playerName: String, private val stats: StatisticV2) 
             {
                 if (list.isNotEmpty())
                 {
-                    list = list.mapNotNull { if (it.scoreId == replayId) null else it.clone() }
+                    list = list.mapNotNull { if (it.scoreId == replayId) null else ScoreBoardItem(it.userName, it.playScore, it.maxCombo, it.accuracy, it.isAlive).also { c -> c.scoreId = it.scoreId; c.rank = it.rank } }
 
                     // Reordering ranks according to indexes.
                     list.forEachIndexed { i, it -> it.rank = i + 1 }
@@ -225,7 +225,7 @@ class InGameLeaderboard(var playerName: String, private val stats: StatisticV2) 
             else ->
             {
                 if (list.isNotEmpty())
-                    list = list.map { it.clone() }
+                    list = list.map { ScoreBoardItem(it.userName, it.playScore, it.maxCombo, it.accuracy, it.isAlive).also { c -> c.scoreId = it.scoreId; c.rank = it.rank } }
 
                 appendNewItem()
             }
@@ -259,7 +259,7 @@ class InGameLeaderboard(var playerName: String, private val stats: StatisticV2) 
 
 
     private inner class BoardItem(val data: ScoreBoardItem) :
-        Sprite(0f, 0f, getResources().getTexture("menu-button-background"))
+        Sprite(0f, 0f, ResourceManager.getInstance().getTexture("menu-button-background"))
     {
 
         val info: ChangeableText
@@ -278,12 +278,12 @@ class InGameLeaderboard(var playerName: String, private val stats: StatisticV2) 
             height = 90f
             width = 130f
 
-            info = ChangeableText(10f, 15f, getResources().getFont("font"), "", 100)
+            info = ChangeableText(10f, 15f, ResourceManager.getInstance().getFont("font"), "", 100)
             info.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
             info.setScaleCenter(0f, 0f)
             info.setScale(0.65f)
 
-            rank = ChangeableText(10f, 15f, getResources().getFont("CaptionFont"), "", 5)
+            rank = ChangeableText(10f, 15f, ResourceManager.getInstance().getFont("CaptionFont"), "", 5)
             rank.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
             rank.setPosition(100 - rank.width, 30f)
             rank.setScaleCenter(0f, 0f)

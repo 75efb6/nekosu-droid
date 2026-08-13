@@ -33,8 +33,8 @@ class EditorSliderFragment : EditorFragment() {
         layout.addView(title)
 
         val scene = editorScene ?: return scroll
-        val data = scene.getBeatmapData() ?: return scroll
-        val idx = scene.getSelectedObjectIndex()
+        val data = scene.beatmapData ?: return scroll
+        val idx = scene.selectedObjectIndex
 
         if (idx < 0 || idx >= data.hitObjects.objects.size) {
             addCancelButton(layout)
@@ -155,7 +155,7 @@ class EditorSliderFragment : EditorFragment() {
     }
 
     private fun replaceSliderPathType(scene: EditorScene, idx: Int, oldSlider: Slider, newType: SliderPathType) {
-        val data = scene.getBeatmapData() ?: return
+        val data = scene.beatmapData ?: return
         val newControlPoints = ArrayList<Vector2>(oldSlider.path.controlPoints)
         val newPath = SliderPath(newType, newControlPoints, oldSlider.path.expectedDistance)
 
@@ -192,7 +192,7 @@ class EditorSliderFragment : EditorFragment() {
     }
 
     private fun replaceSliderRepeat(scene: EditorScene, idx: Int, oldSlider: Slider, newRepeat: Int) {
-        val data = scene.getBeatmapData() ?: return
+        val data = scene.beatmapData ?: return
         val newControlPoints = ArrayList<Vector2>(oldSlider.path.controlPoints)
         val newPath = SliderPath(oldSlider.path.pathType, newControlPoints, oldSlider.path.expectedDistance)
 

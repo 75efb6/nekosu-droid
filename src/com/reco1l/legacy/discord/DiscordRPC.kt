@@ -136,7 +136,7 @@ object DiscordRPC {
     }
 
     private fun clearSavedToken() {
-        Config.setDiscordToken(null)
+        Config.setDiscordToken("")
         try {
             val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(
                 DiscordSocialSdkInit.getEngineActivity()
@@ -294,12 +294,15 @@ object DiscordRPC {
             "Playing a beatmap..."
         }
 
+
+        var state = "$artist - $title [$difficulty]"
         var partySize = 0
         var partyMax = 0
 
         if (isMultiplayer) {
             val room = com.reco1l.legacy.Multiplayer.room
             if (room != null) {
+                state = state + "\n$room.name"
                 partySize = room.activePlayers.size
                 partyMax = room.maxPlayers
             }
@@ -307,7 +310,7 @@ object DiscordRPC {
 
         setActivity(
             details = details,
-            state = "$artist - $title [$difficulty]",
+            state = state,
             partySize = partySize,
             partyMax = partyMax
         )

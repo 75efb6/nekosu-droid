@@ -75,6 +75,7 @@ android {
             storePassword "debug.dgsrz.com"
             keyAlias 'debug.github.dgsrz.com'
             keyPassword 'debug.github.dgsrz.com'
+            v1SigningEnabled true
         }
 
         release {
@@ -83,6 +84,7 @@ android {
                 storePassword localProperties.get('RELEASE_KEYSTORE_PASSWORD', "debug.dgsrz.com")
                 keyAlias localProperties.get('RELEASE_KEY_ALIAS', "debug.github.dgsrz.com")
                 keyPassword localProperties.get('RELEASE_KEY_PASSWORD', "debug.github.dgsrz.com")
+                v1SigningEnabled true
             } catch (ignored) {
                 throw new InvalidUserDataException('You should define RELEASE_KEYSTORE_PASSWORD and RELEASE_KEY_PASSWORD in local.properties.', ignored)
             }

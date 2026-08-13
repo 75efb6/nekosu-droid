@@ -16,14 +16,14 @@ import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.menu.LoadingScreen
 import ru.nsu.ccfit.zuev.osu.menu.SettingsMenu
 import ru.nsu.ccfit.zuev.osuplus.R
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
-import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
-import ru.nsu.ccfit.zuev.osu.online.OnlineManager.getInstance as getOnline
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.ResourceManager
+import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
 class MainMenu(val main: MainScene)
 {
 
-    private val sound = getResources().loadSound("menuhit", "sfx/menuhit.ogg", false)
+    private val sound = ResourceManager.getInstance().loadSound("menuhit", "sfx/menuhit.ogg", false)
 
     /**
      * Level 1: Play / Level 2: Solo / Level 3: Solo Play
@@ -46,7 +46,7 @@ class MainMenu(val main: MainScene)
                 if (main.isOnExitAnim)
                     return true
 
-                when (frame) {
+                when (getFrame()) {
                     // Play (level 1) -> show level 2
                     0 -> showLevel(1)
 
@@ -55,27 +55,27 @@ class MainMenu(val main: MainScene)
 
                     // Solo Play (level 3) -> open song selection
                     2 -> {
-                        getGlobal().songService.isGaming = true
+                        GlobalManager.getInstance().songService?.isGaming = true
 
                         async {
                             LoadingScreen().show()
 
-                            getGlobal().mainActivity.checkNewSkins()
-                            getGlobal().mainActivity.checkNewBeatmaps()
+                            GlobalManager.getInstance().getMainActivity()?.checkNewSkins()
+                            GlobalManager.getInstance().getMainActivity()?.checkNewBeatmaps()
                             LibraryManager.INSTANCE.updateLibrary(true)
 
-                            if (LibraryManager.INSTANCE.library.isEmpty())
+                            if (LibraryManager.library.isEmpty())
                             {
-                                getGlobal().songService.isGaming = false
-                                getGlobal().engine.scene = main.scene
+                                GlobalManager.getInstance().songService?.isGaming = false
+                                GlobalManager.getInstance().engine?.scene = main.scene
 
                                 BeatmapListing().show()
                             } else {
                                 main.musicControl(MusicOption.PLAY)
 
-                                getGlobal().songMenu.reload()
-                                getGlobal().songMenu.show()
-                                getGlobal().songMenu.select()
+                                GlobalManager.getInstance().songMenu?.reload()
+                                GlobalManager.getInstance().songMenu?.show()
+                                GlobalManager.getInstance().songMenu?.select()
                             }
                         }
                     }
@@ -104,34 +104,34 @@ class MainMenu(val main: MainScene)
             {
                 setColor(1f, 1f, 1f)
 
-                when (frame) {
+                when (getFrame()) {
                     // Settings (level 1)
                     0 -> {
                         if (main.isOnExitAnim) return true
-                        getGlobal().songService.isGaming = true
-                        getGlobal().mainActivity.runOnUiThread { SettingsMenu().show() }
+                        GlobalManager.getInstance().songService?.isGaming = true
+                        GlobalManager.getInstance().getMainActivity()?.runOnUiThread { SettingsMenu().show() }
                     }
 
                     // Multi (level 2)
                     1 -> {
-                        if (!getOnline().isStayOnline) {
+                        if (!OnlineManager.getInstance().isStayOnline) {
                             ToastLogger.showText(StringTable.format(R.string.multiplayer_not_online), true)
                             return true
                         }
 
                         if (main.isOnExitAnim) return true
 
-                        getGlobal().songService.isGaming = true
+                        GlobalManager.getInstance().songService?.isGaming = true
                         Multiplayer.isMultiplayer = true
 
                         async {
                             LoadingScreen().show()
 
-                            getGlobal().mainActivity.checkNewSkins()
-                            getGlobal().mainActivity.checkNewBeatmaps()
+                            GlobalManager.getInstance().getMainActivity()?.checkNewSkins()
+                            GlobalManager.getInstance().getMainActivity()?.checkNewBeatmaps()
                             LibraryManager.INSTANCE.updateLibrary(true)
 
-                            getGlobal().songMenu.reload()
+                            GlobalManager.getInstance().songMenu?.reload()
 
                             RoomScene.load()
                             LobbyScene.load()
@@ -148,28 +148,28 @@ class MainMenu(val main: MainScene)
                             return true
                         }
 
-                        getGlobal().songService.isGaming = true
+                        GlobalManager.getInstance().songService?.isGaming = true
 
                         async {
                             LoadingScreen().show()
 
-                            getGlobal().mainActivity.checkNewSkins()
-                            getGlobal().mainActivity.checkNewBeatmaps()
+                            GlobalManager.getInstance().getMainActivity()?.checkNewSkins()
+                            GlobalManager.getInstance().getMainActivity()?.checkNewBeatmaps()
                             LibraryManager.INSTANCE.updateLibrary(true)
 
-                            if (LibraryManager.INSTANCE.library.isEmpty())
+                            if (LibraryManager.library.isEmpty())
                             {
-                                getGlobal().songService.isGaming = false
-                                getGlobal().engine.scene = main.scene
+                                GlobalManager.getInstance().songService?.isGaming = false
+                                GlobalManager.getInstance().engine?.scene = main.scene
 
                                 BeatmapListing().show()
                             } else {
                                 main.musicControl(MusicOption.PLAY)
 
-                                getGlobal().songMenu.isEditorMode = true
-                                getGlobal().songMenu.reload()
-                                getGlobal().songMenu.show()
-                                getGlobal().songMenu.select()
+                                GlobalManager.getInstance().songMenu?.isEditorMode = true
+                                GlobalManager.getInstance().songMenu?.reload()
+                                GlobalManager.getInstance().songMenu?.show()
+                                GlobalManager.getInstance().songMenu?.select()
                             }
                         }
                     }
@@ -198,7 +198,7 @@ class MainMenu(val main: MainScene)
             {
                 setColor(1f, 1f, 1f)
 
-                when (frame) {
+                when (getFrame()) {
                     // Exit (level 1)
                     0 -> main.showExitDialog()
 
@@ -219,17 +219,17 @@ class MainMenu(val main: MainScene)
 
     fun attachButtons()
     {
-        main.scene.attachChild(first)
-        main.scene.attachChild(second)
-        main.scene.attachChild(third)
+        main.scene?.attachChild(first)
+        main.scene?.attachChild(second)
+        main.scene?.attachChild(third)
     }
 
     private fun showLevel(level: Int)
     {
         menuLevel = level
-        first.frame = level
-        second.frame = level
-        third.frame = level
+        first.setFrame(level)
+        second.setFrame(level)
+        third.setFrame(level)
     }
 
     fun showFirstMenu()

@@ -42,9 +42,9 @@ import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.menu.SettingsMenu
 import ru.nsu.ccfit.zuev.osuplus.R
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
-import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResourceManager
-import ru.nsu.ccfit.zuev.skins.SkinManager.getInstance as getSkinManager
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.ResourceManager
+import ru.nsu.ccfit.zuev.skins.SkinManager
 
 
 /**
@@ -193,17 +193,17 @@ class RoomOptions : SettingsFragment()
             reloadSkinList()
             setOnPreferenceChangeListener { _, newValue ->
 
-                if (getGlobal().skinNow !== newValue.toString())
+                if (GlobalManager.getInstance().skinNow !== newValue.toString())
                 {
                     val loading = LoadingFragment()
                     loading.show()
 
                     async {
-                        getGlobal().skinNow = Config.getSkinPath()
-                        getSkinManager().clearSkin()
-                        getResourceManager().loadSkin(newValue.toString())
-                        getGlobal().engine.textureManager.reloadTextures()
-                        getGlobal().engine.fontManager.reloadFonts()
+                        GlobalManager.getInstance().skinNow = Config.getSkinPath()
+                        SkinManager.getInstance().clearSkin()
+                        ResourceManager.getInstance().loadSkin(newValue.toString())
+                        GlobalManager.getInstance().engine?.textureManager?.reloadTextures()
+                        GlobalManager.getInstance().engine?.fontManager?.reloadFonts()
 
                         LobbyScene.load()
                         RoomScene.load()
@@ -379,8 +379,8 @@ class RoomOptions : SettingsFragment()
             return
 
         playOnDismissAnim {
-            Config.loadConfig(getGlobal().mainActivity)
-            getGlobal().songService.volume = Config.getBgmVolume()
+            Config.loadConfig(GlobalManager.getInstance().getMainActivity()!!)
+            GlobalManager.getInstance().songService!!.setVolume(Config.getBgmVolume())
             super.dismiss()
         }
     }

@@ -16,23 +16,23 @@ import ru.nsu.ccfit.zuev.osu.RGBColor
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.menu.MenuItemTrack
 import ru.nsu.ccfit.zuev.skins.OsuSkin
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
+import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager.INSTANCE as libraryManager
-import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
+import ru.nsu.ccfit.zuev.osu.ResourceManager
 
 /**
  * Simplified version of [MenuItemTrack]
  */
-class BeatmapButton : Sprite(0f, 0f, getResources().getTexture("menu-button-background"))
+class BeatmapButton : Sprite(0f, 0f, ResourceManager.getInstance().getTexture("menu-button-background"))
 {
 
-    private val trackTitle = ChangeableText(32f, 20f, getResources().getFont("smallFont"), "", 100)
+    private val trackTitle = ChangeableText(32f, 20f, ResourceManager.getInstance().getFont("smallFont"), "", 100)
 
-    private val creatorInfo = ChangeableText(32f, trackTitle.height + 20, getResources().getFont("smallFont"), "", 200)
+    private val creatorInfo = ChangeableText(32f, trackTitle.height + 20, ResourceManager.getInstance().getFont("smallFont"), "", 200)
 
     private val stars = Array(10) { i ->
 
-        Sprite(0f, 0f, getResources().getTexture("star")).also {
+        Sprite(0f, 0f, ResourceManager.getInstance().getTexture("star")).also {
 
             it.setScale(0.5f)
             it.setPosition(20f + it.widthScaled * i, creatorInfo.y + 20f)
@@ -74,23 +74,23 @@ class BeatmapButton : Sprite(0f, 0f, getResources().getTexture("menu-button-back
         if (moved || !event.isActionUp || Multiplayer.player!!.status == READY || RoomScene.awaitBeatmapChange || RoomScene.awaitStatusChange)
             return true
 
-        getResources().getSound("menuclick")?.play()
+        ResourceManager.getInstance().getSound("menuclick")?.play()
 
         initialX = null
         initialY = null
 
         if (Multiplayer.isRoomHost)
         {
-            if (libraryManager.library.isEmpty())
+            if (libraryManager.getLibrary().isEmpty())
             {
-                getGlobal().songService.pause()
+                GlobalManager.getInstance().songService!!.pause()
                 BeatmapListing().show()
                 return true
             }
 
-            getGlobal().songMenu.reload()
-            getGlobal().songMenu.show()
-            getGlobal().songMenu.select()
+            GlobalManager.getInstance().songMenu?.reload()
+            GlobalManager.getInstance().songMenu?.show()
+            GlobalManager.getInstance().songMenu?.select()
 
             // We notify all clients that the host is changing beatmap
             RoomAPI.changeBeatmap()
@@ -99,7 +99,7 @@ class BeatmapButton : Sprite(0f, 0f, getResources().getTexture("menu-button-back
 
 
         // If the room beatmap has set a 'parentSetID' it means that the beatmap can be downloaded through the beatmap mirror.
-        if (getGlobal().selectedTrack == null) Multiplayer.room!!.beatmap?.apply {
+        if (GlobalManager.getInstance().selectedTrack == null) Multiplayer.room!!.beatmap?.apply {
 
             // If it's null the beatmap isn't available on the beatmap mirror.
             if (parentSetID == null)
@@ -134,7 +134,7 @@ class BeatmapButton : Sprite(0f, 0f, getResources().getTexture("menu-button-back
         trackTitle.text = "${beatmap.artist} - ${beatmap.title}"
         creatorInfo.text = "Mapped by ${beatmap.creator} // ${beatmap.version}"
 
-        if (getGlobal().selectedTrack == null)
+        if (GlobalManager.getInstance().selectedTrack == null)
         {
             creatorInfo.text += "\n${
 
@@ -146,7 +146,7 @@ class BeatmapButton : Sprite(0f, 0f, getResources().getTexture("menu-button-back
             return
         }
 
-        val difficulty = getGlobal().selectedTrack.difficulty
+        val difficulty = GlobalManager.getInstance().selectedTrack?.difficulty ?: 0f
 
         stars.forEachIndexed { i, it ->
             it.isVisible = difficulty >= i

@@ -24,9 +24,10 @@ import ru.nsu.ccfit.zuev.osu.helper.TextButton
 import ru.nsu.ccfit.zuev.osu.menu.LoadingScreen
 import ru.nsu.ccfit.zuev.osu.online.OnlinePanel
 import ru.nsu.ccfit.zuev.skins.OsuSkin
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
-import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
-import ru.nsu.ccfit.zuev.osu.online.OnlineManager.getInstance as getOnline
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.ResourceManager
+import ru.nsu.ccfit.zuev.osu.online.SeasonalBackgroundManager
+import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
 object LobbyScene : Scene()
 {
@@ -56,11 +57,11 @@ object LobbyScene : Scene()
 
     private val onlinePanel = OnlinePanel()
 
-    private val titleText = ChangeableText(20f, 20f, getResources().getFont("bigFont"), "", 100)
+    private val titleText = ChangeableText(20f, 20f, ResourceManager.getInstance().getFont("bigFont"), "", 100)
 
-    private val infoText = ChangeableText(20f, 0f, getResources().getFont("smallFont"), "", 100)
+    private val infoText = ChangeableText(20f, 0f, ResourceManager.getInstance().getFont("smallFont"), "", 100)
 
-    private val loading = Sprite(0f, 0f, getResources().getTexture("loading_start"))
+    private val loading = Sprite(0f, 0f, ResourceManager.getInstance().getTexture("loading_start"))
 
 
     /**Await lock for the list refresh*/
@@ -107,10 +108,10 @@ object LobbyScene : Scene()
         val layoutBackButton = OsuSkin.get().getLayout("BackButton")
         val loadedBackTextures = mutableListOf<String>()
 
-        if (getResources().isTextureLoaded("menu-back-0"))
+        if (ResourceManager.getInstance().isTextureLoaded("menu-back-0"))
         {
             for (i in 0..59)
-                if (getResources().isTextureLoaded("menu-back-$i")) loadedBackTextures.add("menu-back-$i")
+                if (ResourceManager.getInstance().isTextureLoaded("menu-back-$i")) loadedBackTextures.add("menu-back-$i")
         }
         else loadedBackTextures.add("menu-back")
 
@@ -152,7 +153,7 @@ object LobbyScene : Scene()
             }
         }.also {
 
-            if (OsuSkin.get().isUseNewLayout)
+            if (OsuSkin.get().isUseNewLayout())
             {
                 layoutBackButton?.baseApply(it)
                 it.setPosition(0f, Config.getRES_HEIGHT() - it.heightScaled)
@@ -167,14 +168,14 @@ object LobbyScene : Scene()
         onlinePanel.setPosition(Config.getRES_WIDTH() - 410f - 6f, 6f)
         attachChild(onlinePanel)
 
-        createButton = object : TextButton(getResources().getFont("CaptionFont"), "Create New Room")
+        createButton = object : TextButton(ResourceManager.getInstance().getFont("CaptionFont"), "Create New Room")
         {
             override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean
             {
                 if (!event.isActionUp || awaitList)
                     return false
 
-                getResources().getSound("menuclick")?.play()
+                ResourceManager.getInstance().getSound("menuclick")?.play()
                 LobbyCreateRoom().show()
                 return true
             }
@@ -187,14 +188,14 @@ object LobbyScene : Scene()
             registerTouchArea(it)
         }
 
-        refreshButton = object : TextButton(getResources().getFont("CaptionFont"), "Refresh")
+        refreshButton = object : TextButton(ResourceManager.getInstance().getFont("CaptionFont"), "Refresh")
         {
             override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean
             {
                 if (!event.isActionUp || awaitList)
                     return false
 
-                getResources().getSound("menuclick")?.play()
+                ResourceManager.getInstance().getSound("menuclick")?.play()
                 updateList()
                 return true
             }
@@ -216,14 +217,14 @@ object LobbyScene : Scene()
         if (Multiplayer.isConnected)
             return
 
-        getGlobal().songService.isGaming = true
+        GlobalManager.getInstance().songService!!.isGaming = true
         Multiplayer.isMultiplayer = true
 
         {
             LoadingScreen().show()
 
-            getGlobal().mainActivity.checkNewSkins()
-            getGlobal().mainActivity.checkNewBeatmaps()
+            GlobalManager.getInstance().getMainActivity()!!.checkNewSkins()
+            GlobalManager.getInstance().getMainActivity()!!.checkNewBeatmaps()
             LibraryManager.INSTANCE.updateLibrary(true)
 
             RoomScene.load()
@@ -232,7 +233,7 @@ object LobbyScene : Scene()
             val roomID = link.pathSegments[0].toLong()
             val password = if (link.pathSegments.size > 1) link.pathSegments[1] else null
 
-            RoomAPI.connectToRoom(roomID, getOnline().userId, getOnline().username, password)
+            RoomAPI.connectToRoom(roomID, OnlineManager.getInstance().userId, OnlineManager.getInstance().username, password)
 
         }.orAsyncCatch {
 
@@ -306,10 +307,10 @@ object LobbyScene : Scene()
 
     private fun updateBackground()
     {
-        var texture = getResources().getTexture("menu-background")
+        var texture = ResourceManager.getInstance().getTexture("menu-background")
 
-        if (!Config.isSafeBeatmapBg())
-                texture = getResources().getTexture("::background") ?: texture
+        if (SeasonalBackgroundManager.isSeasonalActive() || !Config.isSafeBeatmapBg())
+                texture = ResourceManager.getInstance().getTextureIfLoaded("::background") ?: texture
 
         texture?.also {
 
@@ -331,15 +332,15 @@ object LobbyScene : Scene()
         search.dismiss()
 
         Multiplayer.isMultiplayer = false
-        getGlobal().songService.isGaming = false
+        GlobalManager.getInstance().songService!!.isGaming = false
 
-        getGlobal().mainScene.show()
+        GlobalManager.getInstance().mainScene?.show()
     }
 
     fun show()
     {
         updateBackground()
-        getGlobal().engine.scene = this
+        GlobalManager.getInstance().engine?.scene = this
         DiscordRPC.updateForMultiLobby()
         updateList()
 

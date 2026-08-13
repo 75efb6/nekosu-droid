@@ -12,8 +12,8 @@ import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import java.text.NumberFormat.getNumberInstance
 import java.util.Locale.ENGLISH
 import java.util.Locale.US
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
-import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.ResourceManager
 
 /**
  * Scoreboard list used for multiplayer scores in results screen.
@@ -21,15 +21,15 @@ import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
 class StatisticSelector(stats: Array<StatisticV2>?) : ScrollableList(), ITouchArea
 {
 
-    private var selected: StatisticV2? = getGlobal().scoring.currentStatistic
+    private var selected: StatisticV2? = GlobalManager.getInstance().scoring?.currentStatistic
         set(value)
         {
             if (value != field && value != null)
             {
                 field = value
 
-                getGlobal().scoring.load(value, getGlobal().scoring.track, getGlobal().songService, null, null, null)
-                getGlobal().engine.scene = getGlobal().scoring.scene
+                GlobalManager.getInstance().scoring?.load(value, GlobalManager.getInstance().scoring?.track, GlobalManager.getInstance().songService, null, null, null)
+                GlobalManager.getInstance().engine?.scene = GlobalManager.getInstance().scoring?.scene
             }
         }
 
@@ -74,7 +74,7 @@ class StatisticSelector(stats: Array<StatisticV2>?) : ScrollableList(), ITouchAr
 
 
     inner class BoardItem(val index: Int, private val stats: StatisticV2) :
-            Sprite(570f, 0f, getResources().getTexture("menu-button-background"))
+            Sprite(570f, 0f, ResourceManager.getInstance().getTexture("menu-button-background"))
     {
 
         private var moved = false
@@ -82,9 +82,9 @@ class StatisticSelector(stats: Array<StatisticV2>?) : ScrollableList(), ITouchAr
         private var dy = 0f
 
 
-        val text = ChangeableText(10f, 15f, getResources().getFont("font"), "", 100)
+        val text = ChangeableText(10f, 15f, ResourceManager.getInstance().getFont("font"), "", 100)
 
-        val rank = ChangeableText(10f, 15f, getResources().getFont("CaptionFont"), "", 5)
+        val rank = ChangeableText(10f, 15f, ResourceManager.getInstance().getFont("CaptionFont"), "", 5)
 
 
         init

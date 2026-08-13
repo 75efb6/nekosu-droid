@@ -30,8 +30,8 @@ class EditorSpinnerFragment : EditorFragment() {
         layout.addView(title)
 
         val scene = editorScene ?: return scroll
-        val data = scene.getBeatmapData() ?: return scroll
-        val idx = scene.getSelectedObjectIndex()
+        val data = scene.beatmapData ?: return scroll
+        val idx = scene.selectedObjectIndex
 
         if (idx < 0 || idx >= data.hitObjects.objects.size) {
             addCancelButton(layout)
@@ -143,7 +143,7 @@ class EditorSpinnerFragment : EditorFragment() {
     }
 
     private fun replaceSpinner(scene: EditorScene, idx: Int, oldSpinner: Spinner, startTime: Double, endTime: Double) {
-        val data = scene.getBeatmapData() ?: return
+        val data = scene.beatmapData ?: return
         val newSpinner = Spinner(startTime, endTime)
         data.hitObjects.remove(idx)
         data.hitObjects.add(newSpinner)

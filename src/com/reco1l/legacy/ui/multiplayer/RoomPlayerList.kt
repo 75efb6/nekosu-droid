@@ -14,9 +14,8 @@ import org.anddev.andengine.input.touch.detector.ScrollDetector.IScrollDetectorL
 import org.anddev.andengine.opengl.texture.region.TextureRegion
 import org.anddev.andengine.util.MathUtils
 import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
+import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
-import ru.nsu.ccfit.zuev.osu.online.OnlineManager.getInstance as getOnline
 
 class RoomPlayerList(val room: Room) : ScrollableList(), IScrollDetectorListener
 {
@@ -95,7 +94,7 @@ class RoomPlayerList(val room: Room) : ScrollableList(), IScrollDetectorListener
 
         private val state = Rectangle(0f, 0f, 5f, height)
 
-        private val text = ChangeableText(20f, 16f, getResources().getFont("smallFont"), "", 64)
+        private val text = ChangeableText(20f, 16f, ResourceManager.getInstance().getFont("smallFont"), "", 64)
 
         private var hostIcon: Sprite? = null
 
@@ -162,9 +161,9 @@ class RoomPlayerList(val room: Room) : ScrollableList(), IScrollDetectorListener
 
             if (isHost)
             {
-                val icon = getResources().getTexture("crown")
+                val icon = ResourceManager.getInstance().getTexture("crown")
 
-                hostIcon = Sprite(width - icon.width - 15f, (height - icon.height) / 2f, icon)
+                hostIcon = Sprite(width - icon!!.width - 15f, (height - icon.height) / 2f, icon)
                 attachChild(hostIcon)
             }
 
@@ -172,9 +171,9 @@ class RoomPlayerList(val room: Room) : ScrollableList(), IScrollDetectorListener
             {
                 MISSING_BEATMAP ->
                 {
-                    val icon = getResources().getTexture("missing")
+                    val icon = ResourceManager.getInstance().getTexture("missing")
 
-                    missingIcon = Sprite(width - icon.width - 15f - (hostIcon?.let { it.width + 10f } ?: 0f), (height - icon.height) / 2f, icon)
+                    missingIcon = Sprite(width - icon!!.width - 15f - (hostIcon?.let { it.width + 10f } ?: 0f), (height - icon.height) / 2f, icon)
                     attachChild(missingIcon)
 
                     state.setColor(1f, 0.1f, 0.1f)
@@ -204,22 +203,22 @@ class RoomPlayerList(val room: Room) : ScrollableList(), IScrollDetectorListener
             val bn = bannerTexture
             avatarTexture = null
             bannerTexture = null
-            if (av != null) updateThread { getResources().unloadTexture(av) }
-            if (bn != null) updateThread { getResources().unloadTexture(bn) }
+            if (av != null) updateThread { ResourceManager.getInstance().unloadTexture(av) }
+            if (bn != null) updateThread { ResourceManager.getInstance().unloadTexture(bn) }
         }
 
         private fun loadAvatarAsync(uid: Long)
         {
-            val avatarUrl = "https://${OnlineManager.hostname}/avatars/$uid"
-            val bannerUrl = "https://${OnlineManager.hostname}/banners/user/$uid"
+            val avatarUrl = "https://${OnlineManager.HOSTNAME}/avatars/$uid"
+            val bannerUrl = "https://${OnlineManager.HOSTNAME}/banners/user/$uid"
 
             Thread {
-                getOnline().loadAvatarToTextureManager(avatarUrl)
-                getOnline().loadBannerToTextureManager(bannerUrl)
+                OnlineManager.getInstance().loadAvatarToTextureManager(avatarUrl)
+                OnlineManager.getInstance().loadBannerToTextureManager(bannerUrl)
 
-                val aRaw = getResources().getAvatarTextureIfLoaded(avatarUrl)
-                val bRaw = getResources().getBannerTextureIfLoaded(bannerUrl)
-                val aTexture = aRaw ?: getResources().getTexture("emptyavatar")
+                val aRaw = ResourceManager.getInstance().getAvatarTextureIfLoaded(avatarUrl)
+                val bRaw = ResourceManager.getInstance().getBannerTextureIfLoaded(bannerUrl)
+                val aTexture = aRaw ?: ResourceManager.getInstance().getTexture("emptyavatar")
 
                 updateThread {
                     if (parent == null || loadedPlayerId != uid) return@updateThread
@@ -268,7 +267,7 @@ class RoomPlayerList(val room: Room) : ScrollableList(), IScrollDetectorListener
                 if (moved || isScroll)
                     return true
 
-                getResources().getSound("menuclick")?.play()
+                ResourceManager.getInstance().getSound("menuclick")?.play()
 
                 if (player != null && Multiplayer.player != player)
                 {

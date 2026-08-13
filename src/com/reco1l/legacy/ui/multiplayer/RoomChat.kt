@@ -31,7 +31,7 @@ import ru.nsu.ccfit.zuev.osu.RGBColor
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osuplus.R
 import kotlin.math.abs
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
+import ru.nsu.ccfit.zuev.osu.GlobalManager
 
 class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
 {
@@ -116,7 +116,7 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
     private fun appendText(spanned: Spanned)
     {
         // Only play chat sound when not in gameplay.
-        if (getGlobal().engine.scene != getGlobal().gameScene.scene)
+        if (GlobalManager.getInstance().engine?.scene != GlobalManager.getInstance().gameScene?.scene)
             ResourceManager.getInstance().getSound("heartbeat")?.play(0.75f)
 
         if (log.isNotEmpty())
@@ -312,9 +312,9 @@ class RoomChat : BaseFragment(), OnEditorActionListener, OnKeyListener
             return
         }
 
-        if (getGlobal().engine.scene == getGlobal().gameScene.scene)
+        if (GlobalManager.getInstance().engine?.scene == GlobalManager.getInstance().gameScene?.scene)
         {
-            getGlobal().gameScene.pause()
+            GlobalManager.getInstance().gameScene?.pause()
             return
         }
         mainThread { RoomScene.leaveDialog.showForResult { RoomScene.back() } }

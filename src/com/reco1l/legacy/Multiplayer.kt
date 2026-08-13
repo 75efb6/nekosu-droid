@@ -19,8 +19,8 @@ import ru.nsu.ccfit.zuev.osu.MainActivity
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import java.io.File
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
-import ru.nsu.ccfit.zuev.osu.online.OnlineManager.getInstance as getOnline
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
 object Multiplayer
 {
@@ -104,10 +104,10 @@ object Multiplayer
 
     fun onLiveLeaderboard(array: JSONArray)
     {
-        if (getGlobal().engine.scene != getGlobal().gameScene.scene)
+        if (GlobalManager.getInstance().engine?.scene != GlobalManager.getInstance().gameScene?.scene)
             return
 
-        getGlobal().gameScene.scoreBoard?.nextItems = MutableList(array.length()) { i ->
+        GlobalManager.getInstance().gameScene?.scoreBoard?.nextItems = MutableList(array.length()) { i ->
             val json = array.getJSONObject(i)
 
             jsonToScoreboardItem(json).apply { rank = i + 1 }
@@ -119,7 +119,7 @@ object Multiplayer
         finalData = null
 
         // Avoiding data parsing if user left from ScoringScene
-        if (getGlobal().engine.scene == RoomScene || getGlobal().engine.scene == getGlobal().songMenu.scene)
+        if (GlobalManager.getInstance().engine?.scene == RoomScene || GlobalManager.getInstance().engine?.scene == GlobalManager.getInstance().songMenu?.scene)
             return
 
         if (array.length() == 0)
@@ -140,8 +140,8 @@ object Multiplayer
             return
 
         // Replacing server statistic with local
-        val ownScore = getGlobal().gameScene.stat
-        val ownScoreIndex = list.indexOfFirst { it.playerName == getOnline().username }.takeUnless { it == -1 }
+        val ownScore = GlobalManager.getInstance().gameScene?.stat
+        val ownScoreIndex = list.indexOfFirst { it.playerName == OnlineManager.getInstance().username }.takeUnless { it == -1 }
 
         if (ownScore != null)
         {
@@ -157,7 +157,7 @@ object Multiplayer
         finalData = list.toTypedArray()
 
         // Reloading results screen
-        getGlobal().scoring.updateLeaderboard()
+        GlobalManager.getInstance().scoring?.updateLeaderboard()
     }
 
 
@@ -223,8 +223,8 @@ object Multiplayer
                 {
                     RoomAPI.connectToRoom(
                         roomId = room!!.id,
-                        userId = getOnline().userId,
-                        username = getOnline().username,
+                        userId = OnlineManager.getInstance().userId,
+                        username = OnlineManager.getInstance().username,
                         sessionID = room!!.sessionID
                     )
 

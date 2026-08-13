@@ -31,9 +31,9 @@ class EditorTimingFragment : EditorFragment() {
         layout.addView(title)
 
         val scene = editorScene ?: return scroll
-        val data = scene.getBeatmapData() ?: return scroll
-        val currentTime = scene.getCurrentTime()
-        val kiaiFlags = scene.getKiaiFlags()
+        val data = scene.beatmapData ?: return scroll
+        val currentTime = scene.currentTime
+        val kiaiFlags = scene.kiaiFlags
 
         val points = data.timingPoints.timing.controlPoints
         if (points.isNotEmpty()) {

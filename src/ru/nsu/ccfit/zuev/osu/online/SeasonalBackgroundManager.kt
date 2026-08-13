@@ -39,7 +39,7 @@ object SeasonalBackgroundManager {
     }
 
     fun getSeasonalBgUrl(season: String, index: Int): String {
-        return "https://${OnlineManager.hostname}/seasonal/$season/$index.png"
+        return "https://${OnlineManager.HOSTNAME}/seasonal/$season/$index.png"
     }
 
     fun getCacheDir(): File {

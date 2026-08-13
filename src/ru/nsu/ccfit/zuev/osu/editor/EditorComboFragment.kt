@@ -30,8 +30,8 @@ class EditorComboFragment : EditorFragment() {
         layout.addView(title)
 
         val scene = editorScene ?: return scroll
-        val data = scene.getBeatmapData() ?: return scroll
-        val idx = scene.getSelectedObjectIndex()
+        val data = scene.beatmapData ?: return scroll
+        val idx = scene.selectedObjectIndex
 
         if (idx < 0) {
             val noSel = TextView(requireContext())
@@ -62,7 +62,7 @@ class EditorComboFragment : EditorFragment() {
         layout.addView(info)
 
         // New Combo toggle
-        val comboFlags = scene.getNewComboFlags()
+        val comboFlags = scene.newComboFlags
         val isNewCombo = comboFlags[idx] ?: false
 
         val comboTitle = TextView(requireContext())

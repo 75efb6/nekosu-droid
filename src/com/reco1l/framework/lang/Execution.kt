@@ -3,13 +3,12 @@
  */
 
 @file:OptIn(DelicateCoroutinesApi::class)
-@file:JvmName("Execution")
 
 package com.reco1l.framework.lang
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Runnable
-import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
+import ru.nsu.ccfit.zuev.osu.GlobalManager
 
 /**
  * Run a task on asynchronous using Kotlin Coroutines API.
@@ -36,7 +35,24 @@ fun delayed(time: Long, block: Runnable) = GlobalScope.launch {
 
 // Exclusive osu!droid
 
-fun mainThread(block: Runnable) = getGlobal().mainActivity.runOnUiThread(block)
+fun mainThread(block: Runnable) = GlobalManager.getInstance().getMainActivity()?.runOnUiThread(block)
 
-fun updateThread(block: Runnable) = getGlobal().engine.runOnUpdateThread(block)
+fun updateThread(block: Runnable) = GlobalManager.getInstance().engine?.runOnUpdateThread(block)
+
+object Execution {
+    @JvmStatic
+    fun async(block: Runnable) = com.reco1l.framework.lang.async(block)
+
+    @JvmStatic
+    fun asyncIgnoreExceptions(block: Runnable) = com.reco1l.framework.lang.asyncIgnoreExceptions(block)
+
+    @JvmStatic
+    fun delayed(time: Long, block: Runnable) = com.reco1l.framework.lang.delayed(time, block)
+
+    @JvmStatic
+    fun mainThread(block: Runnable) = GlobalManager.getInstance().getMainActivity()?.runOnUiThread(block)
+
+    @JvmStatic
+    fun updateThread(block: Runnable) = GlobalManager.getInstance().engine?.runOnUpdateThread(block)
+}
 
