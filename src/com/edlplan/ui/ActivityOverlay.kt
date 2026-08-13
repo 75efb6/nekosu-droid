@@ -50,10 +50,14 @@ object ActivityOverlay {
     @Synchronized
     fun addOverlay(fragment: Fragment, tag: String?) {
         if (fragmentManager != null) {
+            android.util.Log.e("ActivityOverlay", "addOverlay called: ${fragment.javaClass.simpleName}@${fragment.hashCode()} tag=$tag, currently showing: ${displayingOverlay.map { it.javaClass.simpleName + "@" + it.hashCode() }}")
+
             if (fragment.isAdded) {
+                android.util.Log.e("ActivityOverlay", "  -> already added, skipping")
                 return
             }
             if (displayingOverlay.contains(fragment) || fragmentManager!!.findFragmentByTag(tag) != null) {
+                android.util.Log.e("ActivityOverlay", "  -> found by tag/instance, replacing")
                 displayingOverlay.remove(fragment)
                 fragmentManager!!.beginTransaction()
                     .remove(fragment)
@@ -61,6 +65,7 @@ object ActivityOverlay {
                     .commitAllowingStateLoss()
                 return
             }
+            android.util.Log.e("ActivityOverlay", "  -> fresh add, container will now have ${displayingOverlay.size + 1} fragments")
             displayingOverlay.add(fragment)
             fragmentManager!!.beginTransaction()
                 .add(containerId, fragment, tag)

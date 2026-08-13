@@ -8,12 +8,11 @@ import ru.nsu.ccfit.zuev.osu.Config
 import java.io.File
 import java.util.Arrays
 
-class SkinPathPreference @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0,
-    defStyleRes: Int = 0
-) : ListPreference(context, attrs, defStyleAttr, defStyleRes) {
+class SkinPathPreference : ListPreference {
+
+    constructor(context: Context, attrs: AttributeSet? = null) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes)
 
     fun reloadSkinList() {
         try {

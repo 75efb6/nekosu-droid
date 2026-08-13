@@ -67,7 +67,21 @@ abstract class SettingsFragment : PreferenceFragmentCompat(), BackPressListener 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         isCreated = true
-        root = super<PreferenceFragmentCompat>.onCreateView(inflater, container, savedInstanceState)
+        val customRoot = inflater.inflate(R.layout.fragment_settings, container, false)
+        val superRoot = super<PreferenceFragmentCompat>.onCreateView(inflater, container, savedInstanceState)
+
+        val superContainer = superRoot?.findViewById<ViewGroup>(android.R.id.list_container)
+        val ourContainer = customRoot.findViewById<ViewGroup>(android.R.id.list_container)
+
+        if (superContainer != null && ourContainer != null) {
+            while (superContainer.childCount > 0) {
+                val child = superContainer.getChildAt(0)
+                superContainer.removeViewAt(0)
+                ourContainer.addView(child)
+            }
+        }
+
+        root = customRoot
         onLoadView()
 
         root?.post {

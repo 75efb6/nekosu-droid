@@ -10,9 +10,9 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
 import android.widget.ImageView
-import android.widget.LinearLayout
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
+import ru.nsu.ccfit.zuev.osuplus.R // adjust to your actual R package
 
 class ColorPickerPreference : Preference, Preference.OnPreferenceClickListener, ColorPickerDialog.OnColorChangedListener {
 
@@ -51,6 +51,17 @@ class ColorPickerPreference : Preference, Preference.OnPreferenceClickListener, 
     private fun init(context: Context, attrs: AttributeSet?) {
         mDensity = this.context.resources.displayMetrics.density
         onPreferenceClickListener = this
+
+        // Give this preference its own dedicated widget layout so the
+        // RecyclerView adapter never assigns it the same view type as a
+        // plain Preference. Without this, ColorPickerPreference's
+        // onBindViewHolder mutates android.R.id.widget_frame on a view
+        // that can later be recycled by an unrelated plain Preference
+        // (e.g. "update", "clear", "registerAcc"), which never resets
+        // that frame back — the stale swatch/content bleeds into
+        // whatever preference reuses the recycled view next.
+        widgetLayoutResource = R.layout.preference_widget_colorpicker
+
         if (attrs != null) {
             mAlphaSliderEnabled = attrs.getAttributeBooleanValue(null, "alphaSlider", false)
             mHexValueEnabled = attrs.getAttributeBooleanValue(null, "hexValue", false)
@@ -60,26 +71,11 @@ class ColorPickerPreference : Preference, Preference.OnPreferenceClickListener, 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
         mView = holder.itemView
-        setPreviewColor()
+        setPreviewColor(holder)
     }
 
-    private fun setPreviewColor() {
-        if (mView == null) return
-        val iView = ImageView(context)
-        val widgetFrameView = mView!!.findViewById(android.R.id.widget_frame) as? LinearLayout ?: return
-        widgetFrameView.visibility = View.VISIBLE
-        widgetFrameView.setPadding(
-            widgetFrameView.paddingLeft,
-            widgetFrameView.paddingTop,
-            (mDensity * 8).toInt(),
-            widgetFrameView.paddingBottom
-        )
-        val count = widgetFrameView.childCount
-        if (count > 0) {
-            widgetFrameView.removeViews(0, count)
-        }
-        widgetFrameView.addView(iView)
-        widgetFrameView.minimumWidth = 0
+    private fun setPreviewColor(holder: PreferenceViewHolder) {
+        val iView = holder.findViewById(R.id.color_picker_swatch) as? ImageView ?: return
         iView.setBackgroundDrawable(AlphaPatternDrawable((5 * mDensity).toInt()))
         iView.setImageBitmap(getPreviewBitmap())
     }
@@ -108,7 +104,10 @@ class ColorPickerPreference : Preference, Preference.OnPreferenceClickListener, 
             persistInt(color)
         }
         mValue = color
-        setPreviewColor()
+        mView?.let { view ->
+            val iView = view.findViewById<ImageView>(R.id.color_picker_swatch)
+            iView?.setImageBitmap(getPreviewBitmap())
+        }
         try {
             onPreferenceChangeListener?.onPreferenceChange(this, color)
         } catch (_: NullPointerException) {
