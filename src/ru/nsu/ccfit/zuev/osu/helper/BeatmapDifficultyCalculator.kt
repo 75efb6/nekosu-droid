@@ -86,7 +86,7 @@ object BeatmapDifficultyCalculator {
 
     @JvmStatic
     fun calculatePerformance(attributes: DifficultyAttributes): PerformanceAttributes =
-        calculatePerformance(attributes, null as PerformanceCalculationParameters?)
+        PerformanceCalculator(attributes).calculate(null)
 
     @JvmStatic
     fun calculatePerformance(attributes: DifficultyAttributes, stat: StatisticV2): PerformanceAttributes =

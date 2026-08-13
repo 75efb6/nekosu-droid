@@ -27,7 +27,7 @@ class PerformanceCalculator {
         return createPerformanceAttributes()
     }
 
-    fun calculate(parameters: PerformanceCalculationParameters): PerformanceAttributes {
+    fun calculate(parameters: PerformanceCalculationParameters?): PerformanceAttributes {
         processParameters(parameters)
 
         return createPerformanceAttributes()
