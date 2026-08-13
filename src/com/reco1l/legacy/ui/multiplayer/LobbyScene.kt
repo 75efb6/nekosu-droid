@@ -26,6 +26,7 @@ import ru.nsu.ccfit.zuev.osu.online.OnlinePanel
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.ResourceManager
+import ru.nsu.ccfit.zuev.osu.online.SeasonalBackgroundManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
 object LobbyScene : Scene()
@@ -308,8 +309,8 @@ object LobbyScene : Scene()
     {
         var texture = ResourceManager.getInstance().getTexture("menu-background")
 
-        if (!Config.isSafeBeatmapBg())
-                texture = ResourceManager.getInstance().getTexture("::background") ?: texture
+        if (SeasonalBackgroundManager.isSeasonalActive() || !Config.isSafeBeatmapBg())
+                texture = ResourceManager.getInstance().getTextureIfLoaded("::background") ?: texture
 
         texture?.also {
 

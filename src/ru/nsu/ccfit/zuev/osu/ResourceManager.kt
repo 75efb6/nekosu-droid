@@ -38,6 +38,7 @@ import ru.nsu.ccfit.zuev.skins.OsuSkin
 import ru.nsu.ccfit.zuev.skins.SkinJsonReader
 import ru.nsu.ccfit.zuev.skins.SkinManager
 import ru.nsu.ccfit.zuev.skins.StringSkinData
+import ru.nsu.ccfit.zuev.osu.online.SeasonalBackgroundManager
 
 class ResourceManager private constructor() {
     private val fonts: MutableMap<String, Font> = HashMap()
@@ -352,11 +353,6 @@ class ResourceManager private constructor() {
     }
 
     fun loadBackground(file: String, engine: Engine): TextureRegion? {
-        if (textures.containsKey("::background")) {
-            engine.textureManager.unloadTexture(
-                Objects.requireNonNull(textures["::background"])!!.texture
-            )
-        }
         if (file.isEmpty() || file == "null" || file.endsWith("/null")) {
             return textures["menu-background"]
         }

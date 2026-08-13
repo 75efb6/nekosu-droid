@@ -272,7 +272,7 @@ class SongMenu : IUpdateHandler, MenuItemListener, IScrollBarListener {
                 }
             }
         } else {
-            backButton = object : Sprite(0f, 0f, ResourceManager.getInstance().getTexture("menu-back")!!) {
+            backButton = object : Sprite(0f, 0f, ResourceManager.getInstance().getTexture("menu-back") ?: ResourceManager.getInstance().getTexture("menu-background")!!) {
                 var moved = false
                 var dx = 0f; var dy = 0f
                 val scaleWhenHold = layoutBackButton?.property?.optBoolean("scaleWhenHold", true) ?: true
@@ -386,7 +386,7 @@ class SongMenu : IUpdateHandler, MenuItemListener, IScrollBarListener {
         if (isEditorMode) {
             modSelection?.setVisible(false); modSelection?.setIgnoreUpdate(true)
             randomMap.setVisible(false); randomMap.setIgnoreUpdate(true)
-            val createButton = object : Sprite(0f, 0f, ResourceManager.getInstance().getTexture("menu-back")!!) {
+            val createButton = object : Sprite(0f, 0f, ResourceManager.getInstance().getTexture("menu-back-0") ?: ResourceManager.getInstance().getTexture("menu-background")!!) {
                 var moved = false; var dx = 0f; var dy = 0f
                 override fun onAreaTouched(pSceneTouchEvent: TouchEvent, pTouchAreaLocalX: Float, pTouchAreaLocalY: Float): Boolean {
                     if (pSceneTouchEvent.isActionDown) { setColor(0.7f, 0.7f, 0.7f); moved = false; dx = pTouchAreaLocalX; dy = pTouchAreaLocalY; return true }
