@@ -101,22 +101,19 @@ object GameHelper {
     }
 
     fun ar2ms(ar: Double): Double {
-        val ms = if (ar < 5) 1800.0 - 120.0 * ar else 1950.0 - 150.0 * ar
-        return ms.coerceIn(450.0, 1800.0)
+        return Round(if (ar <= 5) 1800.0 - 120.0 * ar else 1950.0 - 150.0 * ar, 0)
     }
 
     fun ms2ar(ms: Double): Float {
-        val ar = if (ms > 1200) (1800.0 - ms) / 120.0 else (1950.0 - ms) / 150.0
-        return ar.coerceIn(0.0, 10.0).toFloat()
+        return (if (ms <= 1200) (1200 - ms) / 150.0 + 5 else (1800.0 - ms) / 120.0).toFloat()
     }
 
     fun od2ms(od: Float): Float {
-        return (80f - 6f * od).coerceIn(20f, 80f)
+        return Round((80f - 6f * od).toDouble(), 1).toFloat()
     }
 
     fun ms2od(ms: Float): Float {
-        val od = (80f - ms) / 6f
-        return od.coerceIn(0f, 10f)
+        return (80f - ms) / 6f
     }
 
     fun setHardrock(value: Boolean) { hardrock = value }
