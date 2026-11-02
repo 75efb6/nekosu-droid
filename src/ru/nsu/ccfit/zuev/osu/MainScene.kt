@@ -450,6 +450,20 @@ class MainScene : IUpdateHandler {
         scene!!.attachChild(music_next)
         scene!!.attachChild(beatmapDownloader)
 
+        // Social button - top right
+        val socialBtn = object : Text(Config.getRES_WIDTH() - Utils.toRes(130).toFloat(), Utils.toRes(15).toFloat(), ResourceManager.getInstance().getFont("middleFont"), "Social") {
+            var moved = false
+            override fun onAreaTouched(pSceneTouchEvent: TouchEvent, pTouchAreaLocalX: Float, pTouchAreaLocalY: Float): Boolean {
+                if (pSceneTouchEvent.isActionDown) { setColor(0.9f, 0.3f, 0.6f); moved = false; return true }
+                if (pSceneTouchEvent.isActionUp) { setColor(1f, 1f, 1f); if (!moved) { com.reco1l.legacy.ui.social.SocialScene.open() }; return true }
+                if (pSceneTouchEvent.isActionOutside) { setColor(1f, 1f, 1f); moved = true }
+                return false
+            }
+        }
+        socialBtn.setColor(0.8f, 0.8f, 0.8f)
+        scene!!.attachChild(socialBtn)
+        scene!!.registerTouchArea(socialBtn)
+
         scene!!.registerTouchArea(logo)
         scene!!.registerTouchArea(author)
         scene!!.registerTouchArea(beatmapDownloader)

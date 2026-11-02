@@ -56,6 +56,8 @@ abstract class GameObject {
 
     fun isStartHit(): Boolean = startHit
 
+    fun setStartHit(value: Boolean) { startHit = value }
+
     open fun tryHit(dt: Float) {}
 
     fun getPos(): PointF = pos

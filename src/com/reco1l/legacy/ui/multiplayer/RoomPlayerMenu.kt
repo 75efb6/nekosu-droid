@@ -8,12 +8,19 @@ import com.edlplan.framework.easing.Easing
 import com.edlplan.ui.BaseAnimationListener
 import com.edlplan.ui.EasingHelper
 import com.edlplan.ui.fragment.BaseFragment
-import com.edlplan.ui.fragment.WebViewFragment
 import com.reco1l.api.ibancho.RoomAPI
 import com.reco1l.api.ibancho.data.RoomPlayer
 import com.reco1l.legacy.Multiplayer
 import ru.nsu.ccfit.zuev.osuplus.R
 import ru.nsu.ccfit.zuev.osu.GlobalManager
+import com.reco1l.api.server.SocialAPI
+import com.reco1l.api.server.SpectateAPI
+import com.reco1l.legacy.ui.social.ChatScene
+import com.reco1l.legacy.ui.social.ProfilePopup
+import com.reco1l.legacy.ui.spectate.SpectateScene
+import com.reco1l.framework.lang.async
+import ru.nsu.ccfit.zuev.osu.online.OnlineManager
+import ru.nsu.ccfit.zuev.osu.ToastLogger
 
 class RoomPlayerMenu : BaseFragment()
 {
@@ -22,9 +29,6 @@ class RoomPlayerMenu : BaseFragment()
 
 
     var player: RoomPlayer? = null
-
-
-    private var webView: WebViewFragment? = null
 
 
     init
@@ -43,14 +47,59 @@ class RoomPlayerMenu : BaseFragment()
 
         findViewById<TextView>(R.id.room_player)!!.text = player!!.name
 
+        // View profile -> open in-app profile popup
         findViewById<View>(R.id.room_profile)!!.setOnClickListener {
+            val profile = ProfilePopup.newInstance(player!!.id.toLong())
+            profile.show()
+            dismiss()
+        }
 
-            webView = WebViewFragment().apply {
-                setURL(WebViewFragment.PROFILE_URL + player!!.id)
-                show()
+        // Send message
+        findViewById<View>(R.id.room_send_message)!!.setOnClickListener {
+            val chat = ChatScene.newInstance(player!!.id.toLong(), player!!.name)
+            chat.show()
+            dismiss()
+        }
+
+        // Spectate
+        val spectateBtn = findViewById<View>(R.id.room_spectate)!!
+        spectateBtn.setOnClickListener {
+            SpectateAPI.startSpectating(player!!.id.toLong())
+            val overlay = SpectateScene.newInstance(player!!.id.toLong(), player!!.name)
+            overlay.show()
+            dismiss()
+        }
+
+        // Add friend
+        val addFriendBtn = findViewById<View>(R.id.room_add_friend)!!
+        val userId = OnlineManager.getInstance().userId
+        async {
+            val result = SocialAPI.getFriends(userId)
+            val friends = result?.optJSONArray("friends") ?: org.json.JSONArray()
+            var isFriend = false
+            for (i in 0 until friends.length()) {
+                if (friends.optJSONObject(i)?.optLong("id", 0) == player!!.id.toLong()) {
+                    isFriend = true
+                    break
+                }
+            }
+            GlobalManager.getInstance().getMainActivity()?.runOnUiThread {
+                if (isFriend) {
+                    addFriendBtn.visibility = View.INVISIBLE
+                }
+            }
+        }
+        addFriendBtn.setOnClickListener {
+            async {
+                SocialAPI.addFriend(userId, player!!.id.toLong())
+                GlobalManager.getInstance().getMainActivity()?.runOnUiThread {
+                    ToastLogger.showText("Friend request sent!", false)
+                    addFriendBtn.visibility = View.INVISIBLE
+                }
             }
         }
 
+        // Mute
         val muteText = findViewById<TextView>(R.id.mute_text)!!
 
         fun updateText()
@@ -68,6 +117,7 @@ class RoomPlayerMenu : BaseFragment()
             updateText()
         }
 
+        // Make host
         val kick = findViewById<View>(R.id.room_kick)!!
         val host = findViewById<View>(R.id.room_host)!!
 
@@ -92,6 +142,21 @@ class RoomPlayerMenu : BaseFragment()
                 .showForResult {
                     dismiss()
                     if (Multiplayer.isConnected) RoomAPI.setRoomHost(player!!.id)
+                }
+        }
+
+        // Block user
+        findViewById<View>(R.id.room_block)!!.setOnClickListener {
+            ConfirmDialogFragment()
+                .setMessage("Block ${player!!.name}?\nThey won't be able to message you.")
+                .showForResult {
+                    async {
+                        SocialAPI.blockUser(userId, player!!.id.toLong())
+                        GlobalManager.getInstance().getMainActivity()?.runOnUiThread {
+                            ToastLogger.showText("User blocked", false)
+                        }
+                    }
+                    dismiss()
                 }
         }
 
@@ -137,7 +202,6 @@ class RoomPlayerMenu : BaseFragment()
 
     override fun dismiss()
     {
-        webView?.dismiss()
         playEndAnim { super.dismiss() }
     }
 }

@@ -403,6 +403,20 @@ class SongMenu : IUpdateHandler, MenuItemListener, IScrollBarListener {
             frontLayer.attachChild(randomMap)
             scene!!.registerTouchArea(randomMap)
         }
+
+        // Social button - top right
+        val socialButton = object : Text(Config.getRES_WIDTH() - Utils.toRes(130).toFloat(), Utils.toRes(15).toFloat(), ResourceManager.getInstance().getFont("middleFont"), "Social") {
+            var moved = false; var dx = 0f; var dy = 0f
+            override fun onAreaTouched(pSceneTouchEvent: TouchEvent, pTouchAreaLocalX: Float, pTouchAreaLocalY: Float): Boolean {
+                if (pSceneTouchEvent.isActionDown) { setColor(0.9f, 0.3f, 0.6f); moved = false; dx = pTouchAreaLocalX; dy = pTouchAreaLocalY; return true }
+                if (pSceneTouchEvent.isActionUp) { setColor(1f, 1f, 1f); if (!moved) { velocityY = 0f; com.reco1l.legacy.ui.social.SocialScene.open() }; return true }
+                if (pSceneTouchEvent.isActionOutside || pSceneTouchEvent.isActionMove && MathUtils.distance(dx, dy, pTouchAreaLocalX, pTouchAreaLocalY) > 50) { setColor(1f, 1f, 1f); moved = true }
+                return false
+            }
+        }
+        socialButton.setColor(0.8f, 0.8f, 0.8f)
+        frontLayer.attachChild(socialButton)
+        scene!!.registerTouchArea(socialButton)
         if (OnlineScoring.getInstance().createSecondPanel() != null) {
             val panel: OnlinePanel = OnlineScoring.getInstance().secondPanel!!
             panel.detachSelf()

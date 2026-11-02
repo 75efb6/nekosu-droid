@@ -10,9 +10,9 @@ import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_SHORT
 import com.google.android.material.snackbar.Snackbar
 import com.reco1l.framework.lang.async
 import com.reco1l.framework.lang.mainThread
+import com.reco1l.api.server.ServerAPI
 import com.reco1l.framework.net.Downloader
 import com.reco1l.framework.net.IDownloaderObserver
-import okhttp3.Request
 import org.json.JSONObject
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
@@ -142,32 +142,27 @@ object UpdateManager: IDownloaderObserver
                     onFoundNewUpdate(silently)
                     return@async
                 }
-                
-                val request = Request.Builder()
-                    .url(OnlineManager.updateEndpoint + mainActivity!!.resources.configuration.locale.language)
-                    .build()
 
-                OnlineManager.client.newCall(request).execute().use {
+                val response = ServerAPI.getUpdate()
 
-                    val response = JSONObject(it.body!!.string())
+                if (response != null) {
                     val changelogUrl = response.getString("changelog")
 
                     downloadURL = response.getString("link")
                     newVersionCode = response.getLong("version_code")
 
-                    // Previous implementation has this check, server returning an older version 
-                    // shouldn't happen.
                     if (newVersionCode <= mainActivity!!.getVersionCode()) {
                         onAlreadyLatestVersion(silently)
                         return@async
                     }
 
-                    // Storing change log link to show once the user update to next version.
                     preferences.apply {
                         edit().putString("pendingChangelog", changelogUrl).apply()
                     }
 
                     onFoundNewUpdate(silently)
+                } else {
+                    onUpdateCheckFailed(silently)
                 }
             } catch (exception: Exception) {
 

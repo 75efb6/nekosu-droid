@@ -28,6 +28,8 @@ object BeatmapDownloader : IDownloaderObserver {
 
     private lateinit var currentFilename: String
 
+    private var onComplete: (() -> Unit)? = null
+
 
     private val context get() = GlobalManager.getInstance().getMainActivity()!!
 
@@ -35,11 +37,12 @@ object BeatmapDownloader : IDownloaderObserver {
     private var isDownloading = false
 
 
-    fun download(url: String, suggestedFilename: String) {
+    fun download(url: String, suggestedFilename: String, onComplete: (() -> Unit)? = null) {
         if (isDownloading) {
             return
         }
         isDownloading = true
+        this.onComplete = onComplete
 
         val name = suggestedFilename.decodeUtf8()
         val filename = name.forFilesystem()
@@ -93,25 +96,19 @@ object BeatmapDownloader : IDownloaderObserver {
         }
 
         val file = downloader.file
+        var imported = false
 
         try {
-            ZipFile(file).use {
-                if (!it.isValidZipFile) {
-                    context.runOnUiThread(fragment::dismiss)
-                    ToastLogger.showText("Import failed, invalid ZIP file.", true)
-                    return
-                }
-
-                if (!FileUtils.extractZip(file.path, Config.getBeatmapPath())) {
-                    context.runOnUiThread(fragment::dismiss)
-                    ToastLogger.showText("Import failed, failed to extract ZIP file.", true)
-                    return
-                }
-
+            if (!ZipFile(file).isValidZipFile) {
+                ToastLogger.showText("Import failed, invalid ZIP file.", true)
+            } else if (!FileUtils.extractZip(file.path, Config.getBeatmapPath())) {
+                ToastLogger.showText("Import failed, failed to extract ZIP file.", true)
+            } else {
                 LibraryManager.INSTANCE.updateLibrary(true)
+                imported = true
             }
-        } catch (e: IOException) {
-            ToastLogger.showText("Import failed:" + e.message, true)
+        } catch (e: Exception) {
+            ToastLogger.showText("Import failed: ${e.message}", true)
         }
 
         context.runOnUiThread(fragment::dismiss)
@@ -120,6 +117,10 @@ object BeatmapDownloader : IDownloaderObserver {
             RoomScene.onRoomBeatmapChange(Multiplayer.room!!.beatmap)
 
         isDownloading = false
+        if (imported) {
+            onComplete?.invoke()
+        }
+        onComplete = null
     }
 
     override fun onDownloadCancel(downloader: Downloader) {

@@ -51,6 +51,7 @@ object Config {
     private var enableExtension = false
     private var seasonalBg = false
     private var stayOnline = false
+    private var allowSpectating = true
     private var syncMusic = false
     private var burstEffects = false
     private var hitLighting = false
@@ -231,6 +232,7 @@ object Config {
         onlineUsername = prefs.getString("onlineUsername", "")
         onlinePassword = prefs.getString("onlinePassword", null)
         stayOnline = prefs.getBoolean("stayOnline", false)
+        allowSpectating = prefs.getBoolean("allowSpectating", true)
         seasonalBg = prefs.getBoolean("seasonalBg", true)
     }
 
@@ -478,6 +480,11 @@ object Config {
     var isStayOnline: Boolean
         get() = stayOnline && BuildType.hasOnlineAccess()
         set(value) { Config.stayOnline = value }
+
+    @JvmStatic
+    var isAllowSpectating: Boolean
+        get() = allowSpectating
+        set(value) { Config.allowSpectating = value }
 
     @JvmStatic
     fun isSeasonalBg(): Boolean = seasonalBg

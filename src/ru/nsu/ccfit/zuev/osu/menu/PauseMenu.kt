@@ -11,6 +11,7 @@ import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.ToastLogger
+import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osuplus.R
 
@@ -59,6 +60,22 @@ class PauseMenu(engine: Engine, game: GameScene, fail: Boolean) : IOnMenuItemCli
         }
         scene.buildAnimations()
         scene.setOnMenuItemClickListener(this)
+
+        val socialBtn = object : org.anddev.andengine.entity.text.Text(
+            Config.getRES_WIDTH() - Utils.toRes(130).toFloat(), Utils.toRes(15).toFloat(),
+            ResourceManager.getInstance().getFont("middleFont"), "Social"
+        ) {
+            var moved = false
+            override fun onAreaTouched(pSceneTouchEvent: org.anddev.andengine.input.touch.TouchEvent, pTouchAreaLocalX: Float, pTouchAreaLocalY: Float): Boolean {
+                if (pSceneTouchEvent.isActionDown) { setColor(0.9f, 0.3f, 0.6f); moved = false; return true }
+                if (pSceneTouchEvent.isActionUp) { setColor(1f, 1f, 1f); if (!moved) { com.reco1l.legacy.ui.social.SocialScene.open() }; return true }
+                if (pSceneTouchEvent.isActionOutside) { setColor(1f, 1f, 1f); moved = true }
+                return false
+            }
+        }
+        socialBtn.setColor(0.8f, 0.8f, 0.8f)
+        scene.attachChild(socialBtn)
+        scene.registerTouchArea(socialBtn)
     }
 
     fun getScene(): MenuScene = scene

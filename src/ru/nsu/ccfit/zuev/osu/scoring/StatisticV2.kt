@@ -47,6 +47,13 @@ class StatisticV2 : Serializable {
     private var currentCombo = 0
     private var scoreHash = 0
     private var totalScore = 0
+
+    /**
+     * Set the total score directly (used for spectate score sync).
+     */
+    fun setScore(score: Int) {
+        totalScore = score
+    }
     private var possibleScore = 0
     private var realScore = 0
     internal var hp = 1f

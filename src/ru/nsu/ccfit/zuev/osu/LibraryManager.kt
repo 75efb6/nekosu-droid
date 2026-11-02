@@ -104,6 +104,7 @@ enum class LibraryManager {
     private fun checkLibrary() {
         val dir = File(Config.getBeatmapPath())
         val files = FileUtils.listFiles(dir) ?: emptyArray()
+        Debug.i("LibraryManager: checkLibrary disk=${files.size} cached=$fileCount")
         if (files.size == fileCount) {
             return
         }

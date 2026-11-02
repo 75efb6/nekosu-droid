@@ -395,7 +395,7 @@ class MainActivity : BaseGameActivity(), IAccelerometerListener {
                     false
                 )
                 FileUtils.extractZip(beatmapToAdd!!, Config.getBeatmapPath())
-                LibraryManager.INSTANCE.saveToCache()
+                LibraryManager.INSTANCE.updateLibrary(true)
             } else if (file.name.endsWith(".odr")) {
                 willReplay = true
             }
@@ -448,7 +448,7 @@ class MainActivity : BaseGameActivity(), IAccelerometerListener {
                 for (beatmap in beatmaps) {
                     FileUtils.extractZip(beatmap, Config.getBeatmapPath())
                 }
-                LibraryManager.INSTANCE.saveToCache()
+                LibraryManager.INSTANCE.updateLibrary(true)
             }
         }
     }
@@ -712,6 +712,11 @@ class MainActivity : BaseGameActivity(), IAccelerometerListener {
             && (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU)
             && GlobalManager.getInstance().engine?.scene == GlobalManager.getInstance().gameScene?.scene
         ) {
+            // Spectating: toggle overlay instead of pausing
+            if (GlobalManager.getInstance().gameScene!!.isSpectating) {
+                com.reco1l.legacy.ui.spectate.SpectateScene.currentInstance?.toggleOverlay()
+                return true
+            }
             if (GlobalManager.getInstance().gameScene!!.isPaused()) {
                 GlobalManager.getInstance().gameScene?.resume()
             } else {

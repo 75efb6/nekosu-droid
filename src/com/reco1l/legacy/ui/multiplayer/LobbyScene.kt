@@ -28,6 +28,7 @@ import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.online.SeasonalBackgroundManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
+import com.reco1l.legacy.ui.social.SocialScene
 
 object LobbyScene : Scene()
 {
@@ -204,6 +205,28 @@ object LobbyScene : Scene()
             it.width = 400f
             it.setColor(0.145f, 0.145f, 0.251f)
             it.setPosition(40f, createButton!!.y + createButton!!.height + 30f)
+            attachChild(it)
+            registerTouchArea(it)
+        }
+
+        val socialButton = object : TextButton(ResourceManager.getInstance().getFont("CaptionFont"), "Social")
+        {
+            override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean
+            {
+                if (!event.isActionUp || awaitList)
+                    return false
+
+                ResourceManager.getInstance().getSound("menuclick")?.play()
+                GlobalManager.getInstance().getMainActivity()?.runOnUiThread {
+                    SocialScene().show()
+                }
+                return true
+            }
+        }.also {
+
+            it.width = 400f
+            it.setColor(0.145f, 0.145f, 0.251f)
+            it.setPosition(40f, refreshButton!!.y + refreshButton!!.height + 30f)
             attachChild(it)
             registerTouchArea(it)
         }

@@ -1,32 +1,21 @@
 package com.reco1l.api.ibancho
 
 import com.reco1l.api.ibancho.data.*
-import com.reco1l.framework.extensions.orCatch
-import com.reco1l.framework.net.JsonContent
-import com.reco1l.framework.net.JsonRequester
-import com.reco1l.framework.net.QueryContent
+import com.reco1l.api.server.ServerAPI
+import org.json.JSONArray
+import org.json.JSONObject
 
 object LobbyAPI
 {
     /**
      * The hostname.
      */
-    const val HOST = "https://droid.neko.org.es/multi"
+    const val HOST = "http://10.0.0.103:3000/multi"
 
     /**
      * The invite link host.
      */
     const val INVITE_HOST = "https://nodmp"
-
-    /**
-     * Endpoint to get a rooms list.
-     */
-    private const val GET_ROOMS = "/getrooms"
-
-    /**
-     * Endpoint to create a room.
-     */
-    private const val CREATE_ROOM = "/createroom"
 
 
     /**
@@ -34,42 +23,41 @@ object LobbyAPI
      */
     fun getRooms(query: String?, sign: String?): List<Room>
     {
-        JsonRequester("$HOST$GET_ROOMS").use {
+        val response = ServerAPI.getRooms() ?: return emptyList()
 
-            it.log = false
-
-            if (sign != null || query != null)
-                it.query = QueryContent().apply {
-                    put("sign", sign)
-                    put("query", query)
+        val array = when (response) {
+            is JSONArray -> response
+            is JSONObject -> {
+                val data = response.opt("data")
+                when (data) {
+                    is JSONArray -> data
+                    else -> return emptyList()
                 }
-
-            val array = it.executeAndGetJson().toArray() ?: return emptyList()
-
-            return List(array.length()) { i ->
-
-                val json = array.optJSONObject(i)
-
-                return@List {
-
-                    Room(
-                            id = json.getLong("id"),
-                            name = json.getString("name"),
-                            isLocked = json.getBoolean("isLocked"),
-                            maxPlayers = json.getInt("maxPlayers"),
-                            mods = parseMods(json.getJSONObject("mods")),
-                            gameplaySettings = parseGameplaySettings(json.getJSONObject("gameplaySettings")),
-                            teamMode = TeamMode.from(json.getInt("teamMode")),
-                            winCondition = WinCondition.from(json.getInt("winCondition")),
-                            playerCount = json.getInt("playerCount"),
-                            playerNames = json.getString("playerNames"),
-                            status = RoomStatus.from(json.getInt("status"))
-                    )
-
-                }.orCatch { null }
-
-            }.filterNotNull()
+            }
+            else -> return emptyList()
         }
+
+        return List(array.length()) { i ->
+
+            val json = array.optJSONObject(i) ?: return@List null
+
+            runCatching {
+                Room(
+                    id = json.getLong("id"),
+                    name = json.getString("name"),
+                    isLocked = json.getBoolean("isLocked"),
+                    maxPlayers = json.getInt("maxPlayers"),
+                    mods = parseMods(json.getJSONObject("mods")),
+                    gameplaySettings = parseGameplaySettings(json.getJSONObject("gameplaySettings")),
+                    teamMode = TeamMode.from(json.getInt("teamMode")),
+                    winCondition = WinCondition.from(json.getInt("winCondition")),
+                    playerCount = json.getInt("playerCount"),
+                    playerNames = json.getString("playerNames"),
+                    status = RoomStatus.from(json.getInt("status"))
+                )
+            }.getOrNull()
+
+        }.filterNotNull()
     }
 
     /**
@@ -77,34 +65,25 @@ object LobbyAPI
      */
     fun createRoom(name: String, beatmap: RoomBeatmap?, hostUID: Long, hostUsername: String, sign: String?, password: String? = null, maxPlayers: Int = 8): Long
     {
-        JsonRequester("$HOST$CREATE_ROOM").use { request ->
-
-            request.jsonInsertion = JsonContent().apply {
-
-                put("name", name)
-                put("maxPlayers", maxPlayers)
-
-                putGroup("host")
-                        .put("uid", hostUID.toString())
-                        .put("username", hostUsername)
-
-                if (beatmap != null)
-                {
-                    putGroup("beatmap")
-                            .put("md5", beatmap.md5)
-                            .put("title", beatmap.title)
-                            .put("artist", beatmap.artist)
-                            .put("creator", beatmap.creator)
-                            .put("version", beatmap.version)
-                }
-
-                if (!password.isNullOrBlank())
-                    put("password", password)
-
-                put("sign", sign)
+        val beatmapJson = if (beatmap != null) {
+            JSONObject().apply {
+                put("md5", beatmap.md5)
+                put("title", beatmap.title)
+                put("artist", beatmap.artist)
+                put("creator", beatmap.creator)
+                put("version", beatmap.version)
             }
+        } else null
 
-            return request.executeAndGetJson().getString("id").toLong()
-        }
+        val response = ServerAPI.createRoom(
+            name = name,
+            beatmap = beatmapJson,
+            hostUID = hostUID,
+            hostUsername = hostUsername,
+            password = password,
+            maxPlayers = maxPlayers
+        )
+
+        return response?.getString("id")?.toLongOrNull() ?: -1
     }
 }

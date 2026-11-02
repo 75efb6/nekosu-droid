@@ -1035,6 +1035,12 @@ object RoomScene : Scene(), IRoomEventListener, IPlayerEventListener
         if (room!!.addPlayer(player))
             chat.onSystemChatMessage("Player ${player.name} (ID: ${player.id}) joined.", "#007BFF")
 
+        // Track as recent player
+        com.reco1l.api.server.SocialAPI.addRecentPlayer(
+            ru.nsu.ccfit.zuev.osu.online.OnlineManager.getInstance().userId,
+            player.id.toLong()
+        )
+
         // Updating state text
         updateInformation()
 

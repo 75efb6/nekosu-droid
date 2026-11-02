@@ -5,10 +5,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.reco1l.api.server.ServerAPI
+import com.reco1l.api.server.GlobalChatAPI
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.anddev.andengine.util.Debug
-import org.json.JSONException
 import org.json.JSONObject
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
@@ -16,7 +17,6 @@ import ru.nsu.ccfit.zuev.osu.RankedStatus
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.TrackInfo
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
-import ru.nsu.ccfit.zuev.osu.online.PostBuilder.RequestException
 import java.io.File
 import java.io.IOException
 import java.util.ArrayList
@@ -66,30 +66,28 @@ class OnlineManager private constructor() {
         this.username = username
         this.password = password
 
-        val post = PostBuilder()
-        post.addParam("username", username)
-        post.addParam(
-            "password",
-            MD5Calculator.getStringMD5(
-                escapeHTMLSpecialCharacters(addSlashes(password.trim())) + "taikotaiko"
-            )
-        )
-        post.addParam("version", ONLINE_VERSION)
-        post.addParam("deviceID", deviceID)
+        // Connect to server if not connected
+        if (!ServerAPI.isConnected) {
+            ServerAPI.connect(0, "")
+        }
 
-        val response = sendRequest(post, ENDPOINT + "login.php")
+        val hashedPassword = MD5Calculator.getStringMD5(
+            escapeHTMLSpecialCharacters(addSlashes(password.trim())) + "taikotaiko"
+        )
+
+        val response = ServerAPI.login(username, hashedPassword, ONLINE_VERSION, deviceID)
 
         if (response == null) {
-            if (failMessage.isNotEmpty()) return false
             failMessage = "Cannot connect to server"
             return false
         }
-        if (response.size < 2) {
-            failMessage = "Invalid server response"
+
+        if (response.optString("status") != "success") {
+            failMessage = response.optString("data", "Unknown error")
             return false
         }
 
-        val params = response[1].split("\\s+".toRegex()).toTypedArray()
+        val params = response.getString("data").split("\\s+".toRegex()).toTypedArray()
         if (params.size < 6) {
             failMessage = "Invalid server response"
             return false
@@ -102,6 +100,15 @@ class OnlineManager private constructor() {
         this.username = params[5]
         avatarURL = "https://$HOSTNAME/avatars/$userId"
         profileBannerURL = "https://$HOSTNAME/banners/user/$userId"
+
+        // Reconnect with proper uid now that we know it
+        ServerAPI.disconnect()
+        ServerAPI.connect(userId, this.username)
+
+        // Connect to global chat
+        try {
+            GlobalChatAPI.connect(userId, this.username)
+        } catch (_: Exception) {}
 
         val bParams = Bundle()
         bParams.putString(FirebaseAnalytics.Param.METHOD, "ingame")
@@ -137,18 +144,16 @@ class OnlineManager private constructor() {
         else
             osuID = null
 
-        val post = PostBuilder()
-        post.addParam("userID", userId.toString())
-        post.addParam("ssid", ssid)
-        post.addParam("filename", trackfile.name)
-        post.addParam("hash", hash)
-        post.addParam("songTitle", beatmap.title ?: "")
-        post.addParam("songArtist", beatmap.artist ?: "")
-        post.addParam("songCreator", beatmap.creator ?: "")
-        if (osuID != null)
-            post.addParam("songID", osuID)
-
-        val response = sendRequest(post, ENDPOINT + "submit.php")
+        val response = ServerAPI.submitStart(
+            userID = userId,
+            ssid = ssid,
+            filename = trackfile.name,
+            hash = hash,
+            songTitle = beatmap.title ?: "",
+            songArtist = beatmap.artist ?: "",
+            songCreator = beatmap.creator ?: "",
+            songID = osuID
+        )
 
         if (response == null) {
             if (failMessage == "Cannot log in" && stayOnline) {
@@ -159,12 +164,12 @@ class OnlineManager private constructor() {
             return
         }
 
-        if (response.size < 2) {
-            failMessage = "Invalid server response"
+        if (response.optString("status") != "success") {
+            failMessage = response.optString("data", "Unknown error")
             return
         }
 
-        val resp = response[1].split("\\s+".toRegex()).toTypedArray()
+        val resp = response.getString("data").split("\\s+".toRegex()).toTypedArray()
         if (resp.size < 2) {
             failMessage = "Invalid server response"
             return
@@ -187,26 +192,19 @@ class OnlineManager private constructor() {
 
         Debug.i("Sending record...")
 
-        val post = PostBuilder()
-        post.addParam("userID", userId.toString())
-        post.addParam("playID", playID!!)
-        post.addParam("data", data)
-
-        val response = sendRequest(post, ENDPOINT + "submit.php")
+        val response = ServerAPI.submitRecord(userId, playID!!, data)
 
         if (response == null) {
+            failMessage = "Cannot connect to server"
             return false
         }
 
-        if (failMessage == "Invalid record data")
-            return false
-
-        if (response.size < 2) {
-            failMessage = "Invalid server response"
+        if (response.optString("status") != "success") {
+            failMessage = response.optString("data", "Unknown error")
             return false
         }
 
-        val resp = response[1].split("\\s+".toRegex()).toTypedArray()
+        val resp = response.getString("data").split("\\s+".toRegex()).toTypedArray()
         if (resp.size < 4) {
             failMessage = "Invalid server response"
             return false
@@ -228,41 +226,30 @@ class OnlineManager private constructor() {
 
     @Throws(OnlineManagerException::class)
     fun getTop(trackFile: File, hash: String): ArrayList<String> {
-        val post = PostBuilder()
-        post.addParam("filename", trackFile.name)
-        post.addParam("hash", hash)
-        post.addParam("uid", userId.toString())
-
-        val response = sendRequest(post, ENDPOINT + "getrank.php")
+        val response = ServerAPI.getrank(trackFile.name, hash, userId)
 
         if (response == null) {
             return ArrayList()
         }
 
-        response.removeAt(0)
+        if (response.optString("status") != "success") {
+            return ArrayList()
+        }
 
-        return response
+        val lines = response.getString("data").split("\n")
+        return ArrayList(lines)
     }
 
     @Throws(OnlineManagerException::class)
     fun getBeatmapStatus(md5: String): RankedStatus? {
-        val builder = Request.Builder().url(ENDPOINT + "v2/md5/$md5")
-        val request = builder.build()
+        val response = ServerAPI.getMapStatus(md5)
 
-        try {
-            val response = OnlineManager.client.newCall(request).execute()
-            response.use {
-                if (response.isSuccessful && response.body != null) {
-                    val json = JSONObject(response.body!!.string())
-                    return RankedStatus.valueOf(json.optInt("ranked"))
-                }
+        if (response != null) {
+            return try {
+                RankedStatus.valueOf(response.optInt("ranked"))
+            } catch (e: IllegalArgumentException) {
+                null
             }
-        } catch (e: IOException) {
-            Debug.e("getBeatmapStatus IOException " + e.message, e)
-        } catch (e: JSONException) {
-            Debug.e("getBeatmapStatus JSONException " + e.message, e)
-        } catch (e: IllegalArgumentException) {
-            Debug.e("getBeatmapStatus IllegalArgumentException " + e.message, e)
         }
 
         return null
@@ -368,21 +355,22 @@ class OnlineManager private constructor() {
 
     fun sendReplay(filename: String) {
         Debug.i("Sending replay '$filename' for id = $replayID")
-        OnlineFileOperator.sendFile(ENDPOINT + "upload.php", filename, replayID.toString())
+        OnlineFileOperator.sendFile(ServerAPI.HOST + "/api/upload.php", filename, replayID.toString())
     }
 
     @Throws(OnlineManagerException::class)
     fun getScorePack(playid: Int): String {
-        val post = PostBuilder()
-        post.addParam("playID", playid.toString())
+        val response = ServerAPI.gettop(playid)
 
-        val response = sendRequest(post, ENDPOINT + "gettop.php")
-
-        if (response == null || response.size < 2) {
+        if (response == null) {
             return ""
         }
 
-        return response[1]
+        if (response.optString("status") != "success") {
+            return ""
+        }
+
+        return response.optString("data", "")
     }
 
     fun getFailMessage(): String = failMessage
@@ -438,42 +426,9 @@ class OnlineManager private constructor() {
             .replace("\\", "\\\\")
     }
 
-    @Throws(OnlineManagerException::class)
-    private fun sendRequest(post: PostBuilder, url: String): ArrayList<String>? {
-        val response: ArrayList<String>
-        try {
-            response = post.requestWithAttempts(url, 3)
-        } catch (e: RequestException) {
-            Debug.e(e.message, e)
-            failMessage = "Cannot connect to server"
-            throw OnlineManagerException("Cannot connect to server", e)
-        }
-        failMessage = ""
-
-        if (response.size == 0 || response[0].isEmpty()) {
-            failMessage = "Got empty response"
-            Debug.i("Received empty response!")
-            return null
-        }
-
-        if (response[0] != "SUCCESS") {
-            Debug.i("sendRequest response code:  ${response[0]}")
-            failMessage = if (response.size >= 2) {
-                response[1]
-            } else {
-                "Unknown server error"
-            }
-            Debug.i("Received fail: $failMessage")
-            return null
-        }
-
-        return response
-    }
-
     companion object {
         const val HOSTNAME = "droid.neko.org.es"
-        const val ENDPOINT = "https://$HOSTNAME/api/"
-        const val updateEndpoint = "${ENDPOINT}update.php?lang="
+        const val ENDPOINT = "http://10.0.0.103:3000/"
         private const val ONLINE_VERSION = "8"
 
         val client = OkHttpClient()

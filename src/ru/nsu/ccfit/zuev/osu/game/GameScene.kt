@@ -12,12 +12,19 @@ import com.edlplan.framework.utils.functionality.SmartIterator
 import com.edlplan.osu.support.timing.TimingPoints
 import com.edlplan.osu.support.timing.controlpoint.ControlPoints
 import com.reco1l.api.ibancho.RoomAPI
+import com.reco1l.api.server.SpectateAPI
+import com.reco1l.api.server.SocialAPI
 import com.reco1l.framework.lang.Execution
 import com.reco1l.legacy.discord.DiscordRPC
 import com.reco1l.legacy.engine.BlankTextureRegion
 import com.reco1l.legacy.engine.VideoSprite
 import com.reco1l.legacy.ui.entity.InGameLeaderboard
 import com.reco1l.legacy.Multiplayer
+import com.reco1l.legacy.ui.spectate.SpectateBuffer
+import com.reco1l.legacy.ui.spectate.SpectateCursorSprite
+import com.reco1l.legacy.ui.spectate.SpectateFrame
+import com.reco1l.legacy.ui.spectate.SpectatePacket
+import com.reco1l.legacy.ui.spectate.SpectateState
 import com.reco1l.legacy.ui.multiplayer.RoomScene
 import com.reco1l.legacy.replay.ReplayOverlay
 import com.reco1l.legacy.replay.ReplayOverlayFragment
@@ -180,6 +187,21 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     private var realTimeElapsed: Long = 0
     private var statisticDataTimeElapsed: Long = 0
     private var lastScoreSent: ScoreBoardItem? = null
+
+    // Spectate: target side (streaming)
+    private var spectateFrameCounter = 0
+    private val SPECTATE_FRAME_INTERVAL = 1 // Send every frame (~60fps)
+    private val spectateHitsSinceLastSend = mutableListOf<Pair<Int, Int>>()
+
+    // Spectate: spectator side (receiving)
+    var isSpectating = false
+    var spectateTargetId = 0L
+    private val spectateBuffer = SpectateBuffer()
+    private var spectateStateApplied = false
+    private var spectateCursorSprites: Array<SpectateCursorSprite?> = arrayOfNulls(3)
+    private var spectateDataListener: io.socket.emitter.Emitter.Listener? = null
+    private var spectateStateListener: io.socket.emitter.Emitter.Listener? = null
+
     private val cursors = arrayOfNulls<Cursor>(CursorCount)
     private val cursorIIsDown = BooleanArray(CursorCount)
     private val pressConsumedThisFrame = BooleanArray(CursorCount)
@@ -448,7 +470,13 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
             else replay!!.countMarks(overallDifficulty)
         } else if (ModMenu.getInstance().mod.contains(GameMod.MOD_AUTO)) { replay = null }
 
-        if (!replaying) OnlineScoring.getInstance().startPlay(track, trackMD5!!)
+        if (!replaying && !isSpectating) OnlineScoring.getInstance().startPlay(track, trackMD5!!)
+
+        if (!replaying && !isSpectating) {
+            com.reco1l.framework.lang.Execution.asyncIgnoreExceptions {
+                SocialAPI.updateStatus(OnlineManager.getInstance().userId, "playing")
+            }
+        }
         if (Config.isEnableStoryboard()) { val fn = track.filename; storyboardSprite!!.loadStoryboard(fn!!) }
 
         GameObjectPool.getInstance().preload()
@@ -619,6 +647,11 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         difficultyHelper = if (stat!!.mod.contains(GameMod.MOD_PRECISE)) DifficultyHelper.HighDifficulty else DifficultyHelper.StdDifficulty
         GameHelper.difficultyHelper = difficultyHelper
 
+        // Spectating: spectator never fails, host controls game state
+        if (isSpectating) {
+            stat!!.canFail = false
+        }
+
         for (i in 0 until CursorCount) { cursors[i] = Cursor(); cursors[i]!!.mouseDown = false; cursors[i]!!.mousePressed = false; cursors[i]!!.mouseOldDown = false }
         cursorIIsDown.fill(false); kbKeyToSlot.clear()
         comboWas100 = false; comboWasMissed = false
@@ -637,11 +670,14 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         if (secPassed > 0) { skipTime -= secPassed; secPassed = 0f }
         distToNextObject = 0.0
 
-        if ((replaying || Config.isShowCursor()) && !GameHelper.isAuto() && !GameHelper.isAutopilotMod()) {
+        if (isSpectating) {
+            // Spectating: need cursorSprites to render remote cursor, skip AUTO cursor
+            cursorSprites = Array(CursorCount) { CursorEntity().also { it.attachToScene(fgScene) } }
+        } else if ((replaying || Config.isShowCursor()) && !GameHelper.isAuto() && !GameHelper.isAutopilotMod()) {
             cursorSprites = Array(CursorCount) { CursorEntity().also { it.attachToScene(fgScene) } }
         } else { cursorSprites = null }
 
-        if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) { autoCursor = AutoCursor(); autoCursor!!.attachToScene(fgScene) }
+        if (!isSpectating && (GameHelper.isAuto() || GameHelper.isAutopilotMod())) { autoCursor = AutoCursor(); autoCursor!!.attachToScene(fgScene) }
 
         if (GameHelper.isRelaxMod() && !replaying) {
             val centerX = Config.getRES_WIDTH() / 2f
@@ -768,6 +804,19 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         engine.touchController.applyTouchOptions(touchOptions)
         engine.setScene(scene)
         scene.registerUpdateHandler(this)
+
+        // Spectate: send map start event to spectators
+        if (!replaying && !isSpectating && OnlineManager.getInstance().stayOnline) {
+            // Register spectator count listener (server sends this when spectators join/leave)
+            SpectateAPI.onCount { count ->
+                android.util.Log.d("GameScene", "Spectator count updated: $count")
+            }
+
+            Execution.asyncIgnoreExceptions {
+                val modsStr = ModMenu.getInstance().mod.joinToString(",") { it.name }
+                SpectateAPI.sendMapStart(OnlineManager.getInstance().userId, trackMD5 ?: "", modsStr)
+            }
+        }
     }
 
     fun getComboColor(num: Int): RGBColor = combos!![num % combos!!.size]
@@ -821,6 +870,62 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
             }
         }
 
+        // Spectate: stream cursor data to spectators only if someone is watching
+        if (!replaying && !isSpectating && OnlineManager.getInstance().stayOnline && SpectateAPI.spectatorCount > 0 && Config.isAllowSpectating) {
+            spectateFrameCounter++
+            if (spectateFrameCounter >= SPECTATE_FRAME_INTERVAL) {
+                spectateFrameCounter = 0
+                val timeMs = (secPassed * 1000).toInt()
+                val hitsToSend: List<Pair<Int, Int>>
+                synchronized(spectateHitsSinceLastSend) {
+                    hitsToSend = spectateHitsSinceLastSend.toList()
+                    spectateHitsSinceLastSend.clear()
+                }
+
+                val targetId = OnlineManager.getInstance().userId
+                Execution.asyncIgnoreExceptions {
+                    SpectateAPI.sendSpectateData(
+                        targetId = targetId,
+                        timeMs = timeMs,
+                        cursors = cursors,
+                        score = stat?.totalScoreWithMultiplier ?: 0,
+                        combo = stat?.getCombo() ?: 0,
+                        acc = stat?.getAccuracy() ?: 0f,
+                        hp = stat?.hp ?: 1f,
+                        alive = stat?.isAlive ?: true,
+                        hits = hitsToSend
+                    )
+                }
+            }
+        }
+
+        // Spectate: receive and apply remote cursor data
+        if (isSpectating && !spectateBuffer.isEmpty()) {
+            val timeMs = (secPassed * 1000).toInt()
+            val packet = spectateBuffer.getPacketAt(timeMs)
+            if (packet != null) {
+                // Apply cursor positions
+                for (i in 0 until minOf(3, packet.cursors.size)) {
+                    val cursorData = packet.cursors[i]
+                    if (i < cursors.size && cursors[i] != null) {
+                        cursors[i]!!.mousePos.x = cursorData.x
+                        cursors[i]!!.mousePos.y = cursorData.y
+                        if (cursorData.down && !cursors[i]!!.mouseDown) {
+                            cursors[i]!!.mouseDown = true
+                            cursors[i]!!.mousePressed = true
+                        } else if (!cursorData.down && cursors[i]!!.mouseDown) {
+                            cursors[i]!!.mouseDown = false
+                        }
+                    }
+                }
+                // Apply score state
+                if (stat != null) {
+                    stat!!.setScore(packet.score)
+                    // Note: combo/acc/hp are applied visually via UI
+                }
+            }
+        }
+
         val gtime = if (soundTimingPoint == null || soundTimingPoint!!.time > secPassed) 0.0
             else (secPassed - firstTimingPoint!!.time) % GameHelper.kiaiTickLength
         GameHelper.globalTime = gtime
@@ -851,7 +956,15 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
             }
         }
 
-        if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) autoCursor?.update(dt)
+        if (isSpectating && cursorSprites != null) {
+            // Spectating: show spectated cursor positions from remote data
+            for (i in 0 until minOf(getCursorCount(), 3)) {
+                cursorSprites!![i].update(dt)
+                cursorSprites!![i].setPosition(cursors[i]!!.mousePos.x, cursors[i]!!.mousePos.y)
+                cursorSprites!![i].setShowing(cursors[i]!!.mouseDown)
+                if (cursors[i]!!.mouseDown && cursors[i]!!.mousePressed) cursorSprites!![i].click()
+            }
+        } else if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) autoCursor?.update(dt)
         else if (cursorSprites != null) {
             for (i in 0 until getCursorCount()) {
                 cursorSprites!![i].update(dt)
@@ -926,14 +1039,16 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
         if (comboBurst != null) { if (stat!!.getCombo() == 0) comboBurst!!.breakCombo() else comboBurst!!.checkAndShow(stat!!.getCombo()) }
 
-        while (expiredObjects.isNotEmpty()) { val obj = expiredObjects.poll()!!; activeObjects.remove(obj); passiveObjects.remove(obj) }
+        while (expiredObjects.isNotEmpty()) { val obj = expiredObjects.poll()!!; obj.cleanupFromScene(); activeObjects.remove(obj); passiveObjects.remove(obj) }
         updatePassiveObjects(dt); updateLastActiveObjectHitTime(); updateActiveObjects(dt)
 
-        if ((GameHelper.isAuto() || GameHelper.isAutopilotMod()) && activeObjects.isNotEmpty()) autoCursor?.moveToObject(activeObjects[0], secPassed, this)
+        if (!isSpectating && (GameHelper.isAuto() || GameHelper.isAutopilotMod()) && activeObjects.isNotEmpty()) autoCursor?.moveToObject(activeObjects[0], secPassed, this)
 
-        var downPressCursorCount = 0
-        for (i in 0 until getCursorCount()) { if (cursorIIsDown[i]) downPressCursorCount++; cursorIIsDown[i] = false }
-        for (i in 0 until downPressCursorCount - 1) { updateLastActiveObjectHitTime(); tryHitActiveObjects(dt) }
+        if (!isSpectating) {
+            var downPressCursorCount = 0
+            for (i in 0 until getCursorCount()) { if (cursorIIsDown[i]) downPressCursorCount++; cursorIIsDown[i] = false }
+            for (i in 0 until downPressCursorCount - 1) { updateLastActiveObjectHitTime(); tryHitActiveObjects(dt) }
+        }
 
         if (video != null && secPassed >= videoOffset) {
             if (!videoStarted) { video!!.texture.play(); video!!.texture.setPlaybackSpeed(timeMultiplier); videoStarted = true }
@@ -968,7 +1083,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
                 circle.setEndsCombo(objects!!.isEmpty() || nextObj.isNewCombo())
                 addObject(circle); isFirst = false
                 if (objects!!.isNotEmpty() && !nextObj.isNewCombo()) { val track = GameObjectPool.getInstance().getTrack(); val end = if (nextObj.getTime() > data.getTime()) data.getEnd() else data.pos; track.init(this, bgScene, end, nextObj.pos, nextObj.getTime() - secPassed, approachRate, scale) }
-                if (GameHelper.isAuto()) circle.setAutoPlay()
+                if (!isSpectating && GameHelper.isAuto()) circle.setAutoPlay()
                 circle.hitTime = data.getTime()
                 if (objects!!.isNotEmpty() && nextObj.getTime() > data.getTime()) currentComboNum++
                 circle.setId(++lastObjectId)
@@ -977,9 +1092,9 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
                 val endTime = params[5].toInt() / 1000.0f; val rps = 2 + 2 * overallDifficulty / 10f
                 val spinner = GameObjectPool.getInstance().getSpinner()
                 var tempSound: String? = null; if (params.size > 6) tempSound = params[6]
-                spinner.init(this, bgScene, (data.getTime() - secPassed) / timeMultiplier, (endTime - data.getTime()) / timeMultiplier, rps, data.sampleSet, tempSound, stat!!)
+                spinner.init(this, mgScene, (data.getTime() - secPassed) / timeMultiplier, (endTime - data.getTime()) / timeMultiplier, rps, data.sampleSet, tempSound, stat!!)
                 spinner.setEndsCombo(objects!!.isEmpty() || nextObj.isNewCombo()); addObject(spinner); isFirst = false
-                if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) spinner.setAutoPlay()
+                if (!isSpectating && (GameHelper.isAuto() || GameHelper.isAutopilotMod())) spinner.setAutoPlay()
                 spinner.setId(++lastObjectId)
                 if (replaying) spinner.setReplayData(replay!!.objectData!![spinner.getId()])
             } else if (objDefine and 2 > 0) {
@@ -1006,12 +1121,41 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
             dismissReplayOverlay(); scene = Scene(); SkinManager.setSkinEnabled(false)
             GameObjectPool.getInstance().purge(); SpritePool.getInstance().purge(); GameHelper.clearPools()
             passiveObjects.clear(); breakPeriods.clear(); cursorSprites = null
+
+            // Spectate: notify spectators that game ended
+            if (!replaying && !isSpectating && OnlineManager.getInstance().stayOnline) {
+                Execution.asyncIgnoreExceptions {
+                    SpectateAPI.sendSpectateEnd(OnlineManager.getInstance().userId)
+                }
+            }
+
+            // Spectate: cleanup when spectating ends
+            if (isSpectating) {
+                // Don't clean up listeners or exit — stay alive waiting for next state event
+                // SpectateScene handles restart via stateListener
+                return
+            }
+
             var rFile: String? = null; stat!!.setTime(System.currentTimeMillis())
             if (replay != null && !replaying) {
                 val ctime = System.currentTimeMillis().toString()
                 rFile = Config.getCorePath() + "Scores/" + MD5Calculator.getStringMD5(lastTrack!!.filename + ctime) + ctime.substring(0, minOf(3, ctime.length)) + ".odr"
                 replay!!.stat = stat; replay!!.save(rFile)
             }
+
+            // Spectate: notify spectators that map finished
+            if (!replaying && !isSpectating && OnlineManager.getInstance().stayOnline) {
+                Execution.asyncIgnoreExceptions {
+                    SpectateAPI.sendMapFinish(
+                        OnlineManager.getInstance().userId,
+                        stat?.totalScoreWithMultiplier ?: 0,
+                        stat?.getCombo() ?: 0,
+                        stat?.getAccuracy() ?: 0f,
+                        ""
+                    )
+                }
+            }
+
             if (GlobalManager.getInstance().camera is SmoothCamera) { val camera = GlobalManager.getInstance().camera as SmoothCamera; camera.setZoomFactorDirect(1f); if (Config.isShrinkPlayfieldDownwards()) camera.setCenterDirect(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f) }
             if (scoringScene != null) {
                 if (replaying) { ModMenu.getInstance().setMod(Replay.oldMod); ModMenu.getInstance().setChangeSpeed(Replay.oldChangeSpeed); ModMenu.getInstance().FLfollowDelay = Replay.oldFLFollowDelay; ModMenu.getInstance().setCustomAR(Replay.oldCustomAR); ModMenu.getInstance().setCustomOD(Replay.oldCustomOD); ModMenu.getInstance().setCustomCS(Replay.oldCustomCS); ModMenu.getInstance().setCustomHP(Replay.oldCustomHP) }
@@ -1048,6 +1192,13 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         ResourceManager.getInstance().getSound("menuhit").play()
         val difference = skipTime - 0.5f - secPassed; secPassed = skipTime - 0.5f
         val seekTime = Math.ceil(secPassed * 1000.0).toInt(); val videoSeekTime = seekTime - (videoOffset * 1000).toInt()
+
+        if (!replaying && !isSpectating && OnlineManager.getInstance().stayOnline) {
+            Execution.asyncIgnoreExceptions {
+                SpectateAPI.sendSpectateSkip(OnlineManager.getInstance().userId, seekTime)
+            }
+        }
+
         Execution.updateThread {
             updatePassiveObjects(difference)
             GlobalManager.getInstance().songService!!.seekTo(seekTime)
@@ -1072,6 +1223,22 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         if (storyboardSprite != null) { storyboardSprite!!.detachSelf(); storyboardOverlayProxy!!.detachSelf(); storyboardSprite!!.releaseStoryboard(); storyboardOverlayProxy!!.drawProxy = null; storyboardSprite = null }
         video?.let { it.release(); video = null; videoStarted = false }
         onExit()
+
+        if (!replaying && !isSpectating) {
+            com.reco1l.framework.lang.Execution.asyncIgnoreExceptions {
+                SocialAPI.updateStatus(OnlineManager.getInstance().userId, "online")
+            }
+        }
+        // Clean up spectate listeners
+        if (isSpectating) {
+            SpectateAPI.stopSpectating(spectateTargetId)
+            spectateDataListener?.let { com.reco1l.api.server.ServerAPI.off("spectate_data", it) }
+            spectateStateListener?.let { com.reco1l.api.server.ServerAPI.off("spectate_state", it) }
+            spectateDataListener = null
+            spectateStateListener = null
+            isSpectating = false
+            spectateBuffer.clear()
+        }
         if (GlobalManager.getInstance().camera is SmoothCamera) { val camera = GlobalManager.getInstance().camera as SmoothCamera; camera.setZoomFactorDirect(1f); if (Config.isShrinkPlayfieldDownwards()) camera.setCenterDirect(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f) }
         scene = Scene()
         if (Multiplayer.isMultiplayer) { RoomScene.show(); return }
@@ -1082,6 +1249,14 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
     private fun registerHit(objectId: Int, score: Int, endCombo: Boolean): String {
         val writeReplay = objectId != -1 && replay != null && !replaying
+
+        // Spectate: track hit results for streaming
+        if (!replaying && !isSpectating && objectId != -1 && OnlineManager.getInstance().stayOnline) {
+            synchronized(spectateHitsSinceLastSend) {
+                spectateHitsSinceLastSend.add(Pair(objectId, score))
+            }
+        }
+
         if (score == 0) {
             if (stat!!.getCombo() > 30) ResourceManager.getInstance().getCustomSound("combobreak", 1)?.play()
             comboWasMissed = true; stat!!.registerHit(0, false, false)
@@ -1120,15 +1295,41 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     override fun onSliderHit(id: Int, score: Int, start: PointF?, end: PointF?, endCombo: Boolean, color: RGBColor, type: Int) {
         if (GameHelper.isFlashLight() && !GameHelper.isAuto() && !GameHelper.isAutopilotMod()) { val nId = getNearestCursorId(end!!.x, end.y); if (nId >= 0) { mainCursorId = nId; flashlightSprite!!.onMouseMove(cursors[mainCursorId]!!.mousePos.x, cursors[mainCursorId]!!.mousePos.y) } }
         if (score == 0) { createHitEffect(start!!, "hit0", color); createHitEffect(end!!, "hit0", color); registerHit(id, 0, endCombo); return }
-        if (score == -1) { if (stat!!.getCombo() > 30) ResourceManager.getInstance().getCustomSound("combobreak", 1)?.play(); if (GameHelper.isSuddenDeath()) { stat!!.changeHp(-1.0f); gameover() }; stat!!.registerHit(0, true, false); return }
+        if (score == -1) {
+            if (stat!!.getCombo() > 30) ResourceManager.getInstance().getCustomSound("combobreak", 1)?.play()
+            if (GameHelper.isSuddenDeath()) { stat!!.changeHp(-1.0f); gameover() }
+            stat!!.registerHit(0, true, false)
+            if (!replaying && !isSpectating && OnlineManager.getInstance().stayOnline) {
+                synchronized(spectateHitsSinceLastSend) { spectateHitsSinceLastSend.add(Pair(id, -1)) }
+            }
+            return
+        }
+
+        // Always send slider hits to spectators (ticks, ends, everything)
+        if (!replaying && !isSpectating && OnlineManager.getInstance().stayOnline) {
+            synchronized(spectateHitsSinceLastSend) { spectateHitsSinceLastSend.add(Pair(id, score)) }
+        }
+
         var scoreName = "hit0"
-        when (score) { 300 -> scoreName = registerHit(id, 300, endCombo); 100 -> { scoreName = registerHit(id, 100, endCombo); stat!!.setPerfect(false) }; 50 -> { scoreName = registerHit(id, 50, endCombo); stat!!.setPerfect(false) }; 30 -> { scoreName = "sliderpoint30"; stat!!.registerHit(30, false, false) }; 10 -> { scoreName = "sliderpoint10"; stat!!.registerHit(10, false, false) } }
+        when (score) {
+            300 -> scoreName = registerHit(id, 300, endCombo)
+            100 -> { scoreName = registerHit(id, 100, endCombo); stat!!.setPerfect(false) }
+            50 -> { scoreName = registerHit(id, 50, endCombo); stat!!.setPerfect(false) }
+            30 -> { scoreName = "sliderpoint30"; stat!!.registerHit(30, false, false) }
+            10 -> { scoreName = "sliderpoint10"; stat!!.registerHit(10, false, false) }
+        }
         if (score > 10) when (type) { GameObjectListener.SLIDER_START -> createBurstEffectSliderStart(end!!, color); GameObjectListener.SLIDER_END -> createBurstEffectSliderEnd(end!!, color); GameObjectListener.SLIDER_REPEAT -> {}; else -> createBurstEffect(end!!, color) }
         createHitEffect(end!!, scoreName, color)
     }
 
     override fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int) {
-        if (score == 1000) { stat!!.registerHit(score, false, false); return }
+        if (score == 1000) {
+            stat!!.registerHit(score, false, false)
+            if (!replaying && !isSpectating && OnlineManager.getInstance().stayOnline) {
+                synchronized(spectateHitsSinceLastSend) { spectateHitsSinceLastSend.add(Pair(id, 1000)) }
+            }
+            return
+        }
         if (replay != null && !replaying) { var acc = (totalScore * 4).toInt().toShort(); when (score) { 300 -> acc = (acc.toInt() + 3).toShort(); 100 -> acc = (acc.toInt() + 2).toShort(); 50 -> acc = (acc.toInt() + 1).toShort() }; replay!!.addObjectResult(id, acc, BitSet()) }
         spinnerCenter.set(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f)
         val pos = spinnerCenter
@@ -1172,10 +1373,10 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     override fun removeObject(obj: GameObject) { expiredObjects.add(obj) }
 
     override fun registerAccuracy(acc: Double) { hitErrorMeter?.putErrorResult(acc.toFloat()); avgOffset += acc.toFloat(); offsetRegs++; stat!!.addHitOffset(acc); if (replaying) scoringScene!!.getReplayStat()?.addHitOffset(acc) }
-    override fun onSliderEnd(id: Int, accuracy: Int, tickSet: BitSet) { onTrackingSliders(false); if (GameHelper.isAuto()) autoCursor!!.onSliderEnd(); if (replay != null && !replaying) replay!!.addObjectResult(id, accuracy.toShort(), tickSet.clone() as BitSet) }
-    override fun onTrackingSliders(isTrackingSliders: Boolean) { if (GameHelper.isAuto()) autoCursor!!.onSliderTracking(); if (GameHelper.isFlashLight()) flashlightSprite!!.onTrackingSliders(isTrackingSliders) }
+    override fun onSliderEnd(id: Int, accuracy: Int, tickSet: BitSet) { onTrackingSliders(false); if (GameHelper.isAuto()) autoCursor?.onSliderEnd(); if (replay != null && !replaying) replay!!.addObjectResult(id, accuracy.toShort(), tickSet.clone() as BitSet) }
+    override fun onTrackingSliders(isTrackingSliders: Boolean) { if (GameHelper.isAuto()) autoCursor?.onSliderTracking(); if (GameHelper.isFlashLight()) flashlightSprite!!.onTrackingSliders(isTrackingSliders) }
     override fun onUpdatedAutoCursor(pX: Float, pY: Float) { if (GameHelper.isFlashLight()) flashlightSprite!!.onMouseMove(pX, pY) }
-    override fun updateAutoBasedPos(pX: Float, pY: Float) { if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) autoCursor!!.setPosition(pX, pY, this) }
+    override fun updateAutoBasedPos(pX: Float, pY: Float) { if (GameHelper.isAuto() || GameHelper.isAutopilotMod()) autoCursor?.setPosition(pX, pY, this) }
     override fun getCursorsCount(): Int = getCursorCount()
     override fun addPassiveObject(obj: GameObject) { passiveObjects.add(obj) }
     override fun removePassiveObject(obj: GameObject) { expiredObjects.add(obj) }
@@ -1191,7 +1392,7 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     }
 
     override fun onSceneTouchEvent(pScene: Scene, event: TouchEvent): Boolean {
-        if (replaying) return false
+        if (replaying || isSpectating) return false
         val id = event.pointerID; if (id < 0 || id >= getCursorCount()) return false
         val cursor = cursors[id]!!
         val sprite = if (!GameHelper.isAuto() && !GameHelper.isAutopilotMod() && cursorSprites != null) cursorSprites!![id] else null
@@ -1304,10 +1505,18 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
     fun pause() {
         if (paused) return
+        if (isSpectating) return  // Spectator cannot manually pause
         if (System.currentTimeMillis() - lastPauseTime < 10000) return
         if (Multiplayer.isMultiplayer) { if (lastBackPressTime > 0 && realTimeElapsed - lastBackPressTime > 300) { if (Multiplayer.isConnected)                 Execution.asyncIgnoreExceptions { RoomAPI.submitFinalScore(stat!!.toJson()) }; Multiplayer.log("Player left the match."); quit(); return }; lastBackPressTime = realTimeElapsed.toFloat(); ToastLogger.showText("Tap twice to exit to room.", false); return }
         if (!replaying) EdExtensionHelper.onPauseGame(lastTrack)
         video?.texture?.pause()
+
+        if (!replaying && !isSpectating && OnlineManager.getInstance().stayOnline) {
+            Execution.asyncIgnoreExceptions {
+                SpectateAPI.sendMapPause(OnlineManager.getInstance().userId, (secPassed * 1000).toInt())
+            }
+        }
+
         if (!GameHelper.isAuto() && !GameHelper.isAutopilotMod() && !replaying) {
             val frameOffset = if (previousFrameTime > 0) (SystemClock.uptimeMillis() - previousFrameTime) * timeMultiplier else 0f
             val time = (secPassed * 1000 + frameOffset).toInt()
@@ -1322,6 +1531,13 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         if (Multiplayer.isMultiplayer) { if (Multiplayer.isConnected) { Multiplayer.log("Player has lost, moving to room scene.");                 Execution.asyncIgnoreExceptions { RoomAPI.submitFinalScore(stat!!.toJson()) } }; quit(); return }
         if (!replaying) EdExtensionHelper.onGameover(lastTrack)
         dismissReplayOverlay(); scorebar?.flush(); ResourceManager.getInstance().getSound("failsound").play()
+
+        if (!replaying && !isSpectating && OnlineManager.getInstance().stayOnline) {
+            Execution.asyncIgnoreExceptions {
+                SpectateAPI.sendSpectateDeath(OnlineManager.getInstance().userId)
+            }
+        }
+
         val menu = PauseMenu(engine, this, true); gameStarted = false
         video?.texture?.pause()
         if (GlobalManager.getInstance().songService?.status == Status.PLAYING) GlobalManager.getInstance().songService!!.pause()
@@ -1332,6 +1548,13 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         if (!paused) return
         scene.childScene.back(); paused = false
         lastPauseTime = System.currentTimeMillis()
+
+        if (!replaying && !isSpectating && OnlineManager.getInstance().stayOnline) {
+            Execution.asyncIgnoreExceptions {
+                SpectateAPI.sendSpectateResume(OnlineManager.getInstance().userId)
+            }
+        }
+
         if (stat!!.hp <= 0 && !stat!!.mod.contains(GameMod.MOD_NOFAIL) && !stat!!.mod.contains(GameMod.MOD_RELAX) && !stat!!.mod.contains(GameMod.MOD_AUTOPILOT)) { quit(); return }
         if (!replaying) EdExtensionHelper.onResume(lastTrack)
         if (video != null && videoStarted) video!!.texture.play()
@@ -1344,6 +1567,159 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     }
 
     fun isPaused(): Boolean = paused
+
+    /**
+     * Called when the host pauses while we're spectating.
+     * Pauses music without showing the pause menu.
+     */
+    fun spectatePause() {
+        if (paused) return
+        video?.texture?.pause()
+        if (GlobalManager.getInstance().songService?.status == Status.PLAYING) {
+            GlobalManager.getInstance().songService!!.pause()
+        }
+        paused = true
+    }
+
+    fun spectateResume() {
+        if (!paused) return
+        if (video != null && videoStarted) video!!.texture.play()
+        if (GlobalManager.getInstance().songService?.status != Status.PLAYING && secPassed > 0) {
+            GlobalManager.getInstance().songService!!.play()
+            GlobalManager.getInstance().songService!!.setVolume(Config.getBgmVolume())
+            totalLength = GlobalManager.getInstance().songService!!.length
+        }
+        paused = false
+    }
+
+    fun registerSpectateListeners() {
+        if (spectateDataListener != null) return  // Already registered
+
+        spectateStateListener = io.socket.emitter.Emitter.Listener { args ->
+            val data = args.getOrNull(0) as? org.json.JSONObject ?: return@Listener
+            spectateBuffer.clear()
+        }
+        spectateDataListener = io.socket.emitter.Emitter.Listener { args ->
+            val data = args.getOrNull(0) as? org.json.JSONObject ?: return@Listener
+            try {
+                val packet = SpectatePacket.fromJson(data)
+                spectateBuffer.addPacket(packet)
+
+                // Apply hits on game thread for safety
+                if (packet.hits.isNotEmpty()) {
+                    engine.runOnUpdateThread {
+                        for (hit in packet.hits) {
+                            val obj = activeObjects.firstOrNull { it.getId() == hit.objectId } ?: continue
+                            val pos = PointF(obj.getPos().x, obj.getPos().y)
+                            val color = getComboColor(currentComboNum)
+
+                            // Mark sliders/spinners as started so they animate
+                            if (obj is Slider || obj is Spinner) {
+                                obj.setStartHit(true)
+                            }
+
+                            when (hit.result) {
+                                // Miss
+                                0 -> {
+                                    if (stat!!.getCombo() > 30) ResourceManager.getInstance().getCustomSound("combobreak", 1)?.play()
+                                    stat!!.registerHit(0, false, false)
+                                    createHitEffect(pos, "hit0", color)
+                                    // Only consume circles, not sliders/spinners
+                                    if (obj !is Slider && obj !is Spinner) expiredObjects.add(obj)
+                                }
+                                // Slider tick small
+                                10 -> {
+                                    stat!!.registerHit(10, false, false)
+                                    createHitEffect(pos, "sliderpoint10", color)
+                                }
+                                // Slider tick big
+                                30 -> {
+                                    stat!!.registerHit(30, false, false)
+                                    createHitEffect(pos, "sliderpoint30", color)
+                                }
+                                // 50
+                                50 -> {
+                                    stat!!.registerHit(50, false, false)
+                                    createHitEffect(pos, "hit50", color)
+                                    createBurstEffect(pos, color)
+                                    if (obj !is Slider && obj !is Spinner) expiredObjects.add(obj)
+                                }
+                                // 100
+                                100 -> {
+                                    stat!!.registerHit(100, false, false)
+                                    createHitEffect(pos, "hit100", color)
+                                    createBurstEffect(pos, color)
+                                    if (obj !is Slider && obj !is Spinner) expiredObjects.add(obj)
+                                }
+                                // 300
+                                300 -> {
+                                    stat!!.registerHit(300, false, false)
+                                    createHitEffect(pos, "hit300", color)
+                                    createBurstEffect(pos, color)
+                                    if (obj !is Slider && obj !is Spinner) expiredObjects.add(obj)
+                                }
+                                // Slider break / miss during slider
+                                -1 -> {
+                                    if (stat!!.getCombo() > 30) ResourceManager.getInstance().getCustomSound("combobreak", 1)?.play()
+                                    stat!!.registerHit(0, true, false)
+                                }
+                                // Spinner bonus
+                                1000 -> {
+                                    stat!!.registerHit(1000, false, false)
+                                    createHitEffect(pos, "hit300", color)
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+
+        com.reco1l.api.server.ServerAPI.on("spectate_data", spectateDataListener!!)
+        com.reco1l.api.server.ServerAPI.on("spectate_state", spectateStateListener!!)
+    }
+
+    fun spectateSkip(hostTimeMs: Int = 0) {
+        val targetSec = if (hostTimeMs > 0) hostTimeMs / 1000f else skipTime - 0.5f
+        if (GlobalManager.getInstance().songService!!.status != Status.PLAYING) {
+            GlobalManager.getInstance().songService!!.play()
+            GlobalManager.getInstance().songService!!.setVolume(Config.getBgmVolume())
+            totalLength = GlobalManager.getInstance().songService!!.length
+            musicStarted = true; musicReady = false
+        }
+        val difference = targetSec - secPassed; secPassed = targetSec
+        val seekTime = Math.ceil(secPassed * 1000.0).toInt()
+        val videoSeekTime = seekTime - (videoOffset * 1000).toInt()
+        Execution.updateThread {
+            updatePassiveObjects(difference)
+            GlobalManager.getInstance().songService!!.seekTo(seekTime)
+            video?.texture?.seekTo(videoSeekTime)
+        }
+    }
+
+    /**
+     * Stop the game but keep the spectating session alive.
+     * Used when the host dies — spectator waits for next state event.
+     */
+    fun spectateStop() {
+        dismissReplayOverlay()
+        video?.let { it.release(); video = null; videoStarted = false }
+
+        if (GlobalManager.getInstance().songService?.status == Status.PLAYING) {
+            GlobalManager.getInstance().songService!!.pause()
+        }
+        paused = true
+        gameStarted = false
+
+        scene = Scene()
+        GameObjectPool.getInstance().purge()
+        SpritePool.getInstance().purge()
+        GameHelper.clearPools()
+        passiveObjects.clear()
+        breakPeriods.clear()
+        cursorSprites = null
+        spectateBuffer.clear()
+    }
 
     private fun createHitEffect(pos: PointF, name: String, color: RGBColor) {
         val effect = GameObjectPool.getInstance().getEffect(name)

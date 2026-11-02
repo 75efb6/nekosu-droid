@@ -66,7 +66,43 @@
                     android:layout_marginBottom="10dp"
                     android:background="@drawable/btn_accent"
                     android:gravity="center"
-                    android:text="Visit profile"
+                    android:text="View profile"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/room_send_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/btn_accent"
+                    android:gravity="center"
+                    android:text="Send message"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/room_spectate"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/btn_accent"
+                    android:gravity="center"
+                    android:text="Spectate"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/room_add_friend"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/btn_accent"
+                    android:gravity="center"
+                    android:text="Add friend"
                     android:textColor="@color/textPrimary"
                     android:textSize="14sp"
                     android:textStyle="bold"/>
@@ -98,6 +134,18 @@
                     android:background="@drawable/btn_accent"
                     android:gravity="center"
                     android:text="Make room host"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/room_block"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/btn_danger"
+                    android:gravity="center"
+                    android:text="Block user"
                     android:textColor="@color/textPrimary"
                     android:textSize="14sp"
                     android:textStyle="bold"/>
