@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
  */
 object ServerAPI {
 
-    const val HOST = "http://172.24.196.187:3000"
+    const val HOST = "http://10.0.0.103:3000"
     private const val RESPONSE_TIMEOUT = 10L
 
     private var socket: Socket? = null

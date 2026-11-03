@@ -73,6 +73,9 @@
             android:title="@string/opt_largeimages_title" android:key="images" android:defaultValue="false"/>
         <CheckBoxPreference android:summary="@string/opt_fps_summary" android:title="@string/opt_fps_title"
             android:key="fps" android:defaultValue="true"/>
+        <ListPreference android:entries="@array/frame_limiter_names" android:entryValues="@array/frame_limiter_values"
+            android:key="frameLimiter" android:title="@string/opt_frame_limiter_title"
+            android:summary="@string/opt_frame_limiter_summary" android:defaultValue="vsync"/>
         <CheckBoxPreference android:key="complexanimations" android:defaultValue="true"
             android:title="@string/opt_complexanimations_title"
             android:summary="@string/opt_complexanimations_summary"/>

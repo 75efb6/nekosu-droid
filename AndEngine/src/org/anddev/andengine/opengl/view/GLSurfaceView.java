@@ -24,7 +24,9 @@ import javax.microedition.khronos.opengles.GL;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.content.Context;
+import android.opengl.EGL14;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -198,6 +200,8 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
 	private boolean mHasSurface;
+	private volatile int mSwapInterval = 1;
+	private volatile long mFramePeriodNanos = 0;
 
 	// ===========================================================
 	// Constructors
@@ -273,6 +277,20 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
 	 */
 	public int getDebugFlags() {
 		return this.mDebugFlags;
+	}
+
+	/**
+	 * Configures frame pacing for this view.
+	 *
+	 * @param swapInterval EGL swap interval. 1 keeps the BufferQueue in sync mode (VSync,
+	 * queue stuffing), 0 puts it into async mode so frames can be submitted faster than
+	 * the display refresh rate.
+	 * @param framePeriodNanos minimum time between frames in nanoseconds, or 0 to disable
+	 * sleep-based pacing entirely.
+	 */
+	public void setFrameLimiter(final int swapInterval, final long framePeriodNanos) {
+		this.mSwapInterval = swapInterval;
+		this.mFramePeriodNanos = framePeriodNanos;
 	}
 
 	/**
@@ -561,6 +579,8 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
 			GL10 gl = null;
 			boolean tellRendererSurfaceCreated = true;
 			boolean tellRendererSurfaceChanged = true;
+			int appliedSwapInterval = -1;
+			long nextFrameTime = 0;
 
 			/*
 			 * This is our main activity thread'MAGIC_CONSTANT loop, we go until asked to
@@ -603,6 +623,7 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
 				if(changed) {
 					gl = (GL10) this.mEglHelper.createSurface(GLSurfaceView.this.getHolder());
 					tellRendererSurfaceChanged = true;
+					appliedSwapInterval = -1;
 				}
 				if(tellRendererSurfaceCreated) {
 					this.mRenderer.onSurfaceCreated(gl, this.mEglHelper.mEglConfig);
@@ -613,6 +634,12 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
 					tellRendererSurfaceChanged = false;
 				}
 				if((w > 0) && (h > 0)) {
+					final int swapInterval = GLSurfaceView.this.mSwapInterval;
+					if(swapInterval != appliedSwapInterval) {
+						this.mEglHelper.setSwapInterval(swapInterval);
+						appliedSwapInterval = swapInterval;
+					}
+
 					/* draw a frame here */
 					this.mRenderer.onDrawFrame(gl);
 
@@ -621,6 +648,27 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
 					 * instruct the system to display the rendered frame
 					 */
 					this.mEglHelper.swap();
+
+					final long framePeriodNanos = GLSurfaceView.this.mFramePeriodNanos;
+					if(framePeriodNanos > 0) {
+						final long now = System.nanoTime();
+						if(nextFrameTime == 0) {
+							nextFrameTime = now;
+						}
+						nextFrameTime += framePeriodNanos;
+						final long sleepNanos = nextFrameTime - now;
+						if(sleepNanos > 0) {
+							Thread.sleep(sleepNanos / 1000000L, (int) (sleepNanos % 1000000L));
+						} else if(-sleepNanos > framePeriodNanos) {
+							/*
+							 * Fell more than a full period behind (heavy hitch or resume
+							 * from pause): resync the deadline instead of bursting frames.
+							 */
+							nextFrameTime = now;
+						}
+					} else {
+						nextFrameTime = 0;
+					}
 				}
 			}
 
@@ -856,6 +904,25 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
 			 * went to sleep). We need to sleep until we get a new surface.
 			 */
 			return this.mEgl.eglGetError() != EGL11.EGL_CONTEXT_LOST;
+		}
+
+		/**
+		 * Sets the EGL swap interval for the surface bound to the current context.
+		 * Must be called on the GL thread with a current context.
+		 *
+		 * Uses EGL14 because Android's EGL10 binding does not expose eglSwapInterval;
+		 * both bindings talk to the same libEGL, so the interval applies to the
+		 * EGL10-created context that is current on this thread.
+		 */
+		public void setSwapInterval(final int interval) {
+			final android.opengl.EGLDisplay display = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
+			if(display == null || display == EGL14.EGL_NO_DISPLAY) {
+				Log.w("GLSurfaceView", "eglSwapInterval: failed to get EGL14 display");
+				return;
+			}
+			if(!EGL14.eglSwapInterval(display, interval)) {
+				Log.w("GLSurfaceView", "eglSwapInterval(" + interval + ") failed: 0x" + Integer.toHexString(EGL14.eglGetError()));
+			}
 		}
 
 		public void finish() {

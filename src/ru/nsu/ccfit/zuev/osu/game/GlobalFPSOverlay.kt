@@ -15,7 +15,7 @@ class GlobalFPSOverlay : HUD() {
     private val fpsText: ChangeableText
     private val background: Rectangle
     private val sb = StringBuilder(32)
-    private var cachedFrameLimit = 60
+    private var cachedRefreshRate = 0
 
     init {
         val font: Font = ResourceManager.getInstance().getFont("smallFont")
@@ -32,13 +32,23 @@ class GlobalFPSOverlay : HUD() {
             override fun onUpdate(pSecondsElapsed: Float) {
                 super.onUpdate(pSecondsElapsed)
 
-                if (cachedFrameLimit == 60) {
+                if (cachedRefreshRate == 0) {
                     val activity = GlobalManager.getInstance().getMainActivity()
                     if (activity != null) {
-                        cachedFrameLimit = Math.round(activity.getRefreshRate())
+                        val rate = Math.round(activity.getRefreshRate())
+                        if (rate > 0) cachedRefreshRate = rate
                     }
                 }
-                val frameLimit = cachedFrameLimit
+                val refreshRate = if (cachedRefreshRate > 0) cachedRefreshRate else 60
+                val mode = Config.getFrameLimiter()
+                val multiplier = when (mode) {
+                    "2x" -> 2
+                    "4x" -> 4
+                    "8x" -> 8
+                    else -> 1
+                }
+                val unlimited = mode == "unlimited"
+                val frameLimit = if (unlimited) Int.MAX_VALUE else refreshRate * multiplier
                 val currentFps = minOf(Math.round(this.getFPS()), frameLimit)
                 val frameTime = if (this.mFrames > 0) (this.mSecondsElapsed / this.mFrames) * 1000f else 0f
 
@@ -46,7 +56,8 @@ class GlobalFPSOverlay : HUD() {
                 sb.append(currentFps).append(" FPS (").append(frameTime.toInt()).append(" ms)")
                 fpsText.setText(sb.toString())
 
-                val ratio = currentFps.toFloat() / frameLimit
+                val colorTarget = if (unlimited) refreshRate else frameLimit
+                val ratio = currentFps.toFloat() / colorTarget
                 when {
                     ratio >= 0.8f -> fpsText.setColor(0f, 1f, 0f)
                     ratio >= 0.65f -> fpsText.setColor(1f, 1f, 0f)

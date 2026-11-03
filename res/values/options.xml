@@ -155,6 +155,34 @@
     <string name="opt_fps_title">FPS</string>
     <string name="opt_fps_summary">Display (frames per second) during gameplay</string>
 
+    <string name="opt_frame_limiter_title">Frame limiter</string>
+    <string name="opt_frame_limiter_summary">Choose how the frame rate is capped</string>
+
+    <string-array name="frame_limiter_names">
+        <item>VSync</item>
+        <item>VSync (low latency)</item>
+        <item>2x refresh rate</item>
+        <item>4x refresh rate</item>
+        <item>8x refresh rate</item>
+        <item>Unlimited</item>
+    </string-array>
+    <string-array name="frame_limiter_values">
+        <item>vsync</item>
+        <item>vsync_low_latency</item>
+        <item>2x</item>
+        <item>4x</item>
+        <item>8x</item>
+        <item>unlimited</item>
+    </string-array>
+    <string-array name="frame_limiter_descriptions">
+        <item>Capped to the display refresh rate. Handles heavy beatmaps best on weaker devices.</item>
+        <item>More responsive than VSync with a similar power draw. Recommended for most players. May drop frames on weaker devices or very heavy beatmaps — switch back to VSync if that happens.</item>
+        <item>Even lower visual latency, but needs significantly more processing power: more battery drain and heat. Cursor movement may look slightly less smooth than with VSync (low latency).</item>
+        <item>Not recommended. The latency gain is too small for the much higher processing power it needs.</item>
+        <item>Not recommended. The latency gain is too small for the much higher processing power it needs.</item>
+        <item>Not recommended. The latency gain is too small for the much higher processing power it needs.</item>
+    </string-array>
+
     <!-- <string name="opt_skipoffset_title">Skip offset</string>
     <string name="opt_skipoffset_summary">This offset will be added when you press the &quot;Skip&quot; button. Enter -1 for auto offset</string> -->
 

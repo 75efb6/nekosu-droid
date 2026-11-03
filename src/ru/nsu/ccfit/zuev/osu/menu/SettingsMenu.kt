@@ -204,6 +204,21 @@ class SettingsMenu : SettingsFragment() {
             }
             true
         }
+        val frameLimiter = findPreference<ListPreference>("frameLimiter")
+        frameLimiter?.let { pref ->
+            val descriptions = resources.getStringArray(R.array.frame_limiter_descriptions)
+            fun summaryFor(value: String): CharSequence? {
+                val index = pref.entryValues.indexOf(value)
+                return if (index >= 0) descriptions[index] else getString(R.string.opt_frame_limiter_summary)
+            }
+            pref.summary = summaryFor(pref.value)
+            pref.setOnPreferenceChangeListener { _, newValue ->
+                val mode = newValue.toString()
+                pref.summary = summaryFor(mode)
+                (mActivity as? MainActivity)?.applyFrameLimiter(mode)
+                true
+            }
+        }
         val discordLogin = findPreference<Preference>("discordLogin")
         discordLogin?.summary = if (DiscordRPC.isConnected) getString(R.string.opt_discord_login_summary_logged) else getString(R.string.opt_discord_login_summary_not_logged)
         discordLogin?.setOnPreferenceClickListener {

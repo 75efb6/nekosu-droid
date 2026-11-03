@@ -351,6 +351,7 @@ class MainActivity : BaseGameActivity(), IAccelerometerListener {
             mRenderSurfaceView.setEGLConfigChooser(true)
         }
         mRenderSurfaceView.setRenderer(mEngine)
+        applyFrameLimiter()
 
         val layout = RelativeLayout(this)
         layout.setBackgroundColor(Color.argb(255, 0, 0, 0))
@@ -579,6 +580,7 @@ class MainActivity : BaseGameActivity(), IAccelerometerListener {
             return
         }
         activityVisible = true
+        applyFrameLimiter(null)
         if (GlobalManager.getInstance().engine != null && GlobalManager.getInstance().gameScene != null
             && GlobalManager.getInstance().engine?.scene == GlobalManager.getInstance().gameScene?.scene
         ) {
@@ -879,6 +881,31 @@ class MainActivity : BaseGameActivity(), IAccelerometerListener {
         return (getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager)
             .defaultDisplay
             .refreshRate
+    }
+
+    /**
+     * Pushes the configured frame limiter mode to the render surface.
+     *
+     * @param mode frame limiter key, or null to read it from [Config].
+     */
+    fun applyFrameLimiter(mode: String? = null) {
+        val view = mRenderSurfaceView ?: return
+        val limiter = mode ?: Config.getFrameLimiter()
+        val refreshRate = getRefreshRate().takeIf { it > 0 } ?: 60f
+
+        val (swapInterval, periodNanos) = when (limiter) {
+            // Queue stuffing paced by VSync; the buffer queue absorbs hitches.
+            "vsync" -> 1 to 0L
+            // Same cap as VSync, but sleep-paced so the queue stays shallow (~1 frame of latency).
+            "vsync_low_latency" -> 1 to (1_000_000_000.0 / refreshRate).toLong()
+            // Swap interval 0 puts the BufferQueue in async mode so we can exceed the refresh rate.
+            "2x" -> 0 to (1_000_000_000.0 / (refreshRate * 2)).toLong()
+            "4x" -> 0 to (1_000_000_000.0 / (refreshRate * 4)).toLong()
+            "8x" -> 0 to (1_000_000_000.0 / (refreshRate * 8)).toLong()
+            else -> 0 to 0L
+        }
+
+        view.setFrameLimiter(swapInterval, periodNanos)
     }
 
     private fun checkPermissions(): Boolean {

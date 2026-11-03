@@ -75,6 +75,7 @@ object Config {
     private var keepBackgroundAspectRatio = false
     private var noChangeDimInBreaks = false
     private var discordRichPresence = false
+    private var frameLimiter = "vsync"
 
     private var RES_WIDTH = 0
     private var RES_HEIGHT = 0
@@ -107,6 +108,7 @@ object Config {
         comboburst = prefs.getBoolean("comboburst", false)
         corovans = prefs.getBoolean("images", false)
         showFPS = prefs.getBoolean("fps", false)
+        frameLimiter = prefs.getString("frameLimiter", "vsync") ?: "vsync"
         errorMeter = (prefs.getString("errormeter", "0") ?: "0").toInt()
         showFirstApproachCircle = prefs.getBoolean("showfirstapproachcircle", false)
         metronomeSwitch = (prefs.getString("metronomeswitch", "1") ?: "1").toInt()
@@ -280,6 +282,9 @@ object Config {
 
     @JvmStatic
     fun isShowFPS(): Boolean = showFPS
+
+    @JvmStatic
+    fun getFrameLimiter(): String = frameLimiter
 
     @JvmStatic
     fun setShowFPS(showFPS: Boolean) {
