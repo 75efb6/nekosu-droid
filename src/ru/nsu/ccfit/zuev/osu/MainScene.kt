@@ -763,6 +763,7 @@ class MainScene : IUpdateHandler {
                 val windowSize = 240
                 val spectrumWidth = 120
                 val fft = GlobalManager.getInstance().songService?.spectrum ?: return
+                if (fft.isEmpty()) return
                 var leftBound = 0
                 for (i in 0 until spectrumWidth) {
                     var peak = 0f

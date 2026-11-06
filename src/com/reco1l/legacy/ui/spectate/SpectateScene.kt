@@ -111,7 +111,7 @@ class SpectateScene : BaseFragment() {
         activity?.runOnUiThread {
             val gameScene = GlobalManager.getInstance().gameScene
             if (gameScene != null && gameScene.isSpectating) {
-                gameScene.spectateSkip()
+                gameScene.spectateSkip(data.optInt("timeMs", 0))
             }
         }
     }

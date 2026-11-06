@@ -196,6 +196,13 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
     // Spectate: spectator side (receiving)
     var isSpectating = false
     var spectateTargetId = 0L
+
+    // Spectate: time sync — estimates network latency between host and spectator
+    // so cursor data is looked up at (localTime - latency) instead of localTime.
+    @Volatile private var spectateLastHostTimeMs = -1
+    private var spectateLastCorrectMs = 0L
+    private var spectateLatencyMs = 0f
+    private var spectateLatencyInitialized = false
     private val spectateBuffer = SpectateBuffer()
     private var spectateStateApplied = false
     private var spectateCursorSprites: Array<SpectateCursorSprite?> = arrayOfNulls(3)
@@ -901,8 +908,28 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
 
         // Spectate: receive and apply remote cursor data
         if (isSpectating && !spectateBuffer.isEmpty()) {
-            val timeMs = (secPassed * 1000).toInt()
-            val packet = spectateBuffer.getPacketAt(timeMs)
+            // Keep our local timeline (objects + audio) aligned with the host's
+            // freshest data. Without this, our objects render at local audio time
+            // while cursor/hit data only exists up to (local time - network
+            // latency), so the cursor trails the objects by the latency amount.
+            if (spectateLastHostTimeMs >= 0 && !paused && musicReady) {
+                val errorSec = spectateLastHostTimeMs / 1000f - secPassed
+                val now = android.os.SystemClock.elapsedRealtime()
+                if ((errorSec > 0.12f || errorSec < -0.12f) && now - spectateLastCorrectMs > 1000) {
+                    spectateLastCorrectMs = now
+                    // Bound the jump so we don't flood-spawn objects on large catches
+                    val targetSec = secPassed + errorSec.coerceIn(-1.0f, 1.0f)
+                    secPassed = targetSec
+                    val seekMs = (targetSec * 1000).toInt()
+                    Execution.updateThread {
+                        GlobalManager.getInstance().songService?.seekTo(seekMs)
+                    }
+                }
+            }
+
+            // Render the freshest host state we have received
+            val lookupTime = if (spectateLastHostTimeMs >= 0) spectateLastHostTimeMs else (secPassed * 1000).toInt()
+            val packet = spectateBuffer.getPacketAt(lookupTime)
             if (packet != null) {
                 // Apply cursor positions
                 for (i in 0 until minOf(3, packet.cursors.size)) {
@@ -1238,6 +1265,9 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
             spectateStateListener = null
             isSpectating = false
             spectateBuffer.clear()
+            spectateLastHostTimeMs = -1
+            spectateLatencyMs = 0f
+            spectateLatencyInitialized = false
         }
         if (GlobalManager.getInstance().camera is SmoothCamera) { val camera = GlobalManager.getInstance().camera as SmoothCamera; camera.setZoomFactorDirect(1f); if (Config.isShrinkPlayfieldDownwards()) camera.setCenterDirect(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f) }
         scene = Scene()
@@ -1598,12 +1628,16 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         spectateStateListener = io.socket.emitter.Emitter.Listener { args ->
             val data = args.getOrNull(0) as? org.json.JSONObject ?: return@Listener
             spectateBuffer.clear()
+            spectateLastHostTimeMs = -1
+            spectateLatencyMs = 0f
+            spectateLatencyInitialized = false
         }
         spectateDataListener = io.socket.emitter.Emitter.Listener { args ->
             val data = args.getOrNull(0) as? org.json.JSONObject ?: return@Listener
             try {
                 val packet = SpectatePacket.fromJson(data)
                 spectateBuffer.addPacket(packet)
+                spectateLastHostTimeMs = packet.time
 
                 // Apply hits on game thread for safety
                 if (packet.hits.isNotEmpty()) {
@@ -1687,6 +1721,10 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
             totalLength = GlobalManager.getInstance().songService!!.length
             musicStarted = true; musicReady = false
         }
+        // Invalidate the time sync so the correction code doesn't drag us
+        // back to the pre-skip host timestamp before fresh packets arrive.
+        spectateLastHostTimeMs = -1
+        spectateLastCorrectMs = 0
         val difference = targetSec - secPassed; secPassed = targetSec
         val seekTime = Math.ceil(secPassed * 1000.0).toInt()
         val videoSeekTime = seekTime - (videoOffset * 1000).toInt()
@@ -1719,6 +1757,9 @@ class GameScene(private val engine: Engine) : IUpdateHandler, GameObjectListener
         breakPeriods.clear()
         cursorSprites = null
         spectateBuffer.clear()
+        spectateLastHostTimeMs = -1
+        spectateLatencyMs = 0f
+        spectateLatencyInitialized = false
     }
 
     private fun createHitEffect(pos: PointF, name: String, color: RGBColor) {
